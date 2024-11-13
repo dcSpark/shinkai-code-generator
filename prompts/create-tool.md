@@ -354,7 +354,7 @@ export async function networkEcho(message: string): Promise<{}>;
 export async function youtubeTranscriptWithTimestamps(url: string): Promise<{}>;
 ```
 
-#RULE II:
+# RULE II:
 
 - To implement the task you can update the CONFIG, INPUTS and OUTPUT types to
   match the run function type:

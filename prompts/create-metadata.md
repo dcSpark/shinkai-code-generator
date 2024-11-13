@@ -1,7 +1,7 @@
 # RULE I:
 This is the SCHEMA for the METADATA:
 ```json
-META_SCHEMA = {
+{
   "name": "metaschema",
   "schema": {
     "type": "object",
@@ -133,7 +133,7 @@ META_SCHEMA = {
 ```
 
 These are two examples of METADATA:
-## Example 1:
+### Example 1:
 ```json
 {
   "id": "shinkai-tool-coinbase-create-wallet",
@@ -172,10 +172,10 @@ These are two examples of METADATA:
     },
     "required": [],
   }
-};
+}
 ```
 
-## Example 2:
+### Example 2:
 ```json
 {
   "id": "shinkai-tool-download-pages",
@@ -211,7 +211,7 @@ These are two examples of METADATA:
       "markdowns"
     ]
   }
-};
+}
 ```
 
 # RULE II:

@@ -1,8 +1,8 @@
 # Shinkai Prompt Testing
 
 Requirements 
-* Ollama running on "http://localhost:11434 (or overwritten by env OLLAMA_API_URL)
-
+* Ollama running on http://localhost:11434 (or overwritten by env OLLAMA_API_URL)
+* Deno 2.x
 
 Run
 * `deno task start`
