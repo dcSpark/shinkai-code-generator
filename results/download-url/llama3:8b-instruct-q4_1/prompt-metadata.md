@@ -222,47 +222,22 @@ These are two examples of METADATA:
 * Generate the METADATA for the following typescript source code in the INPUT:
 
 # INPUT:
-```typescript
+
 type CONFIG = {};
 type INPUTS = {
-  url: string;
-};
-type OUTPUT = {
-  plaintext: string;
-};
-
-async function main(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { url } = inputs;
-
-  const axios = require(axios);
-  try {
-    const response = await axios.get(url);
-    if (response.status === 200) {
-      return {
-        plaintext: response.data,
-      };
-    }
-  } catch (error) {
-    console.error(error);
-  }
-
-  return {};
-}
-```
-type CONFIG = {
   urls: string[];
 };
-
-type INPUTS = {};
-
 type OUTPUT = {
-  plainText: string;
+  texts: string[];
 };
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { urls } = config;
+  const { urls } = inputs;
 
-  const plainText = await Promise.all(urls.map((url) => fetch(url).then((response) => response.text())));
+  const texts: string[] = await Promise.all(urls.map(async (url) => {
+    const response = await fetch(url);
+    return await response.text();
+  }));
 
-  return { plainText: plainText.join("\n") };
+  return { texts };
 }

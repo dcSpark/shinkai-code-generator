@@ -361,4 +361,4 @@ export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
 
 # INPUT:
 
-Generate a tool that downloads urls and converts them to plain text.
+Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary).

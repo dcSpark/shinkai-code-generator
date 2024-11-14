@@ -37,6 +37,10 @@ export class PromptTest {
           "images": [],
         },
       ],
+      "options": {
+        // "num_ctx": 104901
+        "num_ctx": 20000,
+      },
       "stream": false,
     };
   }

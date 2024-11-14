@@ -1,12 +1,11 @@
-Based on the provided schema and examples, I will generate a valid schema for the described JSON.
+Based on the provided schema and examples, I will generate the METADATA for the given TypeScript source code.
 
 Here is the generated METADATA:
-
 ```json
 {
-  "id": "shinkai-tool-download-pages",
-  "name": "Shinkai: Download Pages",
-  "description": "Downloads one or more URLs and converts their HTML content to Markdown",
+  "id": "shinkai-tool-convert-html-to-markdown",
+  "name": "Shinkai: Convert HTML to Markdown",
+  "description": "Converts one or more URLs and converts their HTML content to Markdown",
   "author": "Shinkai",
   "keywords": [
     "HTML to Markdown",
@@ -22,21 +21,21 @@ Here is the generated METADATA:
   "parameters": {
     "type": "object",
     "properties": {
-      "urls": {
-        "type": "array",
-        "items": {"type": "string"}
-      }
+      "urls": { "type": "array", "items": { "type": "string" } }
     },
-    "required": ["urls"]
+    "required": [
+      "urls"
+    ]
   },
   "result": {
     "type": "object",
     "properties": {
-      "plainText": {"type": "string"}
+      "texts": { "type": "array", "items": { "type": "string" } }
     },
-    "required": ["plainText"]
+    "required": [
+      "texts"
+    ]
   }
 }
 ```
-
-This METADATA is a valid JSON string that describes the input, configuration, and output of the provided TypeScript source code.
+This METADATA is a valid JSON schema that describes the configuration, parameters, and result of the given TypeScript function.

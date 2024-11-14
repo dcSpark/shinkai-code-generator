@@ -1,17 +1,18 @@
-type CONFIG = {
+type CONFIG = {};
+type INPUTS = {
   urls: string[];
 };
-
-type INPUTS = {};
-
 type OUTPUT = {
-  plainText: string;
+  texts: string[];
 };
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { urls } = config;
+  const { urls } = inputs;
 
-  const plainText = await Promise.all(urls.map((url) => fetch(url).then((response) => response.text())));
+  const texts: string[] = await Promise.all(urls.map(async (url) => {
+    const response = await fetch(url);
+    return await response.text();
+  }));
 
-  return { plainText: plainText.join("\n") };
+  return { texts };
 }

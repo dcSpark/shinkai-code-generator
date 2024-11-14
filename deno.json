@@ -1,8 +1,9 @@
 {
   "tasks": {
-    "start": "deno run --allow-all main.ts",
+    "start": "deno run --allow-all main.ts llm",
     "fmt": "deno fmt --ignore=results/ --ignore=prompts/ --ignore=README.md",
-    "dev": "deno run --allow-all --watch main.ts"
+    "dev": "deno run --allow-all --watch main.ts",
+    "execute": "deno run --allow-all main.ts execute"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1"

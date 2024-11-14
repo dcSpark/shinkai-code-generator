@@ -1,23 +1,24 @@
-Here is the implementation of the `run` function according to the rules:
+Here is the implementation of the task according to the rules provided:
 ```
-type CONFIG = {
+type CONFIG = {};
+type INPUTS = {
   urls: string[];
 };
-
-type INPUTS = {};
-
 type OUTPUT = {
-  plainText: string;
+  texts: string[];
 };
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { urls } = config;
+  const { urls } = inputs;
 
-  const plainText = await Promise.all(urls.map((url) => fetch(url).then((response) => response.text())));
+  const texts: string[] = await Promise.all(urls.map(async (url) => {
+    const response = await fetch(url);
+    return await response.text();
+  }));
 
-  return { plainText: plainText.join("\n") };
+  return { texts };
 }
 ```
-This implementation uses the `fetch` API to download the URLs and convert them to plain text. The `Promise.all` method is used to wait for all the promises to resolve, and then join the resulting array of strings into a single string.
+This code defines a `run` function that takes a `config` object and an `inputs` object as arguments. The `inputs` object contains an array of URLs to download. The function uses the `fetch` API to fetch each URL, reads the response as plain text using the `text()` method, and returns an array of these texts.
 
-Note that this implementation assumes that the `urls` property in the `CONFIG` object is an array of URL strings. If you need to handle other types of URLs (e.g. arrays of objects with `url` properties), you may need to modify the implementation accordingly.
+Note that this implementation assumes that the URLs are publicly accessible and can be fetched without any authentication or additional headers. If your use case requires more advanced handling of URLs, you may need to modify the code accordingly.
