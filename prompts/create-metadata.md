@@ -1,7 +1,7 @@
 # RULE I:
 This is the SCHEMA for the METADATA:
 ```json
-{
+META_SCHEMA = {
   "name": "metaschema",
   "schema": {
     "type": "object",
@@ -133,7 +133,7 @@ This is the SCHEMA for the METADATA:
 ```
 
 These are two examples of METADATA:
-### Example 1:
+## Example 1:
 ```json
 {
   "id": "shinkai-tool-coinbase-create-wallet",
@@ -172,10 +172,10 @@ These are two examples of METADATA:
     },
     "required": [],
   }
-}
+};
 ```
 
-### Example 2:
+## Example 2:
 ```json
 {
   "id": "shinkai-tool-download-pages",
@@ -211,7 +211,7 @@ These are two examples of METADATA:
       "markdowns"
     ]
   }
-}
+};
 ```
 
 # RULE II:
@@ -222,30 +222,3 @@ These are two examples of METADATA:
 * Generate the METADATA for the following typescript source code in the INPUT:
 
 # INPUT:
-```typescript
-type CONFIG = {};
-type INPUTS = {
-  url: string;
-};
-type OUTPUT = {
-  plaintext: string;
-};
-
-async function main(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { url } = inputs;
-
-  const axios = require(axios);
-  try {
-    const response = await axios.get(url);
-    if (response.status === 200) {
-      return {
-        plaintext: response.data,
-      };
-    }
-  } catch (error) {
-    console.error(error);
-  }
-
-  return {};
-}
-```

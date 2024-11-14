@@ -1,6 +1,10 @@
 import axios from "npm:axios";
 
-export type PromptTestResult = { prompt: string; raw: string; src: string | null };
+export type PromptTestResult = {
+  prompt: string;
+  raw: string;
+  src: string | null;
+};
 export class PromptTest {
   private apiUrl: string;
 
@@ -34,10 +38,6 @@ export class PromptTest {
         },
       ],
       "stream": false,
-      "options": {
-        "seed": 101,
-        "temperature": 0,
-      },
     };
   }
 
@@ -79,7 +79,9 @@ export class PromptTest {
     return { prompt: metadataPrompt, raw, src: metadata };
   }
 
-  public async run(): Promise<{ code: PromptTestResult; metadata: PromptTestResult | null }> {
+  public async run(): Promise<
+    { code: PromptTestResult; metadata: PromptTestResult | null }
+  > {
     const code = await this.generateCode(this.prompt);
     const metadata = code.src ? await this.generateMetadata(code.src) : null;
     return { code, metadata };

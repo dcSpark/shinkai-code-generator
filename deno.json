@@ -1,6 +1,7 @@
 {
   "tasks": {
     "start": "deno run --allow-all main.ts",
+    "fmt": "deno fmt --ignore=results/ --ignore=prompts/ --ignore=README.md",
     "dev": "deno run --allow-all --watch main.ts"
   },
   "imports": {
