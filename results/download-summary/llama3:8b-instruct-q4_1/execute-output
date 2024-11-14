@@ -1,0 +1,8 @@
+Running...
+Config: {}
+Inputs: {"urls":["https://jhftss.github.io/2"]}
+{
+  tableCsv: "URL,Summary\ndata,[object Object]\n",
+  rowsCount: 1,
+  columnsCount: 2
+}

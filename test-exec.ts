@@ -16,18 +16,30 @@ export async function executeTest(test: TEST, model: string) {
   `].join('\n');
 
   console.log("================================================");
+  console.log(`Running ${test.code} @ ${model}`);
   console.log("Code to execute: ");
   console.log(code);
   console.log("================================================");
   const command = new Deno.Command(Deno.execPath(), {
     args: ["eval", code],
-    stdin: "inherit",
-    stdout: "inherit",
+    // stdin: "inherit",
+    // stdout: "inherit",
+    stdin: "piped", 
+    stdout: "piped",
   });
-  const child = command.spawn();
 
+  const child = command.spawn();
+  child.stdout.pipeTo(
+    Deno.openSync(`./results/${test.code}/${model}/execute-output`, { write: true, create: true }).writable,
+  );
+  
+  // manually close stdin
+  child.stdin.close();
+  
   const _status = await child.status;
   console.log(`[Executing] ${test.code} @ ${model}`);
+  console.log(`Wrote to ${`./results/${test.code}/${model}/execute-output`}`);
   const s = await child.status;
   console.log(s);
+  console.log("================================================");
 }
