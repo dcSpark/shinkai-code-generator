@@ -10,7 +10,7 @@ export const tests: TEST[] = [{
   prompt:
     "Generate a tool that downloads urls and converts them to plain text.",
   inputs: {
-    urls: ["https://jhftss.github.io/2"],
+    urls: ["https://jhftss.github.io"],
   },
   config: {},
 }, {
@@ -18,7 +18,7 @@ export const tests: TEST[] = [{
   prompt:
     "Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary).",
   inputs: {
-    urls: ["https://jhftss.github.io/2"],
+    urls: ["https://jhftss.github.io"],
     },
     config: {},
   },

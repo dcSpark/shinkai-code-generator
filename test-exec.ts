@@ -1,11 +1,13 @@
 import { TEST } from "./tests.ts";
 
 export async function executeTest(test: TEST, model: string) {
-  const code = [(await Deno.readTextFile(
+  const code = [
+    await Deno.readTextFile("./@shinkai/local-tools.ts"),
+    (await Deno.readTextFile(
     `./results/${test.code}/${model}/src-code.ts`,
   )).replace(
     /import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/,
-    await Deno.readTextFile("./@shinkai/local-tools.ts"),
+    "",
   ), `
   console.log('Running...')
   console.log('Config: ${JSON.stringify(test.config)}')
@@ -18,7 +20,7 @@ export async function executeTest(test: TEST, model: string) {
   console.log("================================================");
   console.log(`Running ${test.code} @ ${model}`);
   console.log("Code to execute: ");
-  console.log(code);
+  console.log('...', code.substring(code.length - 1000, code.length - 1));
   console.log("================================================");
   const command = new Deno.Command(Deno.execPath(), {
     args: ["eval", code],

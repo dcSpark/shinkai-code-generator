@@ -1,181 +1,233 @@
-import axios from "npm:axios";
-const BEARER = Deno.env.get("BEARER");
-if (!BEARER) {
-  throw new Error("BEARER is not set");
+process.env.BEARER = Deno.env.get("BEARER");
+if (!process.env.BEARER) {
+  process.env.BEARER = "debug";
 }
+
+import axios from 'npm:axios';
+
+	 
+
 /**
 
  * Echoes the input message
 
- * @param message - (required)
+ * @param message - (required) 
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiEcho(message: string): Promise<{
-  message: string;
+async function shinkaiEcho(message: string): Promise<{
+
+    message: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai-tool-echo:::shinkai__echo",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      message: message,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-echo:::shinkai__echo',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            message: message,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Get weather information for a city name
 
- * @param city - (required)
+ * @param city - (required) 
 
- * @returns {{
+ * @returns {
 
- *   weather: string
+ *   weather: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiWeatherByCity(city: string): Promise<{
-  weather: string;
+async function shinkaiWeatherByCity(city: string): Promise<{
+
+    weather: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-weather-by-city:::shinkai__weather_by_city",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      city: city,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-weather-by-city:::shinkai__weather_by_city',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            city: city,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Fetches the price of a coin or token using Chainlink. It doesn't have many tokens.
 
- * @param symbol - (required)
+ * @param symbol - (required) 
 
- * @returns {{
+ * @returns {
 
- *   symbol: string
+ *   symbol: string 
 
- *   price: number
+ *   price: number 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiTokenPriceUsingChainlinkLimited(
-  symbol: string,
-): Promise<{
-  symbol: string;
+async function shinkaiTokenPriceUsingChainlinkLimited(symbol: string): Promise<{
 
-  price: number;
+    symbol: string;
+
+    price: number;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-token-price:::shinkai__token_price_using_chainlink__limited_",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      symbol: symbol,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-token-price:::shinkai__token_price_using_chainlink__limited_',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            symbol: symbol,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Tool for requesting a loan on Aave, including selecting assets to supply and borrow with their APYs
 
- * @param inputValue - (required)
+ * @param inputValue - (required) 
 
- * @param assetSymbol - (required)
+ * @param assetSymbol - (required) 
 
- * @returns {{
+ * @returns {
 
- *   amountProcessed: string
+ *   amountProcessed: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiAaveLoanRequester(
-  inputValue: string,
-  assetSymbol: string,
-): Promise<{
-  amountProcessed: string;
+async function shinkaiAaveLoanRequester(inputValue: string, assetSymbol: string): Promise<{
+
+    amountProcessed: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-aave-loan-requester:::shinkai__aave_loan_requester",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      inputValue: inputValue,
+        tool_router_key: 'local:::shinkai-tool-aave-loan-requester:::shinkai__aave_loan_requester',
 
-      assetSymbol: assetSymbol,
-    },
-  };
+        tool_type: 'deno',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        parameters: {
 
-  return response.data;
+            inputValue: inputValue,
+
+            assetSymbol: assetSymbol,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Runs the Leiden algorithm on the input edges
 
- * @param edges - (required)
+ * @param edges - (required) 
 
  * @param resolution - (optional) , default: undefined
 
@@ -185,94 +237,115 @@ export async function shinkaiAaveLoanRequester(
 
  * @param convergenceThreshold - (optional) , default: undefined
 
- * @returns {{
+ * @returns {
 
- *   bestClustering: object
+ *   bestClustering: object 
 
- *   bestLayout: object
+ *   bestLayout: object 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiLeidenAlgorithm(
-  edges: array,
-  resolution?: number,
-  nIterations?: number,
-  nRandomStarts?: number,
-  convergenceThreshold?: number,
-): Promise<{
-  bestClustering: object;
+async function shinkaiLeidenAlgorithm(edges: array, resolution?: number, nIterations?: number, nRandomStarts?: number, convergenceThreshold?: number): Promise<{
 
-  bestLayout: object;
+    bestClustering: object;
+
+    bestLayout: object;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai-tool-leiden:::shinkai__leiden_algorithm",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      edges: edges,
+        tool_router_key: 'local:::shinkai-tool-leiden:::shinkai__leiden_algorithm',
 
-      resolution: resolution,
+        tool_type: 'deno',
 
-      nIterations: nIterations,
+        parameters: {
 
-      nRandomStarts: nRandomStarts,
+            edges: edges,
 
-      convergenceThreshold: convergenceThreshold,
-    },
-  };
+            resolution: resolution,
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+            nIterations: nIterations,
 
-  return response.data;
+            nRandomStarts: nRandomStarts,
+
+            convergenceThreshold: convergenceThreshold,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Searches the DuckDuckGo search engine. Example result: [{"title": "IMDb Top 250 Movies", "description": "Find out which movies are rated as the best of all time by IMDb users. See the list of 250 titles sorted by ranking, genre, year, and rating, and learn how the list is determined.", "url": "https://www.imdb.com/chart/top/"}]
 
- * @param message - (required)
+ * @param message - (required) 
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiDuckduckgoSearch(message: string): Promise<{
-  message: string;
+async function shinkaiDuckduckgoSearch(message: string): Promise<{
+
+    message: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-duckduckgo-search:::shinkai__duckduckgo_search",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      message: message,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-duckduckgo-search:::shinkai__duckduckgo_search',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            message: message,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
@@ -280,42 +353,55 @@ export async function shinkaiDuckduckgoSearch(message: string): Promise<{
 
  * @param walletId - (optional) , default: undefined
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- *   balances: object
+ *   balances: object 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseBalanceGetter(walletId?: string): Promise<{
-  message: string;
+async function shinkaiCoinbaseBalanceGetter(walletId?: string): Promise<{
 
-  balances: object;
+    message: string;
+
+    balances: object;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-get-balance:::shinkai__coinbase_balance_getter",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      walletId: walletId,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-coinbase-get-balance:::shinkai__coinbase_balance_getter',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            walletId: walletId,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
@@ -323,78 +409,103 @@ export async function shinkaiCoinbaseBalanceGetter(walletId?: string): Promise<{
 
  * @param walletId - (optional) , default: undefined
 
- * @returns {{
+ * @returns {
 
- *   address: string
+ *   address: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseMyAddressGetter(
-  walletId?: string,
-): Promise<{
-  address: string;
+async function shinkaiCoinbaseMyAddressGetter(walletId?: string): Promise<{
+
+    address: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-get-my-address:::shinkai__coinbase_my_address_getter",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      walletId: walletId,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-coinbase-get-my-address:::shinkai__coinbase_my_address_getter',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            walletId: walletId,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Searches the internet using Perplexity
 
- * @param query - (required)
+ * @param query - (required) 
 
- * @returns {{
+ * @returns {
 
- *   response: string
+ *   response: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiPerplexity(query: string): Promise<{
-  response: string;
+async function shinkaiPerplexity(query: string): Promise<{
+
+    response: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai-tool-perplexity:::shinkai__perplexity",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      query: query,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-perplexity:::shinkai__perplexity',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            query: query,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
@@ -406,755 +517,1110 @@ export async function shinkaiPerplexity(query: string): Promise<{
 
  * @param networkName - (optional) , default: undefined
 
- * @returns {{
+ * @returns {
 
- *   tableCsv: string
+ *   tableCsv: string 
 
- *   rowsCount: number
+ *   rowsCount: number 
 
- *   columnsCount: number
+ *   columnsCount: number 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiDefillamaTvlRankings(
-  top10?: boolean,
-  categoryName?: string,
-  networkName?: string,
-): Promise<{
-  tableCsv: string;
+async function shinkaiDefillamaTvlRankings(top10?: boolean, categoryName?: string, networkName?: string): Promise<{
 
-  rowsCount: number;
+    tableCsv: string;
 
-  columnsCount: number;
+    rowsCount: number;
+
+    columnsCount: number;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-defillama-tvl-rankings:::shinkai__defillama-tvl-rankings",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      top10: top10,
+        tool_router_key: 'local:::shinkai-tool-defillama-tvl-rankings:::shinkai__defillama-tvl-rankings',
 
-      categoryName: categoryName,
+        tool_type: 'deno',
 
-      networkName: networkName,
-    },
-  };
+        parameters: {
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+            top10: top10,
 
-  return response.data;
+            categoryName: categoryName,
+
+            networkName: networkName,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * New playwright-example tool from template
 
- * @param url - (required)
+ * @param url - (required) 
 
- * @returns {{
+ * @returns {
 
- *   title: string
+ *   title: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiPlaywrightExample(url: string): Promise<{
-  title: string;
+async function shinkaiPlaywrightExample(url: string): Promise<{
+
+    title: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-playwright-example:::shinkai__playwright-example",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      url: url,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-playwright-example:::shinkai__playwright-example',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            url: url,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Fetches the balance of an Ethereum address in ETH.
 
- * @param address - (required)
+ * @param address - (required) 
 
- * @returns {{
+ * @returns {
 
- *   balance: string
+ *   balance: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiWeb3EthBalance(address: string): Promise<{
-  balance: string;
+async function shinkaiWeb3EthBalance(address: string): Promise<{
+
+    balance: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-web3-eth-balance:::shinkai__web3_eth_balance",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      address: address,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-web3-eth-balance:::shinkai__web3_eth_balance',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            address: address,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Tool for getting the transactions of a Coinbase wallet after restoring it
 
- * @returns {{
+ * @returns {
 
- *   tableCsv: string
+ *   tableCsv: string 
 
- *   rowsCount: number
+ *   rowsCount: number 
 
- *   columnsCount: number
+ *   columnsCount: number 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseTransactionsGetter(): Promise<{
-  tableCsv: string;
+async function shinkaiCoinbaseTransactionsGetter(): Promise<{
 
-  rowsCount: number;
+    tableCsv: string;
 
-  columnsCount: number;
+    rowsCount: number;
+
+    columnsCount: number;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-get-transactions:::shinkai__coinbase_transactions_getter",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {},
-  };
+        tool_router_key: 'local:::shinkai-tool-coinbase-get-transactions:::shinkai__coinbase_transactions_getter',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Downloads one or more URLs and converts their HTML content to Markdown
 
- * @param urls - (required)
+ * @param urls - (required) 
 
- * @returns {{
+ * @returns {
 
- *   markdowns: string[]
+ *   markdowns: string[] 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiDownloadPages(urls: array): Promise<{
-  markdowns: string[];
+async function shinkaiDownloadPages(urls: array): Promise<{
+
+    markdowns: string[];
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-download-pages:::shinkai__download_pages",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      urls: urls,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-download-pages:::shinkai__download_pages',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            urls: urls,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Tool for creating a Coinbase wallet
 
- * @returns {{
+ * @returns {
 
- *   walletId: string
+ *   walletId: string 
 
- *   seed: string
+ *   seed: string 
 
- *   address: string
+ *   address: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseWalletCreator(): Promise<{
-  walletId: string;
+async function shinkaiCoinbaseWalletCreator(): Promise<{
 
-  seed: string;
+    walletId: string;
 
-  address: string;
+    seed: string;
+
+    address: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-create-wallet:::shinkai__coinbase_wallet_creator",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {},
-  };
+        tool_router_key: 'local:::shinkai-tool-coinbase-create-wallet:::shinkai__coinbase_wallet_creator',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Summarizes a YouTube video. Provides a summary with organized sections and clickable timestamp links. Useful for quickly grasping main points, preparing for discussions, or efficient research. Example uses: summarizing tech talks, product reviews, or educational lectures. Parameters: url (string) - The full YouTube video URL to process.
 
- * @param url - (required, The full URL of the YouTube video to transcribe and summarize. Must be a valid and accessible YouTube video link.)
+ * @param url - (required, The full URL of the YouTube video to transcribe and summarize. Must be a valid and accessible YouTube video link.) 
 
  * @param lang - (optional, The language code for the transcript in ISO 639-1 format (e.g. "en" for English). Optional. If not specified, will use the default available transcript.) , default: undefined
 
- * @returns {{
+ * @returns {
 
  *   summary: string - A markdown-formatted summary of the video content, divided into sections with timestamp links to relevant parts of the video.
 
- * }}
+ * }
 
  */
 
-export async function shinkaiYoutubeVideoSummary(
-  url: string,
-  lang?: string,
-): Promise<{
-  summary: string;
+async function shinkaiYoutubeVideoSummary(url: string, lang?: string): Promise<{
+
+    summary: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-youtube-summary:::shinkai__youtube_video_summary",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      url: url,
+        tool_router_key: 'local:::shinkai-tool-youtube-summary:::shinkai__youtube_video_summary',
 
-      lang: lang,
-    },
-  };
+        tool_type: 'deno',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        parameters: {
 
-  return response.data;
+            url: url,
+
+            lang: lang,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Searches the web using Perplexity API (limited)
 
- * @param query - (required)
+ * @param query - (required) 
 
- * @returns {{
+ * @returns {
 
- *   response: string
+ *   response: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiPerplexityApi(query: string): Promise<{
-  response: string;
+async function shinkaiPerplexityApi(query: string): Promise<{
+
+    response: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-perplexity-api:::shinkai__perplexity_api",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      query: query,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-perplexity-api:::shinkai__perplexity_api',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            query: query,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Converts JSON to Markdown using a Nunjucks (Jinja2-like) template
 
- * @param message - (required)
+ * @param message - (required) 
 
- * @param template - (required)
+ * @param template - (required) 
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiJsonToMd(
-  message: string,
-  template: string,
-): Promise<{
-  message: string;
+async function shinkaiJsonToMd(message: string, template: string): Promise<{
+
+    message: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai-tool-json-to-md:::shinkai__json-to-md",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      message: message,
+        tool_router_key: 'local:::shinkai-tool-json-to-md:::shinkai__json-to-md',
 
-      template: template,
-    },
-  };
+        tool_type: 'deno',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        parameters: {
 
-  return response.data;
+            message: message,
+
+            template: template,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Fetches the balance of an Ethereum address in ETH using Uniswap.
 
- * @param address - (required)
+ * @param address - (required) 
 
- * @returns {{
+ * @returns {
 
- *   balance: string
+ *   balance: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiWeb3EthUniswap(address: string): Promise<{
-  balance: string;
+async function shinkaiWeb3EthUniswap(address: string): Promise<{
+
+    balance: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-web3-eth-uniswap:::shinkai__web3_eth_uniswap",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      address: address,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-web3-eth-uniswap:::shinkai__web3_eth_uniswap',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            address: address,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Parses and evaluates mathematical expressions. It’s a safer and more math-oriented alternative to using JavaScript’s eval function for mathematical expressions.
 
- * @param expression - (required)
+ * @param expression - (required) 
 
- * @returns {{
+ * @returns {
 
- *   result: string
+ *   result: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiMathExpressionEvaluator(
-  expression: string,
-): Promise<{
-  result: string;
+async function shinkaiMathExpressionEvaluator(expression: string): Promise<{
+
+    result: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-math-exp:::shinkai__math_expression_evaluator",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      expression: expression,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-math-exp:::shinkai__math_expression_evaluator',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            expression: expression,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Fetches the balance for an Ethereum EVM address like 0x123... and returns detailed token information. Example output: { "address": "0x123...", "ETH": { "balance": 1.23, "rawBalance": "12300000000000000000" }, "tokens": [ { "balance": 100, "rawBalance": "100000000000000000000", "tokenInfo": { "name": "TokenName", "symbol": "TKN", "decimals": "18" } } ] }
 
- * @param address - (required)
+ * @param address - (required) 
 
- * @returns {{
+ * @returns {
 
- *   address: string
+ *   address: string 
 
- *   ETH: object
+ *   ETH: object 
 
- *   tokens: object[]
+ *   tokens: object[] 
 
- * }}
+ * }
 
  */
 
-export async function tokenBalanceForEvmEthereumAddressBasedOnEthplorer(
-  address: string,
-): Promise<{
-  address: string;
+async function tokenBalanceForEvmEthereumAddressBasedOnEthplorer(address: string): Promise<{
 
-  ETH: object;
+    address: string;
 
-  tokens: object[];
+    ETH: object;
+
+    tokens: object[];
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-ethplorer-tokens:::token_balance_for_evm_ethereum_address_-_based_on_ethplorer",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      address: address,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-ethplorer-tokens:::token_balance_for_evm_ethereum_address_-_based_on_ethplorer',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            address: address,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Tool for calling a faucet on Coinbase
 
- * @returns {{
+ * @returns {
 
- *   data: string
+ *   data: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseFaucetCaller(): Promise<{
-  data: string;
+async function shinkaiCoinbaseFaucetCaller(): Promise<{
+
+    data: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-call-faucet:::shinkai__coinbase_faucet_caller",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {},
-  };
+        tool_router_key: 'local:::shinkai-tool-coinbase-call-faucet:::shinkai__coinbase_faucet_caller',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * New foobar tool from template
 
- * @param message - (required)
+ * @param message - (required) 
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiFoobar(message: string): Promise<{
-  message: string;
+async function shinkaiFoobar(message: string): Promise<{
+
+    message: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai-tool-foobar:::shinkai__foobar",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      message: message,
-    },
-  };
+        tool_router_key: 'local:::shinkai-tool-foobar:::shinkai__foobar',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'deno',
 
-  return response.data;
+        parameters: {
+
+            message: message,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Tool for restoring a Coinbase wallet and sending a transaction
 
- * @param recipient_address - (required)
+ * @param recipient_address - (required) 
 
- * @param assetId - (required)
+ * @param assetId - (required) 
 
- * @param amount - (required)
+ * @param amount - (required) 
 
- * @returns {{
+ * @returns {
 
- *   transactionHash: string
+ *   transactionHash: string 
 
- *   transactionLink: string
+ *   transactionLink: string 
 
- *   status: string
+ *   status: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiCoinbaseTransactionSender(
-  recipient_address: string,
-  assetId: string,
-  amount: string,
-): Promise<{
-  transactionHash: string;
+async function shinkaiCoinbaseTransactionSender(recipient_address: string, assetId: string, amount: string): Promise<{
 
-  transactionLink: string;
+    transactionHash: string;
 
-  status: string;
+    transactionLink: string;
+
+    status: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key:
-      "local:::shinkai-tool-coinbase-send-tx:::shinkai__coinbase_transaction_sender",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "deno",
+    const data = {
 
-    parameters: {
-      recipient_address: recipient_address,
+        tool_router_key: 'local:::shinkai-tool-coinbase-send-tx:::shinkai__coinbase_transaction_sender',
 
-      assetId: assetId,
+        tool_type: 'deno',
 
-      amount: amount,
-    },
-  };
+        parameters: {
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+            recipient_address: recipient_address,
 
-  return response.data;
+            assetId: assetId,
+
+            amount: amount,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Echoes the input message
 
- * @param message - (required)
+ * @param message - (required) 
 
- * @returns {{
+ * @returns {
 
- * }}
+ * }
 
  */
 
-export async function networkEcho(message: string): Promise<{}> {
-  const _url = "http://localhost:9950/v2/tool_execution";
+async function networkEcho(message: string): Promise<{
 
-  const data = {
-    tool_router_key:
-      "@@agent_provider.arb-sep-shinkai:::shinkai-tool-echo:::network__echo",
+}> {
 
-    tool_type: "network",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    parameters: {
-      message: message,
-    },
-  };
+    const data = {
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_router_key: '@@agent_provider.arb-sep-shinkai:::shinkai-tool-echo:::network__echo',
 
-  return response.data;
+        tool_type: 'network',
+
+        parameters: {
+
+            message: message,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
 
 /**
 
  * Takes a YouTube link and summarizes the content by creating multiple sections with a summary and a timestamp.
 
- * @param url - (required, The URL of the YouTube video)
+ * @param url - (required, The URL of the YouTube video) 
 
- * @returns {{
+ * @returns {
 
- * }}
+ * }
 
  */
 
-export async function youtubeTranscriptWithTimestamps(
-  url: string,
-): Promise<{}> {
-  const _url = "http://localhost:9950/v2/tool_execution";
+async function youtubeTranscriptWithTimestamps(url: string): Promise<{
 
-  const data = {
-    tool_router_key:
-      "@@agent_provider.arb-sep-shinkai:::shinkai-tool-youtube-transcript:::youtube_transcript_with_timestamps",
+}> {
 
-    tool_type: "network",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    parameters: {
-      url: url,
-    },
-  };
+    const data = {
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_router_key: '@@agent_provider.arb-sep-shinkai:::shinkai-tool-youtube-transcript:::youtube_transcript_with_timestamps',
 
-  return response.data;
+        tool_type: 'network',
+
+        parameters: {
+
+            url: url,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
+
+/**
+
+ * Downloads one or more URLs and converts their HTML content to Markdown
+
+ * @param urls - (required) 
+
+ * @returns {
+
+ * }
+
+ */
+
+async function eddieAsde(urls: array): Promise<{
+
+}> {
+
+    const _url = 'http://localhost:9950/v2/tool_execution';
+
+    const data = {
+
+        tool_router_key: 'local:::eddie____asde_my_local_aiarb_sep_shinkai:::eddie____asde',
+
+        tool_type: 'deno',
+
+        parameters: {
+
+            urls: urls,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
+}
+
+ 
 
 /**
 
  * Generic tool for processing any prompt using an LLM, analyzing the request and returning a string as output
 
- * @param prompt - (required, The prompt to process)
+ * @param prompt - (required, The prompt to process) 
 
- * @returns {{
+ * @returns {
 
- *   message: string
+ *   message: string 
 
- * }}
+ * }
 
  */
 
-export async function shinkaiLlmPromptProcessor(prompt: string): Promise<{
-  message: string;
+async function shinkaiLlmPromptProcessor(prompt: string): Promise<{
+
+    message: string;
+
 }> {
-  const _url = "http://localhost:9950/v2/tool_execution";
 
-  const data = {
-    tool_router_key: "local:::shinkai_custom:::llm_prompt_processor",
+    const _url = 'http://localhost:9950/v2/tool_execution';
 
-    tool_type: "internal",
+    const data = {
 
-    parameters: {
-      prompt: prompt,
-    },
-  };
+        tool_router_key: 'local:::shinkai_custom:::llm_prompt_processor',
 
-  const response = await axios.post(_url, data, {
-    headers: {
-      "Authorization": `Bearer ${BEARER}`,
-    },
-  });
+        tool_type: 'rust',
 
-  return response.data;
+        parameters: {
+
+            prompt: prompt,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
 }
+
+ 
+
+/**
+
+ * Tool for executing SQLite queries on a specified database file. 
+
+        Table creation should always use 'CREATE TABLE IF NOT EXISTS'.
+
+        
+
+        Example table creation:
+
+        CREATE TABLE IF NOT EXISTS url_metrics (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            url TEXT NOT NULL,
+
+            parse_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            parse_time_ms INTEGER,
+
+            url_raw_dump TEXT
+
+        );
+
+        
+
+        Example insert:
+
+        INSERT INTO url_metrics (url, parse_time_ms, url_raw_dump) VALUES ('https://example.com', 150, 'data');
+
+        
+
+        Example read:
+
+        SELECT * FROM url_metrics WHERE parse_date > datetime('now', '-1 day');
+
+        SELECT url, parse_time_ms FROM url_metrics WHERE parse_time_ms > 100 ORDER BY parse_date DESC LIMIT 10;
+
+ * @param query - (required, The SQL query to execute) 
+
+ * @param path - (required, Path to the SQLite database file) 
+
+ * @returns {
+
+ *   result: string 
+
+ * }
+
+ */
+
+async function shinkaiSqliteQueryExecutor(query: string, path: string): Promise<{
+
+    result: string;
+
+}> {
+
+    const _url = 'http://localhost:9950/v2/tool_execution';
+
+    const data = {
+
+        tool_router_key: 'local:::shinkai_custom:::sqlite_executor',
+
+        tool_type: 'rust',
+
+        parameters: {
+
+            query: query,
+
+            path: path,
+
+        },
+
+    };
+
+    const response = await axios.post(_url, data, {
+
+        headers: {
+
+            'Authorization': `Bearer ${process.env.BEARER}`
+
+        }
+
+    });
+
+    return response.data;
+
+}
+
+ 
