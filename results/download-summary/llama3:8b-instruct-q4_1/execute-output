@@ -1,8 +1,133 @@
 Running...
 Config: {}
-Inputs: {"urls":["https://jhftss.github.io/2"]}
+Inputs: {"urls":["https://jhftss.github.io"]}
 {
-  tableCsv: "URL,Summary\ndata,[object Object]\n",
-  rowsCount: 1,
-  columnsCount: 2
+  summaryTable: "URL | Summary\nhttps://jhftss.github.io | undefined\n"
+}
+
+    rowsAffected: 0
+  }
+}
+r :)           \n" +
+        "\n" +
+        "[![](https://avatars.githubusercontent.com/u/10210124?s=460&u=220a7d6d07a020cbe6096a7f63d0e6dcfae69d52&v=4)](/)\n" +
+        "\n" +
+        "[Mickey's Blogs](/)\n" +
+        "===================\n" +
+        "\n" +
+        "Exploring the world with my sword of debugger :)\n" +
+        "\n" +
+        "[CVE List](/cvelist) [More Blogs](/blogs) [Conferences](/conferences) [About](/about)\n" +
+        "\n" +
+        "[A New Era of macOS Sandbox Escapes: Diving into an Overlooked Attack Surface and Uncovering 10+ New Vulnerabilities](/A-New-Era-of-macOS-Sandbox-Escapes/)\n" +
+        "===========================================================================================================================================================\n" +
+        "\n" +
+        "This is a blog post for my presentation at the conference [POC2024](https://powerofcommunity.net/2024.htm). The slides are uploaded [here](https://github.com/jhftss/jhftss.github.io/blob/main/res/slides/A%20New%20Era%20of%20macOS%20Sandbox%20Escapes.pdf).\n" +
+        "\n" +
+        "[Read More](/A-New-Era-of-macOS-Sandbox-Escapes/)\n" +
+        "\n" +
+        "[CVE-2023-42929: Why do we need the App Container Protection](/CVE-2023-42929-Why-Do-We-Need-The-App-Container-Protection/)\n" +
+        "===========================================================================================================================\n" +
+        "\n" +
+        "Starting with macOS **Sonoma 14.0**, Apple has introduced a new TCC category **kTCCServiceSystemPolicyAppData** to protect the **App Container Data**. This is designed to address one of my reports (aka **CVE-2023-42929**):\n" +
+        "\n" +
+        "[Read More](/CVE-2023-42929-Why-Do-We-Need-The-App-Container-Protection/)\n" +
+        "\n" +
+        "[CVE-2023-42942: xpcroleaccountd Root Privilege Escalation](/CVE-2023-42942-xpcroleaccountd-Root-Privilege-Escalation/)\n" +
+        "=======================================================================================================================\n" +
+        "\n" +
+        "About two weeks ago, Apple published the **CVE-2023-42942** in the [security advisory](https://support.apple.com/en-gb/HT213984). It was a race condition issue existed in the system service **xpcroleaccountd**, and it could be exploited for root privilege escalation. Today, I am going to share the details.\n" +
+        "\n" +
+        "[Read More](/CVE-2023-42942-xpcroleaccountd-Root-Privilege-Escalation/)\n" +
+        "\n" +
+        "[macOS AUHelperService Full TCC Bypass](/macOS-AUHelperService-Full-TCC-Bypass/)\n" +
+        "================================================================================\n" +
+        "\n" +
+        "Last year, I discovered a full user TCC bypass issue in the macOS Sonoma beta version. There was a CVE number assigned at the beginning, but removed by Apple in the release of macOS 14.0. Instead, I got the credit in their [Additional Recognitions](https://support.apple.com/HT213940).\n" +
+        "\n" +
+        "[Read More](/macOS-AUHelperService-Full-TCC-Bypass/)\n" +
+        "\n" +
+        "[The Nightmare of Apple's OTA Update: Bypassing the Signature Verification and Pwning the Kernel](/The-Nightmare-of-Apple-OTA-Update/)\n" +
+        "======================================================================================================================================\n" +
+        "\n" +
+        "This blog post is written for my talk at [OBTS v6.0](https://objectivebythesea.org/v6/talks.html).\n" +
+        "\n" +
+        "[Read More](/The-Nightmare-of-Apple-OTA-Update/)\n" +
+        "\n" +
+        "[CVE-2022-32902: Patch One Issue and Introduce Two](/CVE-2022-32902-Patch-One-Issue-and-Introduce-Two/)\n" +
+        "=======================================================================================================\n" +
+        "\n" +
+        "A year ago, I discovered a TCC-bypass issue in the system daemon service named **com.apple.fontmover**. Three months later, Apple addressed it as **CVE-2022-32902**. After checking how Apple addressed the issue, I found two new issues introduced by patching the issue. I reported them to Apple immediately and waited for about 9 months.\n" +
+        "\n" +
+        "[Read More](/CVE-2022-32902-Patch-One-Issue-and-Introduce-Two/)\n" +
+        "\n" +
+        "[CVE-2023-23525: Get Root via A Fake Installer](/CVE-2023-23525-Get-Root-via-A-Fake-Installer/)\n" +
+        "===============================================================================================\n" +
+        "\n" +
+        "A few weeks ago, [Rich Trouton](https://twitter.com/rtrouton) noticed a new change in the latest macOS release: [macOS Ventura 13.3 alters expected behavior for Finder’s Open With functionality for macOS installer packages](https://derflounder.wordpress.com/2023/04/01/macos-ventura-13-3-alters-expected-behavior-for-finders-open-as-functionality-for-macos-installer-packages/). In this post, I want to share a simple LPE vulnerability associated with it and why Apple made the change.\n" +
+        "\n" +
+        "[Read More](/CVE-2023-23525-Get-Root-via-A-Fake-Installer/)\n" +
+        "\n" +
+        "[CVE-2022-26712: The POC for SIP-Bypass Is Even Tweetable](/CVE-2022-26712-The-POC-For-SIP-Bypass-Is-Even-Tweetable/)\n" +
+        "=====================================================================================================================\n" +
+        "\n" +
+        "I found some **new attack surfaces** in the macOS **PackageKit.framework**, and successfully disclosed **15+ critical SIP-Bypass** vulnerabilities. Apple has addressed 12 of them [with CVE assigned](https://jhftss.github.io/cvelist/) so far. There are still some reports in the Apple’s processing queue. All of them are interesting logic issues, and of course each has a successful exploit demonstration.\n" +
+        "\n" +
+        "[Read More](/CVE-2022-26712-The-POC-For-SIP-Bypass-Is-Even-Tweetable/)\n" +
+        "\n" +
+        "[CVE-2022-22616: Simple way to bypass GateKeeper, hidden for years](/CVE-2022-22616-Gatekeeper-Bypass/)\n" +
+        "=======================================================================================================\n" +
+        "\n" +
+        "In this writeup, I will introduce a very simple method to bypass [**GateKeeper**](https://support.apple.com/en-us/HT202491) , and uncover the root cause through reversing and debugging. Apple had already addressed it as [CVE-2022-22616](https://support.apple.com/en-us/HT213183) in macOS Monterey 12.3, and credited the bug to two Jamf researchers (@malwarezoo, @jbradley89) and me. So, make sure you have updated your Mac devices to the latest version.\n" +
+        "\n" +
+        "[Read More](/CVE-2022-22616-Gatekeeper-Bypass/)\n" +
+        "\n" +
+        "[iOS14.8: Patch CVE-2021-1740 again silently](/CVE-2021-1740-Invalid-Patch/)\n" +
+        "============================================================================\n" +
+        "\n" +
+        "As well known, iOS14.8 patched two 0 days in the wild, one of which is the **pegasus** 0-click vulnerability. You can get the root cause and more interesting findings by reading my analysis from [here](https://www.trendmicro.com/en_us/research/21/i/analyzing-pegasus-spywares-zero-click-iphone-exploit-forcedentry.html).\n" +
+        "\n" +
+        "[Read More](/CVE-2021-1740-Invalid-Patch/)\n" +
+        "\n" +
+        "[CVE-2021-22545: A CVE from BinDiff & IDA Pro](/CVE-2021-22545/)\n" +
+        "================================================================\n" +
+        "\n" +
+        "Last year, I used the **BinDiff** plugin normally inside the **IDA Pro**, but I got a crash due to the plugin issue. Then a dialog prompted and I choosed to **Let IDA Continue**, then I got another weird crash. Yes, 2 different issues from BinDiff plugin & IDA Pro, just triggered by a bindiff file. Driven by my curiosity, I tried to find the root cause and got this CVE [here](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-22545) :\n" +
+        "\n" +
+        "[Read More](/CVE-2021-22545/)\n" +
+        "\n" +
+        "[IDA2Obj: HITB2021Sin Talk](/IDA2Obj-Static-Binary-Instrumentation/)\n" +
+        "====================================================================\n" +
+        "\n" +
+        "​ 现在许多高效的 fuzz 引擎（AFL，honggfuzz，syzkaller等）都会收集语料执行时的代码覆盖率，并以此为反馈来指导变异和 fuzz 策略。对于开源的项目，通过设置编译选项，编译器就会自动帮忙插桩了。但是对于闭源的二进制文件，问题就显得比较棘手了。当前主流的做法大多还是 DBI （运行时动态插桩，如 [Dynamorio](https://github.com/DynamoRIO/dynamorio)，frida stalker 等）。而与此相对的就是SBI （静态插桩）了。毫无疑问，静态插桩几乎可以获得和编译器插桩一样的执行效率，可以把编译器插桩看成是 SBI 的一个特例。但是目前已有的一些 SBI 方案没有大量运用普及，大都有各自的局限性。\n" +
+        "\n" +
+        "[Read More](/IDA2Obj-Static-Binary-Instrumentation/)\n" +
+        "\n" +
+        "[CVE-2021-30798: TCC Bypass Again, Inspired By XCSSET](/CVE-2021-30798-TCC-Bypass-Again-Inspired-By-XCSSET/)\n" +
+        "============================================================================================================\n" +
+        "\n" +
+        "My team and I posted the details of the brand new Mac Malware `XCSSET` last year [\\[1\\]](https://www.trendmicro.com/en_us/research/20/h/xcsset-mac-malware--infects-xcode-projects--uses-0-days.html) [\\[2\\]](https://www.trendmicro.com/en_us/research/20/i/xcsset-update-browser-debug-modes-inactive-ransomware.html), and disclosed the interesting 0 day tricks used inside. All the `XCSSET` payload modules were reviewed carefully. However, I was a newbie for hunting macOS vulnerability and I didn’t realize the TCC bypass is a vulnerability at that time until Jamf posted their [new blog](https://www.jamf.com/blog/zero-day-tcc-bypass-discovered-in-xcsset-malware/) and detailed the 3rd 0 day used by `XCSSET`.\n" +
+        "\n" +
+        "[Read More](/CVE-2021-30798-TCC-Bypass-Again-Inspired-By-XCSSET/)\n" +
+        "\n" +
+        "[Install decrypted IPA on M1 Mac](/Install-decrypted-IPA-on-M1-Mac/)\n" +
+        "====================================================================\n" +
+        "\n" +
+        "As mentioned in my [last blog](https://jhftss.github.io/Debug-any-iOS-Apps-on-M1-Mac/), I can launch any decrypted iOS App on M1 Mac with **free developer certificate**. Here, I will try to install the decrypted IPA dircectly without re-signing.\n" +
+        "\n" +
+        "[Read More](/Install-decrypted-IPA-on-M1-Mac/)\n" +
+        "\n" +
+        "[Run any iOS Apps in the Xcode Simulator](/Run-any-iOS-Apps-in-the-Xcode-Simulator/)\n" +
+        "====================================================================================\n" +
+        "\n" +
+        "Besides the method in my [last blog](https://jhftss.github.io/Debug-any-iOS-Apps-on-M1-Mac/), I keep trying other methods to run the decrypted iOS App. Then I thought of the **Xcode Simulator**, which had no possibility to run the real iOS Apps before, due to the `x86_64` platform restriction. But now, the **Simulator from M1 Mac** is also the `arm64` architecture. Is it possible to run the decrypted iOS App in the simulator now ?\n" +
+        "\n" +
+        "[Read More](/Run-any-iOS-Apps-in-the-Xcode-Simulator/)\n" +
+        "\n" +
+        "[Debug any iOS Apps on M1 Mac](/Debug-any-iOS-Apps-on-M1-Mac/)\n" +
+        "==============================================================\n" +
+        "\n" +
+        "We have no **permission** to attach the `lldb` to any other iOS Apps on the **M1 Mac**, when `SIP` is enabled. But we couldn’t launch the iOS Apps if `SIP` is disabled. It seems that `fairplayd` has a check for the system boot policy security mode and re"... 198 more characters
+    ]
+  }
 }

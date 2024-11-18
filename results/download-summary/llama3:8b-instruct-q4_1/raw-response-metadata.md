@@ -1,6 +1,6 @@
-Based on the provided rules and input, I will generate a valid schema for the described JSON. 
+Based on the provided INPUT and RULES, I will generate a valid schema for the METADATA.
 
-Here is the output:
+Here is the generated METADATA in JSON format:
 
 ```json
 {
@@ -15,56 +15,39 @@ Here is the output:
     "URL to Markdown"
   ],
   "configurations": {
-    "$ref": "#/$defs/config_schema"
+    "type": "object",
+    "properties": {},
+    "required": [],
   },
   "parameters": {
-    "$ref": "#/$defs/params_schema"
+    "type": "object",
+    "properties": {
+      "urls": { "type": "array", "items": { "type": "string" } }
+    },
+    "required": [
+      "urls"
+    ]
   },
   "result": {
-    "$ref": "#/$defs/output_schema"
-  }
-}
-
-$defs:
-config_schema: {
-  "type": "object",
-  "properties": {},
-  "required": [],
-  "additionalProperties": false
-}
-
-params_schema: {
-  "type": "object",
-  "properties": {
-    "urls": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
-  },
-  "required": [
-    "urls"
-  ]
-}
-
-output_schema: {
-  "type": "object",
-  "properties": {
-    "tableCsv": {
-      "type": "string"
+    "type": "object",
+    "properties": {
+      "summaryTable": { "type": "string", "nullable": true }
     },
-    "rowsCount": {
-      "type": "number"
-    },
-    "columnsCount": {
-      "type": "number"
-    }
+    "required": [
+      "summaryTable"
+    ]
   },
-  "required": [
-    "tableCsv",
-    "rowsCount",
-    "columnsCount"
+  "sqlTables": [
+    {
+      "name": "downloaded_pages",
+      "definition": "CREATE TABLE downloaded_pages (id SERIAL PRIMARY KEY, url TEXT NOT NULL, markdown_content TEXT, downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+    }
+  ],
+  "sqlQueries": [
+    {
+      "name": "Get page by URL",
+      "query": "SELECT * FROM downloaded_pages WHERE url = :url ORDER BY downloaded_at DESC LIMIT 1"
+    }
   ]
 }
 ```

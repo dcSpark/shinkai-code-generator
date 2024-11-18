@@ -5,32 +5,20 @@ type INPUTS = {
   urls: string[];
 };
 type OUTPUT = {
-  tableCsv: string;
-  rowsCount: number;
-  columnsCount: number;
+  summaryTable: string;
 };
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
   const { urls } = inputs;
 
-  // Download the pages
+  // Download pages and summarize the site
   const markdowns = await shinkaiDownloadPages(urls);
 
-  // Create a table with the URLs and summaries
-  const tableData = [];
-  for (const [url, summary] of Object.entries(markdowns)) {
-    tableData.push([url, summary]);
+  // Create a table with URL and summary
+  let summaryTable = 'URL | Summary\n';
+  for (const [i, url] of urls.entries()) {
+    summaryTable += `${url} | ${markdowns[i]}\n`;
   }
 
-  // Convert the table data to CSV
-  let tableCsv = 'URL,Summary\n';
-  for (const row of tableData) {
-    tableCsv += `${row[0]},${row[1]}\n`;
-  }
-
-  return {
-    tableCsv,
-    rowsCount: tableData.length,
-    columnsCount: 2,
-  };
+  return { summaryTable };
 }

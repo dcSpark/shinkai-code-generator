@@ -48,6 +48,40 @@ META_SCHEMA = {
       },
       "additionalProperties": {
         "type": "boolean"
+      },
+      "sqlTables": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the table"
+            },
+            "definition": {
+              "type": "string",
+              "description": "SQL CREATE TABLE statement"
+            }
+          },
+          "required": ["name", "definition"]
+        }
+      },
+      "sqlQueries": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name/description of the query"
+            },
+            "query": {
+              "type": "string",
+              "description": "Example SQL query"
+            }
+          },
+          "required": ["name", "query"]
+        }
       }
     },
     "required": [
@@ -171,7 +205,19 @@ These are two examples of METADATA:
       "address": { "type": "string", "nullable": true },
     },
     "required": [],
-  }
+  },
+  "sqlTables": [
+    {
+      "name": "wallets",
+      "definition": "CREATE TABLE wallets (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, private_key TEXT NOT NULL, address VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+    }
+  ],
+  "sqlQueries": [
+    {
+      "name": "Get wallet by address",
+      "query": "SELECT * FROM wallets WHERE address = :address"
+    }
+  ]
 };
 ```
 
@@ -210,34 +256,53 @@ These are two examples of METADATA:
     "required": [
       "markdowns"
     ]
-  }
+  },
+  "sqlTables": [
+    {
+      "name": "downloaded_pages",
+      "definition": "CREATE TABLE downloaded_pages (id SERIAL PRIMARY KEY, url TEXT NOT NULL, markdown_content TEXT, downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+    }
+  ],
+  "sqlQueries": [
+    {
+      "name": "Get page by URL",
+      "query": "SELECT * FROM downloaded_pages WHERE url = :url ORDER BY downloaded_at DESC LIMIT 1"
+    }
+  ]
 };
 ```
 
 # RULE II:
+If the code uses shinkaiSqliteQueryExecutor then fill the sqlTables and sqlQueries sections, otherwise these sections are empty.
+sqlTables contains the complete table structures, they should be same as in the code.
+sqlQueries contains from 1 to 3 examples that show how the data should be retrieved for usage.
+
+# RULE III:
 * Return a valid schema for the described JSON.
 * The METADATA must be in JSON format.
 * Output only the METADATA, so the complete Output it's a valid JSON string.
 * Any comments, notes, explanations or examples must be omitted in the Output.
 * Generate the METADATA for the following typescript source code in the INPUT:
 
+
+
 # INPUT:
+
+import { shinkaiDownloadPages } from '@shinkai/local-tools';
+import { shinkaiSqliteQueryExecutor } from '@shinkai/local-tools';
 
 type CONFIG = {};
 type INPUTS = {
   urls: string[];
 };
-type OUTPUT = {
-  texts: string[];
-};
+type OUTPUT = {};
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
-  const { urls } = inputs;
-
-  const texts: string[] = await Promise.all(urls.map(async (url) => {
-    const response = await fetch(url);
-    return await response.text();
-  }));
-
-  return { texts };
+  const sqliteDb = await shinkaiSqliteQueryExecutor('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL)');
+  for (const url of inputs.urls) {
+    const html = await shinkaiDownloadPages(url);
+    const plainText = await shinkaiDownloadPages(url, { download: false });
+    await sqliteDb.run(`INSERT INTO urls (url, content) VALUES (?, ?)`, [url, plainText]);
+  }
+  return {};
 }

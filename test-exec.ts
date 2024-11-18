@@ -2,11 +2,16 @@ import { TEST } from "./tests.ts";
 
 export async function executeTest(test: TEST, model: string) {
   const code = [
+    `
+    if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
+    if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
+    if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
+    `,
     await Deno.readTextFile("./@shinkai/local-tools.ts"),
     (await Deno.readTextFile(
     `./results/${test.code}/${model}/src-code.ts`,
   )).replace(
-    /import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/,
+    /import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/g,
     "",
   ), `
   console.log('Running...')
@@ -17,6 +22,9 @@ export async function executeTest(test: TEST, model: string) {
   );
   `].join('\n');
 
+  // Uncomment to write to file. This is useful for debugging.
+  // await Deno.writeTextFile(`./results/${test.code}/${model}/temp-src-code.ts`, code);
+ 
   console.log("================================================");
   console.log(`Running ${test.code} @ ${model}`);
   console.log("Code to execute: ");

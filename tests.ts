@@ -8,7 +8,7 @@ export type TEST = {
 export const tests: TEST[] = [{
   code: "download-url",
   prompt:
-    "Generate a tool that downloads urls and converts them to plain text.",
+    "Generate a tool that downloads urls and converts them to plain text and store them in a sqlite database.",
   inputs: {
     urls: ["https://jhftss.github.io"],
   },
@@ -16,7 +16,7 @@ export const tests: TEST[] = [{
 }, {
   code: "download-summary",
   prompt:
-    "Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary).",
+    "Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary) and store them in a sqlite database.",
   inputs: {
     urls: ["https://jhftss.github.io"],
     },

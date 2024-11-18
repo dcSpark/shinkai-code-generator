@@ -1,35 +1,50 @@
 {
-  "id": "shinkai-tool-convert-html-to-markdown",
-  "name": "Shinkai: Convert HTML to Markdown",
-  "description": "Converts one or more URLs and converts their HTML content to Markdown",
-  "author": "Shinkai",
-  "keywords": [
-    "HTML to Markdown",
-    "web page downloader",
-    "content conversion",
-    "URL to Markdown"
+  "name": "shinkai-tool-download-pages",
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "schema.json",
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "integer", "boolean", "null"]
+        }
+      },
+      "inputs": {
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "required": ["urls"]
+      },
+      "output": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "integer", "boolean", "null"]
+        }
+      }
+    },
+    "required": ["inputs"],
+    "additionalProperties": false
+  },
+  "sqlTables": [
+    {
+      "name": "urls",
+      "definition": "CREATE TABLE urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, content TEXT)"
+    }
   ],
-  "configurations": {
-    "type": "object",
-    "properties": {},
-    "required": []
-  },
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "urls": { "type": "array", "items": { "type": "string" } }
+  "sqlQueries": [
+    {
+      "name": "Get page by URL",
+      "query": "SELECT * FROM urls WHERE url = :url ORDER BY id DESC LIMIT 1"
     },
-    "required": [
-      "urls"
-    ]
-  },
-  "result": {
-    "type": "object",
-    "properties": {
-      "texts": { "type": "array", "items": { "type": "string" } }
-    },
-    "required": [
-      "texts"
-    ]
-  }
+    {
+      "name": "Get all pages",
+      "query": "SELECT * FROM urls ORDER BY id DESC"
+    }
+  ]
 }

@@ -332,7 +332,39 @@ export async function shinkaiLlmPromptProcessor(prompt: string): Promise<{
     message: string;
 }>;
 
-
+/**
+ * Tool for executing SQLite queries on a specified database file. 
+        Table creation should always use 'CREATE TABLE IF NOT EXISTS'.
+        
+        Example table creation:
+        CREATE TABLE IF NOT EXISTS table_name (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_1 TEXT NOT NULL,
+            field_2 DATETIME DEFAULT CURRENT_TIMESTAMP,
+            field_3 INTEGER,
+            field_4 TEXT
+        );
+        
+        Example insert:
+        INSERT INTO table_name (field_1, field_3, field_4) VALUES ('value_1', 1, 'value_4');
+        
+        Example read:
+        SELECT * FROM table_name WHERE field_2 > datetime('now', '-1 day');
+        SELECT field_1, field_3 FROM table_name WHERE field_3 > 100 ORDER BY field_2 DESC LIMIT 10;
+ * @param query - (required, The SQL query to execute) 
+ * @returns {
+ *   result: any 
+ *   type: string 
+ *   rowCount: number 
+ *   rowsAffected: number 
+ * }
+ */
+export async function shinkaiSqliteQueryExecutor(query: string): Promise<{
+    result: any;
+    type: string;
+    rowCount: number;
+    rowsAffected: number;
+}>;
 ```
 
 #RULE II:
@@ -350,6 +382,7 @@ export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
 * This will be shared as a library, when used it run(...) function will be called.
 * The function signature MUST be: `export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT>`
 * If you need to import other libraries, do it in the Deno NPM format and with version, for example to import axios use 'import axios from 'npm:axios@1.6.2' with the 'npm:' prefix, and the exact version.
+* If permanent memory is required, write to disk, store, sql always prioritize using shinkaiSqliteQueryExecutor.
 
 # RULE IV:
 * Do not output, notes, ideas, explanations or examples.
@@ -361,4 +394,4 @@ export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
 
 # INPUT:
 
-Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary).
+Generate a tool that downloads urls and summarizes the site and make a table with the (URL, summary) and store them in a sqlite database.
