@@ -18,12 +18,15 @@ export async function report(
   // Report Results
   const code = await checkIfExistsAndHasContent(
     `./results/${test.code}/${model.name}/src-code.ts`,
+    false,
   );
   const metadata = await checkIfExistsAndHasContent(
     `./results/${test.code}/${model.name}/src-metadata.json`,
+    false,
   );
   const execute = await checkIfExistsAndHasContent(
     `./results/${test.code}/${model.name}/execute-output`,
+    true,
   );
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
@@ -37,6 +40,7 @@ export async function report(
 
 async function checkIfExistsAndHasContent(
   path: string,
+  showContent: boolean = false,
 ): Promise<[STATUS, string]> {
   try {
     await Deno.stat(path);
@@ -45,7 +49,10 @@ async function checkIfExistsAndHasContent(
       if (content.startsWith("::ERROR::")) {
         return [STATUS.BAD, content.substring(0, 100).replace(/\n/g, " ")];
       }
-      return [STATUS.GOOD, ""];
+      return [
+        STATUS.GOOD,
+        showContent ? content.substring(0, 100).replace(/\n/g, " ") : "",
+      ];
     }
     return [STATUS.WARNING, ""];
   } catch (_) {
