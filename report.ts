@@ -43,7 +43,7 @@ async function checkIfExistsAndHasContent(
     const content = await Deno.readTextFile(path);
     if (content.trim().length > 0) {
       if (content.startsWith("::ERROR::")) {
-        return [STATUS.BAD, content.substring(0, 100)];
+        return [STATUS.BAD, content.substring(0, 100).replace(/\n/g, " ")];
       }
       return [STATUS.GOOD, ""];
     }

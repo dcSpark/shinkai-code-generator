@@ -16,7 +16,7 @@ export const tests: TEST[] = [{
   tools: ["local:::shinkai_tool_download_pages:::shinkai__download_pages"],
   config: {},
 }, {
-  code: "download-sql",
+  code: "download-url-and-sql",
   prompt:
     "Generate a tool that downloads a URL and stores the result in a sqlite database. Then query the database and return the all results.",
   inputs: {
@@ -28,7 +28,7 @@ export const tests: TEST[] = [{
   ],
   config: {},
 }, {
-  code: "download-summay",
+  code: "download-url-and-summary",
   prompt:
     "Generate a tool that downloads urls and summarizes the content in 100 characters.",
   inputs: {

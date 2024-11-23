@@ -1,6 +1,7 @@
 # Shinkai Prompt Testing
 
 Requirements 
+* Shinkai API running on http://localhost:9950 (or overwritten by env SHINKAI_API_URL)
 * Ollama running on http://localhost:11434 (or overwritten by env OLLAMA_API_URL)
 * Deno 2.x
 
