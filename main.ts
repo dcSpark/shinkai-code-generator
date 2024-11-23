@@ -1,80 +1,36 @@
-import {
-  createDir,
-  getInstalledModels,
-  getToolImplementationPrompt,
-} from "./helpers.ts";
-import { executeTest } from "./test-exec.ts";
-import { startTest } from "./test-llm.ts";
+import { createDir, getInstalledModels } from "./test-engine/test-helpers.ts";
+import { executeTest } from "./test-engine/test-exec.ts";
+import { generateCodeAndMetadata } from "./test-engine/test-llm.ts";
 import { tests } from "./tests.ts";
+import { report } from "./report.ts";
+import { getConfig } from "./cli.ts";
+import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
 
-const good = "✅";
-const bad = "❌";
-const warning = "⚠️";
-const info = "ℹ️";
-const question = "❓";
-const skip = "⏩";
-
-const mode = Deno.args[0];
-let run_llm = false;
-let run_exec = false;
-switch (mode) {
-  case "exec":
-    run_exec = true;
-    break;
-  case "llm":
-    try {
-      if (await Deno.stat("./results")) {
-        await Deno.remove("./results", { recursive: true });
-      }
-    } catch (_) { /* nop */ }
-    run_llm = true;
-    break;
-  default:
-    try {
-      if (await Deno.stat("./results")) {
-        await Deno.remove("./results", { recursive: true });
-      }
-    } catch (_) { /* nop */ }
-    run_llm = true;
-    run_exec = true;
-}
-
+const { run_llm, run_exec } = await getConfig();
 const models = await getInstalledModels();
 
+const total = models.length * tests.length;
+const start = Date.now();
+let current = 1;
+let score = 0;
+let maxScore = 0;
 for (const model of models) {
   for (const test of tests) {
-    console.log(`[Testing] ${test.code} @ ${model}`);
-
+    console.log("--------------------------------");
+    console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.name}`);
+    current += 1;
     if (run_llm) {
-      await createDir(test.code, model);
-      await getToolImplementationPrompt(test.code, model, test.tools);
-      await startTest(test, model);
+      await createDir(test, model);
+      await getToolImplementationPrompt(test, model);
+      await generateCodeAndMetadata(test, model);
     }
     if (run_exec) {
       await executeTest(test, model);
     }
-    const code = await checkIfExistsAndHasContent(
-      `./results/${test.code}/${model}/src-code.ts`,
-    );
-    const metadata = await checkIfExistsAndHasContent(
-      `./results/${test.code}/${model}/src-metadata.json`,
-    );
-    const execute = await checkIfExistsAndHasContent(
-      `./results/${test.code}/${model}/execute-output`,
-    );
-    console.log(`    Code ${code ? good : bad}`);
-    console.log(`    Metadata ${metadata ? good : bad}`);
-    console.log(`    Execute ${execute ? good : bad}`);
-    console.log(`    [Done] ${model} for ${test.code}`);
+    const { score: s, max } = await report(test, model);
+    score += s;
+    maxScore += max;
   }
 }
-
-async function checkIfExistsAndHasContent(path: string) {
-  try {
-    await Deno.stat(path);
-    const content = await Deno.readTextFile(path);  
-    return content.length > 0;
-  } catch (_) {
-    return false;
-  }
-}
+console.log(`[Done] Total Time: ${Date.now() - start}ms`);
+console.log(`[Done] Total Score: ${score}/${maxScore}`);

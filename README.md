@@ -8,7 +8,7 @@ Requirements
 * `deno task start`
 
 ## Notes on Prompt Results:
-* Results will be stored in `results/{model}/{test}/` 
+* Results will be stored in `results/{model-name}/{test-code}/` 
 * `prompt-` stores prompts 
 * `raw-` store raw responses
 * `src-` store parsed response (valid Typescript or JSON)
