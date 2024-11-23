@@ -35,4 +35,9 @@ export async function getToolImplementationPrompt(
     `./results/${test.code}/${model.name}/raw-prompts/create-tool.md`,
     codePrompt,
   );
+  console.log(
+    `    [Shinkai] Fetched prompts & ${test.tools.length} tool${
+      test.tools.length === 1 ? "" : "s"
+    }`,
+  );
 }

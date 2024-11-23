@@ -31,7 +31,7 @@ export async function report(
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
-  console.log(`    [Done] ${model.name} for ${test.code}`);
+  console.log(`    [Done] ${test.code} @ ${model.name}`);
   if (code[0] === STATUS.GOOD) score += 1;
   if (metadata[0] === STATUS.GOOD) score += 1;
   if (execute[0] === STATUS.GOOD) score += 3;

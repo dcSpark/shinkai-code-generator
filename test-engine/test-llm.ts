@@ -9,7 +9,7 @@ export async function generateCodeAndMetadata(test: TEST, model: BaseEngine) {
     model,
   ).run();
   console.log(
-    `    [LLM ExecutionTime] ${model.name} : ${Date.now() - start}ms`,
+    `    [LLM] ${model.name} - Execution Time: ${Date.now() - start}ms`,
   );
   // Write Code
   await writeToFile(test, model, "code", data.code);

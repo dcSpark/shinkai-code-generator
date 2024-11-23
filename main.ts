@@ -6,7 +6,7 @@ import { report } from "./report.ts";
 import { getConfig } from "./cli.ts";
 import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
 
-const { run_llm, run_exec } = await getConfig();
+const { run_llm, run_exec, run_shinkai } = await getConfig();
 const models = await getInstalledModels();
 
 const total = models.length * tests.length;
@@ -19,18 +19,23 @@ for (const model of models) {
     console.log("--------------------------------");
     console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.name}`);
     current += 1;
-    if (run_llm) {
+    
+    if (run_shinkai) {
       await createDir(test, model);
       await getToolImplementationPrompt(test, model);
+    }
+    if (run_llm) {
       await generateCodeAndMetadata(test, model);
     }
     if (run_exec) {
       await executeTest(test, model);
+      const { score: s, max } = await report(test, model);
+      score += s;
+      maxScore += max;
     }
-    const { score: s, max } = await report(test, model);
-    score += s;
-    maxScore += max;
   }
 }
 console.log(`[Done] Total Time: ${Date.now() - start}ms`);
-console.log(`[Done] Total Score: ${score}/${maxScore}`);
+if (run_exec) {
+  console.log(`[Done] Total Score: ${score}/${maxScore}`);
+}

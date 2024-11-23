@@ -61,7 +61,7 @@ export async function executeTest(test: TEST, model: BaseEngine) {
     child.stdin.close();
 
     const _status = await child.status;
-    console.log(`    [Executing] ${test.code} @ ${model.name}`);
+    console.log(`    [Exec] ${test.code} @ ${model.name}`);
     // console.log(`Wrote to ${`./results/${test.code}/${model.name}/execute-output`}`);
     const s = await child.status;
     // console.log(s);

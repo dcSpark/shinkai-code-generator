@@ -24,7 +24,7 @@ export class OllamaEngine extends BaseEngine {
         new OllamaEngine(m.model)
       );
     } catch (e) {
-      console.log("Error:", e.message);
+      console.log("Error:", (e as Error).message);
       console.log(`Ollama is not running at ${ollamaApiUrl}`);
       return [];
     }

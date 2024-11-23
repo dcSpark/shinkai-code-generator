@@ -8,6 +8,19 @@ Requirements
 ## Run Prompts & Execute Results
 * `deno task start`
 
+## Stages:
+* `shinkai` - Fetches the prompts and tools from Shinkai and stores them in `results/{test}/{model}/` 
+* `llm` - Runs the promts against LLMs and stores the results in `results/{test}/{model}/`
+* `exec` - Executes the generated code and stores the results in `results/{test}/{model}/`
+
+
+### Stage selection examples:
+* `deno task start` - Runs all stages
+* `deno task start shinkai` - Runs only shinkai stage
+* `deno task start llm` - Runs only llm stage
+* `deno task start exec` - Runs only exec stage
+* Options can be combined, for example `deno task start shinkai llm` to run shinkai and llm stages.
+
 ## Notes on Prompt Results:
 * Results will be stored in `results/{model-name}/{test-code}/` 
 * `prompt-` stores prompts 
