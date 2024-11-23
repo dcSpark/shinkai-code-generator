@@ -1,4 +1,5 @@
 import axios from "npm:axios";
+import { TEST } from "./tests.ts";
 
 export type PromptTestResult = {
   prompt: string;
@@ -8,17 +9,22 @@ export type PromptTestResult = {
 export class PromptTest {
   private apiUrl: string;
 
-  constructor(private prompt: string, private model: string) {
+  constructor(
+    private test: TEST,
+    private model: string,
+  ) {
     this.apiUrl = Deno.env.get("OLLAMA_API_URL") ?? "http://localhost:11434";
   }
 
   private async codePrompt(task: string) {
-    return `${await Deno.readTextFile("./prompts/create-tool.md")}\n${task}\n`;
+    return `${await Deno.readTextFile(
+      `./results/${this.test.code}/${this.model}/raw-prompts/create-tool.md`,
+    )}\n${task}\n`;
   }
 
   private async metadataPrompt(task: string) {
     return `${await Deno.readTextFile(
-      "./prompts/create-metadata.md",
+      `./results/${this.test.code}/${this.model}/raw-prompts/create-metadata.md`,
     )}\n${task}\n`;
   }
 
@@ -86,7 +92,7 @@ export class PromptTest {
   public async run(): Promise<
     { code: PromptTestResult; metadata: PromptTestResult | null }
   > {
-    const code = await this.generateCode(this.prompt);
+    const code = await this.generateCode(this.test.prompt);
     const metadata = code.src ? await this.generateMetadata(code.src) : null;
     return { code, metadata };
   }
