@@ -7,7 +7,9 @@ import { getConfig } from "./cli.ts";
 import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
 
 const { run_llm, run_exec, run_shinkai } = await getConfig();
-const models = await getInstalledModels();
+const models = (await getInstalledModels()).filter(model => !model.name.startsWith("snowflake-arctic"));
+console.log(`[Testing] ${models.length} models found`);
+console.log(`List of models: ${models.map((m) => m.name).join(", ")}`);
 
 const total = models.length * tests.length;
 const start = Date.now();
