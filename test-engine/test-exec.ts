@@ -11,7 +11,9 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
   if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
   if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
-  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${convertModelName(model.name)}");
+  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${
+      convertModelName(model.name)
+    }");
   `,
     await Deno.readTextFile(
       `./results/${test.code}/${model.name}/@shinkai/local-tools.ts`,
@@ -42,20 +44,20 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
 
 export async function executeTest(test: TEST, model: BaseEngine) {
   const path = `./results/${test.code}/${model.name}/final-src-code.ts`;
-  
+
   let exists = false;
   try {
     if (await Deno.stat(path)) exists = true;
   } catch (_) {}
 
   try {
-    let code: string; 
+    let code: string;
     if (!exists) {
       code = await generateCode(test, model);
       await Deno.writeTextFile(
-      path,
-      code,
-    );
+        path,
+        code,
+      );
     } else {
       code = await Deno.readTextFile(path);
     }

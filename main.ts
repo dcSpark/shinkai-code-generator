@@ -8,12 +8,12 @@ import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
 import { readFile } from "node:fs/promises";
 import { OllamaEngine } from "./llm-engine/OllamaEngine.ts";
 
-const { run_llm, run_exec, run_shinkai } = await getConfig();
+const { run_llm, run_exec, run_shinkai, tests_to_run } = await getConfig();
 
 async function getModels() {
   try {
     const data = await readFile("models.txt", "utf-8");
-    return data.split("\n").filter(line => line.trim() !== "").map(line => {
+    return data.split("\n").filter((line) => line.trim() !== "").map((line) => {
       const [prefix, ...modelParts] = line.split(":");
       const modelName = modelParts.join(":");
       if (prefix === "ollama") {
@@ -21,11 +21,13 @@ async function getModels() {
       }
       // Add other engine types here if needed
       return null;
-    }).filter(model => model !== null);
+    }).filter((model) => model !== null);
   } catch (err) {
-    if (err.code === 'ENOENT') {
+    if (err.code === "ENOENT") {
       // File does not exist, use getInstalledModels
-      return (await getInstalledModels()).filter(model => !model.name.startsWith("snowflake-arctic"));
+      return (await getInstalledModels()).filter((model) =>
+        !model.name.startsWith("snowflake-arctic")
+      );
     } else {
       throw err; // Re-throw if it's a different error
     }
@@ -41,13 +43,17 @@ const start = Date.now();
 let current = 1;
 let score = 0;
 let maxScore = 0;
+const selectedTests = tests_to_run.length > 0 ? tests.filter(test => tests_to_run.includes(test.code)) : tests;
+
 for (const model of models) {
-  for (const test of tests) {
+  for (const test of selectedTests) {
     console.log("--------------------------------");
     console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.name}`);
-    console.log(`    [Prompt] ${test.prompt.substring(0, 100).replaceAll("\n", " ")}`);
+    console.log(
+      `    [Prompt] ${test.prompt.substring(0, 100).replaceAll("\n", " ")}`,
+    );
     current += 1;
-    
+
     if (run_shinkai) {
       await createDir(test, model);
       await getToolImplementationPrompt(test, model);

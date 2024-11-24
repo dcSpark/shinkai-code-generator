@@ -13,6 +13,9 @@ Requirements
 * `llm` - Runs the promts against LLMs and stores the results in `results/{test}/{model}/`
 * `exec` - Executes the generated code and stores the results in `results/{test}/{model}/`
 
+### Run specific tests:
+* `deno task start test=download-url-and-sql` - Runs only the `download-url-and-sql` test
+* `deno task start test=download-url-and-sql test=download-url-and-summary` - Runs the `download-url-and-sql` and `download-url-and-summary` tests
 
 ### Stage selection examples:
 * `deno task start` - Runs all stages

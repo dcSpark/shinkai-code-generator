@@ -7,40 +7,47 @@ export type TEST = {
   check?: (output: string) => number; // between 0 and 1
 };
 
-const checkIfObjectWithArrayAndMatch = (expected: RegExp) => (output: string): number => {
-  const checkIfArrayAndMatch = (arr: unknown, match: RegExp): number | null => {
-    if (Array.isArray(arr)) {
-      if (arr.length === 1 && arr[0].match(match)) {
-        return 1;
+const checkIfObjectWithArrayAndMatch =
+  (expected: RegExp) => (output: string): number => {
+    const checkIfArrayAndMatch = (
+      arr: unknown,
+      match: RegExp,
+    ): number | null => {
+      if (Array.isArray(arr)) {
+        if (arr.length === 1 && arr[0].match(match)) {
+          return 1;
+        }
+        return 0.5;
       }
-      return 0.5;
-    }
-    return null;
-  }
-
-  const tryToParse = (o: string): object | null => {
-    try { 
-      return JSON.parse(o);
-    } catch (_) {
       return null;
-    }
-  }
+    };
 
-  if (!output) return 0;
-  const o = tryToParse(output);
-  if (o && Object.keys(o).length > 0) {
-    if (Array.isArray(o)) {
-      return 0.1;
+    const tryToParse = (o: string): object | null => {
+      try {
+        return JSON.parse(o);
+      } catch (_) {
+        return null;
+      }
+    };
+
+    if (!output) return 0;
+    const o = tryToParse(output);
+    if (o && Object.keys(o).length > 0) {
+      if (Array.isArray(o)) {
+        return 0.1;
+      }
+      const match = Object.keys(o).map((item) => {
+        const result = checkIfArrayAndMatch(
+          o[item as keyof typeof o],
+          expected,
+        );
+        return result;
+      }).find((x) => x);
+      if (match) return match;
     }
-    const match = Object.keys(o).map(item => {
-      const result = checkIfArrayAndMatch(o[item as keyof typeof o], expected);
-      return result;
-    }).find(x => x);
-    if (match) return match;
-  }
-  
-  return 0;
-}
+
+    return 0;
+  };
 
 export const tests: TEST[] = [{
   code: "download-url-md",

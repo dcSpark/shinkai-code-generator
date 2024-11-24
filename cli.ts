@@ -1,13 +1,29 @@
-
 // CLI Config
 export async function getConfig(): Promise<
-  { run_llm: boolean; run_exec: boolean; run_shinkai: boolean }
+  {
+    run_llm: boolean;
+    run_exec: boolean;
+    run_shinkai: boolean;
+    tests_to_run: string[];
+  }
 > {
   const args = Deno.args;
 
-  const run_llm = args.includes("llm") || args.length === 0;
-  const run_exec = args.includes("exec") || args.length === 0;
-  const run_shinkai = args.includes("shinkai") || args.length === 0;
+
+  let run_llm = args.includes("llm");
+  let run_exec = args.includes("exec");
+  let run_shinkai = args.includes("shinkai");
+  if (!run_llm && !run_exec && !run_shinkai) {
+    run_llm = true;
+    run_exec = true;
+    run_shinkai = true;
+  }
+
+  const tests = args.filter((arg) => arg.match(/test=/));
+  let tests_to_run: string[] = [];
+  if (tests.length > 0) {
+    tests_to_run = tests.map((test) => test.replace(/test=/, ""));
+  }
 
   if (run_shinkai) {
     try {
@@ -16,5 +32,5 @@ export async function getConfig(): Promise<
       }
     } catch (_) { /* nop */ }
   }
-  return { run_llm, run_exec, run_shinkai };
+  return { run_llm, run_exec, run_shinkai, tests_to_run };
 }

@@ -30,7 +30,6 @@ export async function report(
     true,
   );
 
-
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
@@ -45,14 +44,20 @@ export async function report(
     max += multiplier;
 
     if (execute[0] === STATUS.GOOD) {
-        const check = test.check(await Deno.readTextFile( `./results/${test.code}/${model.name}/execute-output`));
-        score += check * multiplier;
-        let status = STATUS.BAD;
-        if (check >= 1) status = STATUS.GOOD;
-        else if (check > 0) status = STATUS.WARNING;
-        console.log(`    ${status} Check [0-1] ${check}`);
+      const check = test.check(
+        await Deno.readTextFile(
+          `./results/${test.code}/${model.name}/execute-output`,
+        ),
+      );
+      score += check * multiplier;
+      let status = STATUS.BAD;
+      if (check >= 1) status = STATUS.GOOD;
+      else if (check > 0) status = STATUS.WARNING;
+      console.log(`    ${status} Check [0-1] ${check}`);
     } else {
-        console.log(`    ${STATUS.BAD} Check [0-1] (cannot check failed execution)`);
+      console.log(
+        `    ${STATUS.BAD} Check [0-1] (cannot check failed execution)`,
+      );
     }
   }
 
