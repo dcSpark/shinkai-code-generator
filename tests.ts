@@ -33,7 +33,7 @@ const checkIfObjectWithArrayAndMatch = (expected: RegExp) => (output: string): n
       return 0.1;
     }
     const match = Object.keys(o).map(item => {
-      const result = checkIfArrayAndMatch(item, expected);
+      const result = checkIfArrayAndMatch(o[item as keyof typeof o], expected);
       return result;
     }).find(x => x);
     if (match) return match;

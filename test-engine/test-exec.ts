@@ -2,7 +2,7 @@ import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TEST } from "../tests.ts";
 
 function convertModelName(name: string) {
-  return name.replace(/[a-zA-Z]/g, "_");
+  return name.replace(/[^a-zA-Z1-9]/g, "_");
 }
 
 async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
@@ -41,12 +41,24 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
 }
 
 export async function executeTest(test: TEST, model: BaseEngine) {
+  const path = `./results/${test.code}/${model.name}/final-src-code.ts`;
+  
+  let exists = false;
   try {
-    const code = await generateCode(test, model);
-    await Deno.writeTextFile(
-      `./results/${test.code}/${model.name}/final-src-code.ts`,
+    if (await Deno.stat(path)) exists = true;
+  } catch (_) {}
+
+  try {
+    let code: string; 
+    if (!exists) {
+      code = await generateCode(test, model);
+      await Deno.writeTextFile(
+      path,
       code,
     );
+    } else {
+      code = await Deno.readTextFile(path);
+    }
 
     // Execute Deno binary with the generated code
     const command = new Deno.Command(Deno.execPath(), {
