@@ -15,9 +15,9 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
     (await Deno.readTextFile(
       `./results/${test.code}/${model.name}/src-code.ts`,
     )).replace(
-      /import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/g,
+      /.*import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/g,
       "",
-    ).replace(/import.*axios.*;/g, ""),
+    ).replace(/.*import.*axios.*;/g, ""),
     `
 // console.log('Running...')
 // console.log('Config: ${JSON.stringify(test.config)}')

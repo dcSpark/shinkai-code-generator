@@ -18,6 +18,7 @@ for (const model of models) {
   for (const test of tests) {
     console.log("--------------------------------");
     console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.name}`);
+    console.log(`    [Prompt] ${test.prompt.substring(0, 100).replaceAll("\n", " ")}`);
     current += 1;
     
     if (run_shinkai) {

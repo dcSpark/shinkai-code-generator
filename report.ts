@@ -15,6 +15,7 @@ export async function report(
   model: BaseEngine,
 ): Promise<{ score: number; max: number }> {
   let score = 0;
+  let max = 0;
   // Report Results
   const code = await checkIfExistsAndHasContent(
     `./results/${test.code}/${model.name}/src-code.ts`,
@@ -28,6 +29,8 @@ export async function report(
     `./results/${test.code}/${model.name}/execute-output`,
     true,
   );
+
+
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
@@ -35,7 +38,25 @@ export async function report(
   if (code[0] === STATUS.GOOD) score += 1;
   if (metadata[0] === STATUS.GOOD) score += 1;
   if (execute[0] === STATUS.GOOD) score += 3;
-  return { score, max: 5 };
+  max += 5;
+
+  if (test.check) {
+    const multiplier = 3;
+    max += multiplier;
+
+    if (execute[0] === STATUS.GOOD) {
+        const check = test.check(execute);
+        score += check * multiplier;
+        let status = STATUS.BAD;
+        if (check >= 1) status = STATUS.GOOD;
+        else if (check > 0) status = STATUS.WARNING;
+        console.log(`    ${status} Check [0-1] ${check}`);
+    } else {
+        console.log(`    ${STATUS.BAD} Check [0-1] (cannot check failed execution)`);
+    }
+  }
+
+  return { score, max };
 }
 
 async function checkIfExistsAndHasContent(
