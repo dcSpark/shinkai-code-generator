@@ -5,9 +5,36 @@ import { tests } from "./tests.ts";
 import { report } from "./report.ts";
 import { getConfig } from "./cli.ts";
 import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
+import { readFile } from "node:fs/promises";
+import { OllamaEngine } from "./llm-engine/OllamaEngine.ts";
 
 const { run_llm, run_exec, run_shinkai } = await getConfig();
-const models = await getInstalledModels();
+
+async function getModels() {
+  try {
+    const data = await readFile("models.txt", "utf-8");
+    return data.split("\n").filter(line => line.trim() !== "").map(line => {
+      const [prefix, ...modelParts] = line.split(":");
+      const modelName = modelParts.join(":");
+      if (prefix === "ollama") {
+        return new OllamaEngine(modelName);
+      }
+      // Add other engine types here if needed
+      return null;
+    }).filter(model => model !== null);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      // File does not exist, use getInstalledModels
+      return (await getInstalledModels()).filter(model => !model.name.startsWith("snowflake-arctic"));
+    } else {
+      throw err; // Re-throw if it's a different error
+    }
+  }
+}
+
+const models = await getModels();
+console.log(`[Testing] ${models.length} models found`);
+console.log(`List of models: ${models.map((m) => m.name).join(", ")}`);
 
 const total = models.length * tests.length;
 const start = Date.now();

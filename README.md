@@ -28,3 +28,15 @@ Requirements
 * `src-` store parsed response (valid Typescript or JSON)
 * `@shinkai/local-tools.ts` stores the local-tools.ts file used in the test
 * `execute-output` stores the output of the executed code
+
+## Using `models.txt`
+The `models.txt` file allows you to specify which models to use for testing. Each line in the file should specify a model in the format:
+
+```
+ollama:qwen2.5-coder:32b
+```
+
+- **Engine Prefix**: The prefix (`ollama` in the example) indicates which engine the model belongs to.
+- **Model Name**: The rest of the line specifies the model name, which can include colons.
+
+If `models.txt` is not present, the system will default to using models obtained from the `getInstalledModels()` function.
