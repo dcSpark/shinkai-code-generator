@@ -45,7 +45,7 @@ export async function report(
     max += multiplier;
 
     if (execute[0] === STATUS.GOOD) {
-        const check = test.check(execute);
+        const check = test.check(await Deno.readTextFile( `./results/${test.code}/${model.name}/execute-output`));
         score += check * multiplier;
         let status = STATUS.BAD;
         if (check >= 1) status = STATUS.GOOD;

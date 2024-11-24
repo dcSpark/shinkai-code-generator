@@ -1,13 +1,17 @@
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TEST } from "../tests.ts";
 
+function convertModelName(name: string) {
+  return name.replace(/[a-zA-Z]/g, "_");
+}
+
 async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   return [
     `
   if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
   if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
   if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
-  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.name}");
+  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${convertModelName(model.name)}");
   `,
     await Deno.readTextFile(
       `./results/${test.code}/${model.name}/@shinkai/local-tools.ts`,
@@ -23,9 +27,11 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
 // console.log('Config: ${JSON.stringify(test.config)}')
 // console.log('Inputs: ${JSON.stringify(test.inputs)}')
   try {
-    console.log(await run(${JSON.stringify(test.config)}, ${
+    const program_result = await run(${JSON.stringify(test.config)}, ${
       JSON.stringify(test.inputs)
-    }));
+    });
+    if (program_result) console.log(JSON.stringify(program_result, null, 2));
+    else console.log(program_result);
   } catch (e) {
     console.log('::ERROR::', e);
   }
