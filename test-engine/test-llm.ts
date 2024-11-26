@@ -9,7 +9,7 @@ export async function generateCodeAndMetadata(test: TEST, model: BaseEngine) {
     model,
   ).run();
   console.log(
-    `    [LLM] ${model.name} - Execution Time: ${Date.now() - start}ms`,
+    `    [LLM] ${model.path} - Execution Time: ${Date.now() - start}ms`,
   );
   // Write Code
   await writeToFile(test, model, "code", data.code);
@@ -29,15 +29,15 @@ const writeToFile = async (
   data: PromptTestResult,
 ) => {
   await Deno.writeFile(
-    `./results/${test.code}/${model.name}/prompt-${type}.md`,
+    `./results/${test.code}/${model.path}/prompt-${type}.md`,
     new TextEncoder().encode(data.prompt),
   );
   await Deno.writeFile(
-    `./results/${test.code}/${model.name}/raw-response-${type}.md`,
+    `./results/${test.code}/${model.path}/raw-response-${type}.md`,
     new TextEncoder().encode(data.raw),
   );
   await Deno.writeFile(
-    `./results/${test.code}/${model.name}/src-${type}.${
+    `./results/${test.code}/${model.path}/src-${type}.${
       type === "code" ? "ts" : "json"
     }`,
     new TextEncoder().encode(data.src ?? ""),

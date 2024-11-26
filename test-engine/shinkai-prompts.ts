@@ -24,15 +24,15 @@ export async function getToolImplementationPrompt(
   const { codePrompt, libraryCode, metadataPrompt } = response.data;
 
   await Deno.writeTextFile(
-    `./results/${test.code}/${model.name}/@shinkai/local-tools.ts`,
+    `./results/${test.code}/${model.path}/shinkai-local-tools.ts`,
     libraryCode,
   );
   await Deno.writeTextFile(
-    `./results/${test.code}/${model.name}/raw-prompts/create-metadata.md`,
+    `./results/${test.code}/${model.path}/raw-prompts/create-metadata.md`,
     metadataPrompt,
   );
   await Deno.writeTextFile(
-    `./results/${test.code}/${model.name}/raw-prompts/create-tool.md`,
+    `./results/${test.code}/${model.path}/raw-prompts/create-tool.md`,
     codePrompt,
   );
   console.log(

@@ -19,10 +19,7 @@ export async function getInstalledModels(): Promise<BaseEngine[]> {
 }
 
 export const createDir = async (test: TEST, model: BaseEngine) => {
-  await Deno.mkdir(`./results/${test.code}/${model.name}/raw-prompts`, {
-    recursive: true,
-  });
-  await Deno.mkdir(`./results/${test.code}/${model.name}/@shinkai`, {
+  await Deno.mkdir(`./results/${test.code}/${model.path}/raw-prompts`, {
     recursive: true,
   });
 };

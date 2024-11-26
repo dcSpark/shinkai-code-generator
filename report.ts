@@ -18,22 +18,25 @@ export async function report(
   let max = 0;
   // Report Results
   const code = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.name}/src-code.ts`,
+    `./results/${test.code}/${model.path}/src-code.ts`,
     false,
   );
   const metadata = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.name}/src-metadata.json`,
+    `./results/${test.code}/${model.path}/src-metadata.json`,
     false,
   );
   const execute = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.name}/execute-output`,
+    `./results/${test.code}/${model.path}/execute-output`,
     true,
   );
 
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
-  console.log(`    [Done] ${test.code} @ ${model.name}`);
+  console.log(
+    `    Path Source Code ${`./results/${test.code}/${model.path}/final-src-code.ts`}`,
+  );
+  console.log(`    [Done] ${test.code} @ ${model.path}`);
   if (code[0] === STATUS.GOOD) score += 1;
   if (metadata[0] === STATUS.GOOD) score += 1;
   if (execute[0] === STATUS.GOOD) score += 3;
@@ -46,7 +49,7 @@ export async function report(
     if (execute[0] === STATUS.GOOD) {
       const check = test.check(
         await Deno.readTextFile(
-          `./results/${test.code}/${model.name}/execute-output`,
+          `./results/${test.code}/${model.path}/execute-output`,
         ),
       );
       score += check * multiplier;

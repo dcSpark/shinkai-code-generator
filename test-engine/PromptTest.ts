@@ -14,13 +14,13 @@ export class PromptTest {
 
   private async codePrompt(task: string) {
     return `${await Deno.readTextFile(
-      `./results/${this.test.code}/${this.model.name}/raw-prompts/create-tool.md`,
+      `./results/${this.test.code}/${this.model.path}/raw-prompts/create-tool.md`,
     )}\n${task}\n`;
   }
 
   private async metadataPrompt(task: string) {
     return `${await Deno.readTextFile(
-      `./results/${this.test.code}/${this.model.name}/raw-prompts/create-metadata.md`,
+      `./results/${this.test.code}/${this.model.path}/raw-prompts/create-metadata.md`,
     )}\n${task}\n`;
   }
 

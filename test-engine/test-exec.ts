@@ -1,33 +1,23 @@
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TEST } from "../tests.ts";
 
-function convertModelName(name: string) {
-  return name.replace(/[^a-zA-Z1-9]/g, "_");
-}
-
 async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   return [
     `
   if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
   if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
   if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
-  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${
-      convertModelName(model.name)
-    }");
+  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
   `,
     await Deno.readTextFile(
-      `./results/${test.code}/${model.name}/@shinkai/local-tools.ts`,
+      `./results/${test.code}/${model.path}/src-code.ts`,
     ),
-    (await Deno.readTextFile(
-      `./results/${test.code}/${model.name}/src-code.ts`,
-    )).replace(
-      /.*import\s+{.*\s+from\s+['"]@shinkai\/local-tools['"];/g,
-      "",
-    ).replace(/.*import.*axios.*;/g, ""),
     `
-// console.log('Running...')
-// console.log('Config: ${JSON.stringify(test.config)}')
-// console.log('Inputs: ${JSON.stringify(test.inputs)}')
+  
+  // console.log('Running...')
+  // console.log('Config: ${JSON.stringify(test.config)}')
+  // console.log('Inputs: ${JSON.stringify(test.inputs)}')
+  
   try {
     const program_result = await run(${JSON.stringify(test.config)}, ${
       JSON.stringify(test.inputs)
@@ -43,12 +33,12 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
 }
 
 export async function executeTest(test: TEST, model: BaseEngine) {
-  const path = `./results/${test.code}/${model.name}/final-src-code.ts`;
+  const path = `./results/${test.code}/${model.path}/final-src-code.ts`;
 
   let exists = false;
   try {
     if (await Deno.stat(path)) exists = true;
-  } catch (_) {}
+  } catch (_) { /* ignore */ }
 
   try {
     let code: string;
@@ -64,14 +54,14 @@ export async function executeTest(test: TEST, model: BaseEngine) {
 
     // Execute Deno binary with the generated code
     const command = new Deno.Command(Deno.execPath(), {
-      args: ["eval", code],
+      args: ["run", "--allow-all", path],
       stdin: "piped",
       stdout: "piped",
     });
 
     const child = command.spawn();
     child.stdout.pipeTo(
-      Deno.openSync(`./results/${test.code}/${model.name}/execute-output`, {
+      Deno.openSync(`./results/${test.code}/${model.path}/execute-output`, {
         write: true,
         create: true,
       }).writable,
@@ -81,8 +71,8 @@ export async function executeTest(test: TEST, model: BaseEngine) {
     child.stdin.close();
 
     const _status = await child.status;
-    console.log(`    [Exec] ${test.code} @ ${model.name}`);
-    // console.log(`Wrote to ${`./results/${test.code}/${model.name}/execute-output`}`);
+    console.log(`    [Exec] ${test.code} @ ${model.path}`);
+    // console.log(`Wrote to ${`./results/${test.code}/${model.path}/execute-output`}`);
     const s = await child.status;
     // console.log(s);
     // console.log("================================================");

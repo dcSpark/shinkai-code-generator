@@ -9,7 +9,6 @@ export async function getConfig(): Promise<
 > {
   const args = Deno.args;
 
-
   let run_llm = args.includes("llm");
   let run_exec = args.includes("exec");
   let run_shinkai = args.includes("shinkai");

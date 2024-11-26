@@ -29,7 +29,7 @@ Requirements
 * `prompt-` stores prompts 
 * `raw-` store raw responses
 * `src-` store parsed response (valid Typescript or JSON)
-* `@shinkai/local-tools.ts` stores the local-tools.ts file used in the test
+* `shinkai-local-tools.ts` stores the dynamic tools file used in the test
 * `execute-output` stores the output of the executed code
 
 ## Using `models.txt`
