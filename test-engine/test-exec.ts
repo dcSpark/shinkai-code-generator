@@ -4,6 +4,7 @@ import { TEST } from "../tests.ts";
 async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   return [
     `
+  if (!Deno.env.has('SHINKAI_NODE_LOCATION')) Deno.env.set('SHINKAI_NODE_LOCATION', "http://localhost:9950");
   if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
   if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
   if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");

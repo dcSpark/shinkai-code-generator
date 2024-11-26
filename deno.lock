@@ -4,7 +4,8 @@
     "npm:@types/node@*": "22.5.4",
     "npm:axios@*": "1.7.7",
     "npm:axios@1.6.2": "1.6.2",
-    "npm:sqlite3@4.0.1": "4.0.1"
+    "npm:sqlite3@4.0.1": "4.0.1",
+    "npm:sqlite3@5.0.2": "5.0.2"
   },
   "npm": {
     "@types/node@22.5.4": {
@@ -229,8 +230,26 @@
         "sax"
       ]
     },
+    "node-addon-api@3.2.1": {
+      "integrity": "sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A=="
+    },
     "node-pre-gyp@0.10.3": {
       "integrity": "sha512-d1xFs+C/IPS8Id0qPTZ4bUT8wWryfR/OzzAFxweG+uLN85oPzyo2Iw6bVlLQ/JOdgNonXLCoRyqDzDWq4iw72A==",
+      "dependencies": [
+        "detect-libc",
+        "mkdirp",
+        "needle",
+        "nopt",
+        "npm-packlist",
+        "npmlog",
+        "rc",
+        "rimraf",
+        "semver",
+        "tar"
+      ]
+    },
+    "node-pre-gyp@0.11.0": {
+      "integrity": "sha512-TwWAOZb0j7e9eGaf9esRx3ZcLaE5tQ2lvYy1pb5IAaG1a2e2Kv5Lms1Y4hpj+ciXJRofIxxlt5haeQ/2ANeE0Q==",
       "dependencies": [
         "detect-libc",
         "mkdirp",
@@ -363,7 +382,14 @@
       "integrity": "sha512-i8LtU2fdEGFEt4Kcs7eNjYdGmnAQ8zWlaOv6Esbq/jfVfR0Qbn/1dgVyKebrMc2zN7h3oHsqla9zq7AJ0+34ZA==",
       "dependencies": [
         "nan",
-        "node-pre-gyp"
+        "node-pre-gyp@0.10.3"
+      ]
+    },
+    "sqlite3@5.0.2": {
+      "integrity": "sha512-1SdTNo+BVU211Xj1csWa8lV6KM0CtucDwRyA0VHl91wEH1Mgh7RxUpI4rVvG7OhHrzCSGaVyW5g8vKvlrk9DJA==",
+      "dependencies": [
+        "node-addon-api",
+        "node-pre-gyp@0.11.0"
       ]
     },
     "string-width@1.0.2": {
