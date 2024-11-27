@@ -11,7 +11,10 @@ export const socialMediaTests: TestData[] = [
       waifu_characteristics: ["blue_hair", "cheerful", "casual_style"],
       account_name: "anime_waifu_daily",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+    ],
     config: {},
   },
   {
@@ -23,7 +26,10 @@ export const socialMediaTests: TestData[] = [
       image_path: "/path/to/waifu.png",
       caption_theme: "kawaii",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -35,7 +41,10 @@ export const socialMediaTests: TestData[] = [
       image_path: "/path/to/waifu.png",
       tweet_text: "Your daily dose of kawaii! ✨",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -47,7 +56,10 @@ export const socialMediaTests: TestData[] = [
       image_path: "/path/to/waifu.png",
       subreddits: ["awwnime", "wholesomeanimemes"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity:::shinkai__perplexity",
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+    ],
     config: {},
   },
   {
@@ -59,7 +71,11 @@ export const socialMediaTests: TestData[] = [
       topic: "artificial intelligence",
       days_back: 7,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
 ];

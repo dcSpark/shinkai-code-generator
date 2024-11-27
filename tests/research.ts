@@ -11,7 +11,11 @@ export const researchTests: TestData[] = [
       topic: "quantum computing",
       depth: "intermediate",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity:::shinkai__perplexity",
+      "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -23,7 +27,10 @@ export const researchTests: TestData[] = [
       task: "Learn a new programming language",
       constraints: ["limited time", "self-paced"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -37,7 +44,11 @@ export const researchTests: TestData[] = [
       sort_by: "citations",
       limit: 10,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -52,7 +63,10 @@ export const researchTests: TestData[] = [
       ],
       focus_areas: ["methodology", "results", "conclusions"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_download_pages:::shinkai__download_pages",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
 ];

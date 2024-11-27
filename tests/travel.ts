@@ -12,7 +12,12 @@ export const travelTests: TestData[] = [
       duration_days: 7,
       budget: 2000,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::shinkai_tool_download_pages:::shinkai__download_pages",
+      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md"
+    ],
     config: {},
   },
   {
@@ -25,7 +30,13 @@ export const travelTests: TestData[] = [
       duration_days: 5,
       pet_type: "dog",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::shinkai_tool_weather_by_city:::shinkai__weather_by_city"
+    ],
     config: {},
   },
   {
@@ -39,7 +50,11 @@ export const travelTests: TestData[] = [
       duration_days: 6,
       dietary_restrictions: ["vegan", "gluten-free"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -52,7 +67,13 @@ export const travelTests: TestData[] = [
       duration_days: 10,
       max_budget: 500,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::shinkai_tool_weather_by_city:::shinkai__weather_by_city",
+      "local:::shinkai_tool_download_pages:::shinkai__download_pages"
+    ],
     config: {},
   },
 ];

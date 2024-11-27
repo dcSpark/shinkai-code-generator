@@ -11,7 +11,9 @@ export const securityTests: TestData[] = [
       video_stream_url: "rtsp://camera.local/stream1",
       sensitivity: 0.8,
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -24,7 +26,10 @@ export const securityTests: TestData[] = [
       camera_feed: "http://camera.local/litterbox",
       check_interval_minutes: 30,
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+    ],
     config: {},
   },
   {
@@ -37,7 +42,9 @@ export const securityTests: TestData[] = [
       env_file_path: ".env",
       include_system_vars: true,
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
 ];

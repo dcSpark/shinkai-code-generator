@@ -10,7 +10,12 @@ export const spiritualTests: TestData[] = [
       translation: "NIV",
       topic: "hope",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -22,7 +27,10 @@ export const spiritualTests: TestData[] = [
       confession_text: "I have not been kind to my neighbor",
       religion: "Catholic",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -36,7 +44,11 @@ export const spiritualTests: TestData[] = [
       time_period: "1920s",
       topic: "relativity",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
 ];

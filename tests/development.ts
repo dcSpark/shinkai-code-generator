@@ -10,7 +10,9 @@ export const developmentTests: TestData[] = [
       platform: "vercel",
       api_name: "hello-world-api",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -22,7 +24,9 @@ export const developmentTests: TestData[] = [
       code: "print('Hello, World!')",
       timeout_seconds: 30,
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -36,7 +40,10 @@ export const developmentTests: TestData[] = [
       data_selectors: [".title", ".content"],
       output_format: "json",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -49,7 +56,9 @@ export const developmentTests: TestData[] = [
       game_type: "platformer",
       difficulty: "easy",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -61,7 +70,10 @@ export const developmentTests: TestData[] = [
       capabilities: ["text_generation", "image_analysis", "data_processing"],
       personality: "helpful and professional",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
 ];

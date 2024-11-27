@@ -16,7 +16,11 @@ export const intelligenceTests: TestData[] = [
       time_available_hours: 10,
       learning_style: "visual",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity:::shinkai__perplexity",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {

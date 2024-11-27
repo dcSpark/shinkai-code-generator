@@ -12,7 +12,12 @@ export const realEstateTests: TestData[] = [
       max_price: 3000,
       min_bedrooms: 2,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -29,7 +34,11 @@ export const realEstateTests: TestData[] = [
         { factor: "amenities", weight: 0.3 },
       ],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -43,7 +52,11 @@ export const realEstateTests: TestData[] = [
       price_range: [1500, 2500],
       requirements: ["pet-friendly", "in-unit-washer", "parking"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity:::shinkai__perplexity",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -57,7 +70,9 @@ export const realEstateTests: TestData[] = [
       property_address: "456 Pine St",
       desired_discount: 100,
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
 ];

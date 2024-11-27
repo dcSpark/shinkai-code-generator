@@ -66,7 +66,12 @@ export const webTests: TestData[] = [
       website_url: "example.com",
       competitor_urls: ["competitor1.com", "competitor2.com"],
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -80,7 +85,10 @@ export const webTests: TestData[] = [
       pet_type: "dog",
       photos: ["/path/to/photo1.jpg", "/path/to/photo2.jpg"],
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+    ],
     config: {},
   },
   {
@@ -93,7 +101,10 @@ export const webTests: TestData[] = [
       website_url: "example.com",
       include_assets: true,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -107,7 +118,11 @@ export const webTests: TestData[] = [
       allowed_file_types: ["pdf", "jpg", "png"],
       max_file_size_mb: 100,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+    ],
     config: {},
   },
   {
@@ -132,10 +147,9 @@ export const webTests: TestData[] = [
     prompt_type: "type INPUT = { urls: string[] }",
     tools: [
       "local:::shinkai_tool_download_pages:::shinkai__download_pages",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
     ],
     config: {},
-    // check: checkIfArrayAndMatch(/The Nightmare of Apple/),
   },
   {
     code: "download-url-and-summary",
@@ -147,7 +161,7 @@ export const webTests: TestData[] = [
     prompt_type: "type INPUT = { urls: string[] }",
     tools: [
       "local:::shinkai_tool_download_pages:::shinkai__download_pages",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
     ],
     config: {},
     check: checkIfObjectWithArrayAndMatch(/Apple/),

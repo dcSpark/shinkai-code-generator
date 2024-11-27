@@ -461,20 +461,20 @@ export async function shinkaiSqliteQueryExecutor(database_name: string, query: s
   public async run(): Promise<
     { code: PromptTestResult; metadata: PromptTestResult | null }
   > {
-    const toolsSelected = await this.selectTools(this.test.prompt);
-    Deno.writeTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/tools-selected.txt`,
-      toolsSelected || "",
-    );
-    const metadataAugmented = await this.augmentMetadata(this.test.prompt);
-    Deno.writeTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/metadata-augmented.txt`,
-      metadataAugmented || "",
-    );
+    // const toolsSelected = await this.selectTools(this.test.prompt);
+    // Deno.writeTextFile(
+    //   `./results/${
+    //     this.test.id?.toString().padStart(5, "0")
+    //   }-${this.test.code}/${this.model.path}/tools-selected.txt`,
+    //   toolsSelected || "",
+    // );
+    // const metadataAugmented = await this.augmentMetadata(this.test.prompt);
+    // Deno.writeTextFile(
+    //   `./results/${
+    //     this.test.id?.toString().padStart(5, "0")
+    //   }-${this.test.code}/${this.model.path}/metadata-augmented.txt`,
+    //   metadataAugmented || "",
+    // );
 
     const code = await this.generateCode(
       this.test.prompt + " given " + this.test.prompt_type +

@@ -8,7 +8,7 @@ import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
 import { readFile } from "node:fs/promises";
 import { OllamaEngine } from "./llm-engine/OllamaEngine.ts";
 
-const { run_llm, run_exec, run_shinkai, tests_to_run } = await getConfig();
+const { run_llm, run_exec, run_shinkai, tests_to_run, random_count } = await getConfig();
 
 async function getModels() {
   try {
@@ -43,9 +43,15 @@ const start = Date.now();
 let current = 1;
 let score = 0;
 let maxScore = 0;
-const selectedTests = tests_to_run.length > 0
+let selectedTests = tests_to_run.length > 0
   ? allTests.filter((test) => tests_to_run.includes(test.code))
   : allTests;
+
+if (random_count && random_count > 0) {
+  selectedTests = [...selectedTests]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, random_count);
+}
 
 for (const model of models) {
   for (const test of selectedTests) {

@@ -34,7 +34,9 @@ export const communicationTests: TestData[] = [
       phone_number: "+1234567890",
       message: "Hello from WhatsApp tool!",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -48,7 +50,9 @@ export const communicationTests: TestData[] = [
       name: "John",
       voice_model_path: "/path/to/voice/model.wav",
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -63,7 +67,9 @@ export const communicationTests: TestData[] = [
       body: "Hello, this is a test email sent through Gmail!",
       attachments: ["/path/to/file.pdf"],
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {
       requires_oauth: true,
       oauth_scopes: ["https://www.googleapis.com/auth/gmail.send"],
@@ -81,7 +87,9 @@ export const communicationTests: TestData[] = [
       body: "Hello, this is a test email sent through Yahoo Mail!",
       attachments: ["/path/to/file.pdf"],
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {
       requires_oauth: true,
       oauth_scopes: ["mail-w"],
@@ -99,7 +107,9 @@ export const communicationTests: TestData[] = [
       body: "Hello, this is a test email sent through Mailgun!",
       attachments: ["/path/to/file.pdf"],
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {
       requires_api_key: true,
     },
@@ -116,7 +126,9 @@ export const communicationTests: TestData[] = [
       body: "Hello, this is a test email sent through SendGrid!",
       attachments: ["/path/to/file.pdf"],
     },
-    tools: [],
+    tools: [
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {
       requires_api_key: true,
     },
@@ -137,7 +149,10 @@ export const communicationTests: TestData[] = [
       include_attachments: true,
       label: "INBOX",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {
       requires_oauth: true,
       oauth_scopes: ["https://www.googleapis.com/auth/gmail.readonly"],

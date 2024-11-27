@@ -1,6 +1,7 @@
 {
   "tasks": {
     "start": "deno run --allow-all main.ts",
+    "random": "deno run --allow-all main.ts random=10",
     "fmt": "deno fmt --ignore=results/ --ignore=prompts/ --ignore=README.md",
     "llm": "deno run --allow-all main.ts llm",
     "exec": "deno run --allow-all main.ts exec"

@@ -10,7 +10,11 @@ export const businessTests: TestData[] = [
       company_name: "Apple Inc",
       detailed: true,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
+      "local:::shinkai_tool_perplexity:::shinkai__perplexity",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
   {
@@ -34,7 +38,12 @@ export const businessTests: TestData[] = [
       company_name: "Tesla",
       days_back: 30,
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
+      "local:::shinkai_tool_download_pages:::shinkai__download_pages",
+      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md"
+    ],
     config: {},
   },
   {
@@ -46,7 +55,12 @@ export const businessTests: TestData[] = [
       company_name: "Airbnb",
       industry: "hospitality",
     },
-    tools: [],
+    tools: [
+      "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
+      "local:::shinkai_tool_download_pages:::shinkai__download_pages",
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+    ],
     config: {},
   },
 ];

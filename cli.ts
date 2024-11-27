@@ -5,6 +5,7 @@ export async function getConfig(): Promise<
     run_exec: boolean;
     run_shinkai: boolean;
     tests_to_run: string[];
+    random_count: number | null;
   }
 > {
   const args = Deno.args;
@@ -24,6 +25,11 @@ export async function getConfig(): Promise<
     tests_to_run = tests.map((test) => test.replace(/test=/, ""));
   }
 
+  const randomArg = args.find((arg) => arg.match(/random=\d+/));
+  const random_count = randomArg 
+    ? parseInt(randomArg.replace(/random=/, ""))
+    : null;
+
   if (run_shinkai) {
     try {
       if (await Deno.stat("./results")) {
@@ -31,5 +37,5 @@ export async function getConfig(): Promise<
       }
     } catch (_) { /* nop */ }
   }
-  return { run_llm, run_exec, run_shinkai, tests_to_run };
+  return { run_llm, run_exec, run_shinkai, tests_to_run, random_count };
 }
