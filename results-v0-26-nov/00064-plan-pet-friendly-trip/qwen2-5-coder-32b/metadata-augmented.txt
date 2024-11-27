@@ -1,9 +1,0 @@
-type INPUTS = {
-  location: string;
-  duration: number; // in days
-  preferences?: string[];
-}
-
-type OUTPUT = {
-  itinerary: { [day: string]: string[] };
-}

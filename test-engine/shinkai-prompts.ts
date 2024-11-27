@@ -5,6 +5,22 @@ import { TestData } from "../types.ts";
 const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
   "http://localhost:9950";
 
+export async function getAllToolsHeaders(): Promise<string> {
+  const response = await axios({
+    method: "GET",
+    url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
+    params: {
+      language: "typescript",
+    },
+    headers: {
+      Authorization: "Bearer debug",
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
+  const { headers } = response.data;
+  return headers;
+}
+
 export async function getToolImplementationPrompt(
   test: TestData,
   model: BaseEngine,

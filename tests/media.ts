@@ -9,7 +9,7 @@ export const mediaTests: TestData[] = [
       text: "Hello, how are you?",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -21,7 +21,7 @@ export const mediaTests: TestData[] = [
       file_path: "data.mp3",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -35,7 +35,7 @@ export const mediaTests: TestData[] = [
     },
     tools: [
       "@@agent_provider_arb_sep_shinkai:::shinkai_tool_youtube_transcript:::youtube_transcript_with_timestamps",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -49,7 +49,7 @@ export const mediaTests: TestData[] = [
       subtitle_path: "subtitles.srt",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -67,7 +67,7 @@ export const mediaTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md"
+      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md",
     ],
     config: {},
   },

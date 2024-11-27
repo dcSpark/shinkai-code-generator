@@ -12,7 +12,7 @@ export const securityTests: TestData[] = [
       sensitivity: 0.8,
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -28,7 +28,7 @@ export const securityTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
     ],
     config: {},
   },
@@ -43,7 +43,7 @@ export const securityTests: TestData[] = [
       include_system_vars: true,
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },

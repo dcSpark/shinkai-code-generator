@@ -1,3 +1,0 @@
-shinkaiPerplexity  
-shinkaiLlmPromptProcessor  
-shinkaiSqliteQueryExecutor

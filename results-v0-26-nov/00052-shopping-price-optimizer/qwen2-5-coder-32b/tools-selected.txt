@@ -1,5 +1,0 @@
-```
-shinkaiLlmPromptProcessor
-shinkaiPerplexityApi
-shinkaiDownloadPages
-```

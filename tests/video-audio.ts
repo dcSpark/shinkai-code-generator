@@ -11,7 +11,7 @@ export const videoAudioTests: TestData[] = [
       quality: "720p",
     },
     tools: [
-      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
     ],
     config: {},
   },
@@ -26,7 +26,7 @@ export const videoAudioTests: TestData[] = [
       bitrate: "192k",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -42,7 +42,7 @@ export const videoAudioTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "@@agent_provider_arb_sep_shinkai:::shinkai_tool_youtube_transcript:::youtube_transcript_with_timestamps"
+      "@@agent_provider_arb_sep_shinkai:::shinkai_tool_youtube_transcript:::youtube_transcript_with_timestamps",
     ],
     config: {},
   },

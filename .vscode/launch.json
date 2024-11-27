@@ -10,7 +10,7 @@
       "type": "node",
       "program": "${workspaceFolder}/main.ts",
       "cwd": "${workspaceFolder}",
-      "env": {},
+      "env": { "NO_COLOR": "true" },
       "runtimeExecutable": "/Users/edwardalvarado/.deno/bin/deno",
       "runtimeArgs": [
         "run",
@@ -18,7 +18,7 @@
         "--inspect-wait",
         "--allow-all"
       ],
-      "args": ["exec"],
+      "args": [""],
       "attachSimplePort": 9229
     }
   ]

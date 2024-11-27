@@ -70,7 +70,7 @@ export const webTests: TestData[] = [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -87,7 +87,7 @@ export const webTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example"
+      "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
     ],
     config: {},
   },
@@ -103,7 +103,7 @@ export const webTests: TestData[] = [
     },
     tools: [
       "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -121,7 +121,7 @@ export const webTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -147,7 +147,7 @@ export const webTests: TestData[] = [
     prompt_type: "type INPUT = { urls: string[] }",
     tools: [
       "local:::shinkai_tool_download_pages:::shinkai__download_pages",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -161,7 +161,7 @@ export const webTests: TestData[] = [
     prompt_type: "type INPUT = { urls: string[] }",
     tools: [
       "local:::shinkai_tool_download_pages:::shinkai__download_pages",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
     check: checkIfObjectWithArrayAndMatch(/Apple/),

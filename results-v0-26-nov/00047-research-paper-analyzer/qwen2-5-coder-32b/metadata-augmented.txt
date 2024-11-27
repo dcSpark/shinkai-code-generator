@@ -1,3 +1,0 @@
-type INPUTS = { content: string }
-
-type OUTPUT = { summary: string }

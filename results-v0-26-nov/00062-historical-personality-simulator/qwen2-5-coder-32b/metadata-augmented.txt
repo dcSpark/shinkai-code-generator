@@ -1,8 +1,0 @@
-type INPUTS = { 
-  figure: string; 
-  topic: string; 
-}
-
-type OUTPUT = { 
-  conversation: string; 
-}

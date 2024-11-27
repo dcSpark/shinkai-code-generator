@@ -35,7 +35,7 @@ export const communicationTests: TestData[] = [
       message: "Hello from WhatsApp tool!",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -51,7 +51,7 @@ export const communicationTests: TestData[] = [
       voice_model_path: "/path/to/voice/model.wav",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -68,7 +68,7 @@ export const communicationTests: TestData[] = [
       attachments: ["/path/to/file.pdf"],
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {
       requires_oauth: true,
@@ -88,7 +88,7 @@ export const communicationTests: TestData[] = [
       attachments: ["/path/to/file.pdf"],
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {
       requires_oauth: true,
@@ -108,7 +108,7 @@ export const communicationTests: TestData[] = [
       attachments: ["/path/to/file.pdf"],
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {
       requires_api_key: true,
@@ -127,7 +127,7 @@ export const communicationTests: TestData[] = [
       attachments: ["/path/to/file.pdf"],
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {
       requires_api_key: true,
@@ -151,7 +151,7 @@ export const communicationTests: TestData[] = [
     },
     tools: [
       "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {
       requires_oauth: true,

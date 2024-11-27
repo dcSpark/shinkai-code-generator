@@ -6,7 +6,7 @@ export async function generateCodeAndMetadata(
   model: BaseEngine,
 ) {
   const start = Date.now();
-
+  console.log(`    [LLM] Started execution`);
   const data = await new PromptTest(
     test,
     model,

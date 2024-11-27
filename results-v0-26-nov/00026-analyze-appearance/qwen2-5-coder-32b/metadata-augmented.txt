@@ -1,7 +1,0 @@
-type INPUTS = { 
-  photoPaths: string[] 
-}
-
-type OUTPUT = { 
-  suggestions: string[] 
-}

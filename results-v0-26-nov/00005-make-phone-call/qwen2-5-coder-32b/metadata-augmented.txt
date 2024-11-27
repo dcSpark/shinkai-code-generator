@@ -1,9 +1,0 @@
-type INPUTS = {
-  phoneNumber: string;
-  message: string;
-}
-
-type OUTPUT = {
-  success: boolean;
-  message?: string;
-}

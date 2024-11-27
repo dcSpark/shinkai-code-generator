@@ -1,7 +1,0 @@
-Based on the command to generate a tool that can convert text to speech, and given the list of function names provided, there is no direct function name related to text-to-speech conversion. However, if we consider the most relevant tools that might indirectly assist in generating speech (such as processing text for AI-generated speech), the following functions could be considered:
-
-```
-shinkaiLlmPromptProcessor
-``` 
-
-This tool can process any prompt using an AI LLM, which could theoretically be used to generate speech from text by providing a prompt to convert text into speech format or instructions.

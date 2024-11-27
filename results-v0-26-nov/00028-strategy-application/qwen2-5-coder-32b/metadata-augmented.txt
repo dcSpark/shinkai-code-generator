@@ -1,9 +1,0 @@
-type INPUTS = {
-    strategy: string;
-    taskDetails: string;
-}
-
-type OUTPUT = {
-    result: any;
-    status: string;
-}

@@ -26,7 +26,7 @@ export async function getConfig(): Promise<
   }
 
   const randomArg = args.find((arg) => arg.match(/random=\d+/));
-  const random_count = randomArg 
+  const random_count = randomArg
     ? parseInt(randomArg.replace(/random=/, ""))
     : null;
 

@@ -1,7 +1,0 @@
-type INPUTS = {
-  filePaths: string[];
-}
-
-type OUTPUT = {
-  apiEndpoint: string;
-}

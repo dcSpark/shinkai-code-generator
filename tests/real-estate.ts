@@ -16,7 +16,7 @@ export const realEstateTests: TestData[] = [
       "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -37,7 +37,7 @@ export const realEstateTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_sqlite_query_executor",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -55,7 +55,7 @@ export const realEstateTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity:::shinkai__perplexity",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -71,7 +71,7 @@ export const realEstateTests: TestData[] = [
       desired_discount: 100,
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },

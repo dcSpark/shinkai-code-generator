@@ -1,8 +1,0 @@
-type INPUTS = {
-  dockerfilePath: string;
-}
-
-type OUTPUT = {
-  success: boolean;
-  message: string;
-}

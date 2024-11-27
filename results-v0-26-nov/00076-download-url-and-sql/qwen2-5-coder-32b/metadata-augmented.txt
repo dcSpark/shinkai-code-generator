@@ -1,8 +1,0 @@
-type INPUTS = {
-    url: string;
-    dbName: string;
-}
-
-type OUTPUT = {
-    query_results: any[];
-}

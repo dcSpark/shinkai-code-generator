@@ -1,5 +1,0 @@
-```
-shinkaiTokenPriceUsingChainlinkLimited
-shinkaiPerplexityApi
-shinkaiLlmPromptProcessor
-```

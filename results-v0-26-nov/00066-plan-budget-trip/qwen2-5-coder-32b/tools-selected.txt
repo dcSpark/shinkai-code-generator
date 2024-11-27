@@ -1,5 +1,0 @@
-- shinkaiPerplexityApi
-- shinkaiLlmPromptProcessor
-- shinkaiSqliteQueryExecutor
-- shinkaiWeatherByCity
-- shinkaiDownloadPages

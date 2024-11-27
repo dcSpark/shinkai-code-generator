@@ -1,4 +1,0 @@
-```
-shinkaiLlmPromptProcessor
-youtubeTranscriptWithTimestamps
-```

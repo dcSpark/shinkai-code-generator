@@ -1,7 +1,0 @@
-::ERROR:: Error: Failed to retrieve data for BTC: Cannot read properties of undefined (reading 'usd')
-    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/00015-get-crypto-info/qwen2-5-coder-32b/final-src-code.ts:31:15)
-    at Object.runMicrotasks (ext:core/01_core.js:683:26)
-    at processTicksAndRejections (ext:deno_node/_next_tick.ts:59:10)
-    at runNextTicks (ext:deno_node/_next_tick.ts:76:3)
-    at eventLoopTick (ext:core/01_core.js:182:21)
-    at async file:///Users/edwardalvarado/shinkai-prompt-test/results/00015-get-crypto-info/qwen2-5-coder-32b/final-src-code.ts:41:28

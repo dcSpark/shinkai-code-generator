@@ -6,6 +6,7 @@
     "npm:@sendgrid/mail@7.6.0": "7.6.0",
     "npm:@types/node@*": "22.5.4",
     "npm:axios@*": "1.7.7",
+    "npm:axios@0.21.1": "0.21.1",
     "npm:axios@1.6.2": "1.6.2",
     "npm:form-data@4.0.0": "4.0.0",
     "npm:fs@0.0.1-security": "0.0.1-security",
@@ -16,9 +17,11 @@
     "npm:mailparser@3.2.0": "3.2.0",
     "npm:nodemailer@6.9.1": "6.9.1",
     "npm:nodemailer@6.9.4": "6.9.4",
+    "npm:sqlite3@2.0.4": "2.0.4",
     "npm:sqlite3@4.0.1": "4.0.1",
     "npm:sqlite3@5.0.2": "5.0.2",
     "npm:twilio@3.74.0": "3.74.0",
+    "npm:twilio@3.84.0": "3.84.0",
     "npm:ytdl-core@*": "4.11.5"
   },
   "npm": {
@@ -99,6 +102,12 @@
     },
     "asynckit@0.4.0": {
       "integrity": "sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q=="
+    },
+    "axios@0.21.1": {
+      "integrity": "sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==",
+      "dependencies": [
+        "follow-redirects"
+      ]
     },
     "axios@0.25.0": {
       "integrity": "sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==",
@@ -971,6 +980,9 @@
     "signal-exit@3.0.7": {
       "integrity": "sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ=="
     },
+    "sqlite3@2.0.4": {
+      "integrity": "sha512-ekTJXV2oXshNwvJpkeexC9vtTisz5etu8dk65mSsDAossXvVeBgDBjiEsTtqyb7Xwfisil4rYNuh35Zqe81Dhg=="
+    },
     "sqlite3@4.0.1": {
       "integrity": "sha512-i8LtU2fdEGFEt4Kcs7eNjYdGmnAQ8zWlaOv6Esbq/jfVfR0Qbn/1dgVyKebrMc2zN7h3oHsqla9zq7AJ0+34ZA==",
       "dependencies": [
@@ -1033,6 +1045,22 @@
       "integrity": "sha512-r79CWIug+x2/1uGOdAzGESvUvycxPCvVJ9rm4y1TsAocshTh+f5+ipULxyT3T5q4wJNT+k2OEiUBkKFA+cpQ/A==",
       "dependencies": [
         "axios@0.25.0",
+        "dayjs",
+        "https-proxy-agent@5.0.1",
+        "jsonwebtoken",
+        "lodash",
+        "q",
+        "qs",
+        "rootpath",
+        "scmp",
+        "url-parse",
+        "xmlbuilder"
+      ]
+    },
+    "twilio@3.84.0": {
+      "integrity": "sha512-XL+RR1SdfGExC51cE22unM/r7lEFzfDYUA3FecHEe5cLF+LzxmZGB9O9BXfqZu/sZ5YlGeltJfMA5j3TRLzhLw==",
+      "dependencies": [
+        "axios@0.26.1",
         "dayjs",
         "https-proxy-agent@5.0.1",
         "jsonwebtoken",

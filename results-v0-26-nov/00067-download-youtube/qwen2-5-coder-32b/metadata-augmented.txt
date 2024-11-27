@@ -1,2 +1,0 @@
-type INPUTS = { url: string };
-type OUTPUT = { success: boolean, filePath?: string, error?: string };

@@ -12,7 +12,7 @@ export const cryptoTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_token_price:::shinkai__token_price_using_chainlink__limited_",
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -26,7 +26,7 @@ export const cryptoTests: TestData[] = [
       blockchain: "ethereum",
     },
     tools: [
-      "local:::shinkai_tool_ethplorer_tokens:::token_balance_for_evm_ethereum_address___based_on_ethplorer"
+      "local:::shinkai_tool_ethplorer_tokens:::token_balance_for_evm_ethereum_address___based_on_ethplorer",
     ],
     config: {},
   },
@@ -41,7 +41,7 @@ export const cryptoTests: TestData[] = [
     },
     tools: [
       "local:::shinkai_tool_ethplorer_tokens:::token_balance_for_evm_ethereum_address___based_on_ethplorer",
-      "local:::shinkai_tool_token_price:::shinkai__token_price_using_chainlink__limited_"
+      "local:::shinkai_tool_token_price:::shinkai__token_price_using_chainlink__limited_",
     ],
     config: {},
   },
@@ -54,7 +54,7 @@ export const cryptoTests: TestData[] = [
       blockchain: "ethereum",
     },
     tools: [
-      "local:::shinkai_tool_ethplorer_tokens:::token_balance_for_evm_ethereum_address___based_on_ethplorer"
+      "local:::shinkai_tool_ethplorer_tokens:::token_balance_for_evm_ethereum_address___based_on_ethplorer",
     ],
     config: {},
   },
@@ -73,7 +73,7 @@ export const cryptoTests: TestData[] = [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
       "local:::shinkai_tool_coinbase_create_wallet:::shinkai__coinbase_wallet_creator",
       "local:::rust_toolkit:::shinkai_sqlite_query_executor",
-      "local:::shinkai_tool_coinbase_send_tx:::shinkai__coinbase_transaction_sender"
+      "local:::shinkai_tool_coinbase_send_tx:::shinkai__coinbase_transaction_sender",
     ],
     config: {},
   },

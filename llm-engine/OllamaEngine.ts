@@ -14,15 +14,20 @@ export class OllamaEngine extends BaseEngine {
     return response.data.message.content;
   }
 
+  public static async fetchModels(): Promise<string[]> {
+    const response = await axios<{ models: { model: string }[] }>({
+      url: `${ollamaApiUrl}/api/tags`,
+      method: "GET",
+    });
+    return response.data.models
+      .filter((m) => !m.model.startsWith("snowflake-arctic"))
+      .map((m) => m.model);
+  }
+
   static override async getInstalledModels(): Promise<BaseEngine[]> {
     try {
-      const response = await axios({
-        method: "GET",
-        url: `${ollamaApiUrl}/api/tags`,
-      });
-      return response.data.models.map((m: { model: string }) =>
-        new OllamaEngine(m.model)
-      );
+      const models = await this.fetchModels();
+      return models.map((m) => new OllamaEngine(m));
     } catch (e) {
       console.log("Error:", (e as Error).message);
       console.log(`Ollama is not running at ${ollamaApiUrl}`);

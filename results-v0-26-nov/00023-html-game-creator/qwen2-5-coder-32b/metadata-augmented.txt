@@ -1,9 +1,0 @@
-type INPUTS = {
-    gameName: string;
-    description: string;
-}
-
-type OUTPUT = {
-    htmlContent: string;
-    jsContent: string;
-}

@@ -1,2 +1,0 @@
-type INPUTS = { urls: string[] };
-type OUTPUT = { markdowns: string[] };

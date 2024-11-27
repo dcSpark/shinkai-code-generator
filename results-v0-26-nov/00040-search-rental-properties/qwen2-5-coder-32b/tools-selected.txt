@@ -1,4 +1,0 @@
-shinkaiDuckduckgoSearch
-shinkaiPerplexityApi
-shinkaiLlmPromptProcessor
-shinkaiSqliteQueryExecutor

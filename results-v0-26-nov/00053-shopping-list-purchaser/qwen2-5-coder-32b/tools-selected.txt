@@ -1,3 +1,0 @@
-- shinkaiLlmPromptProcessor
-- shinkaiPlaywrightExample
-- shinkaiSqliteQueryExecutor

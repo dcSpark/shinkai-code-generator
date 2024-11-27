@@ -1,7 +1,0 @@
-::ERROR:: Error: Failed to fetch NFTs: Request failed with status code 403
-    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/00018-list-wallet-nfts/qwen2-5-coder-32b/final-src-code.ts:47:15)
-    at Object.runMicrotasks (ext:core/01_core.js:683:26)
-    at processTicksAndRejections (ext:deno_node/_next_tick.ts:59:10)
-    at runNextTicks (ext:deno_node/_next_tick.ts:76:3)
-    at eventLoopTick (ext:core/01_core.js:182:21)
-    at async file:///Users/edwardalvarado/shinkai-prompt-test/results/00018-list-wallet-nfts/qwen2-5-coder-32b/final-src-code.ts:57:28

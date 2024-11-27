@@ -1,7 +1,0 @@
-type INPUTS = {
-  videoStreamUrl: string;
-}
-
-type OUTPUT = {
-  intrusionDetected: boolean;
-}

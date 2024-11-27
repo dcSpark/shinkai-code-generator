@@ -1,8 +1,0 @@
-type INPUTS = {
-    city: string;
-    criteria: string[];
-}
-
-type OUTPUT = {
-    rankedProperties: { id: string; score: number }[];
-}

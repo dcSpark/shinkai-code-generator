@@ -1,5 +1,0 @@
-```plaintext
-shinkaiPerplexityApi
-shinkaiSqliteQueryExecutor
-shinkaiLlmPromptProcessor
-```

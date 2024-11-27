@@ -23,7 +23,7 @@ export const productivityTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -39,7 +39,7 @@ export const productivityTests: TestData[] = [
       management_style: "agile",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -52,7 +52,7 @@ export const productivityTests: TestData[] = [
       days_ahead: 30,
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -70,7 +70,7 @@ export const productivityTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::shinkai_tool_download_pages:::shinkai__download_pages",
-      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md"
+      "local:::shinkai_tool_json_to_md:::shinkai__json_to_md",
     ],
     config: {},
   },

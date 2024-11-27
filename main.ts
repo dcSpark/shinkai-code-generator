@@ -1,38 +1,19 @@
-import { createDir, getInstalledModels } from "./test-engine/test-helpers.ts";
-import { executeTest } from "./test-engine/test-exec.ts";
+import { createDir } from "./test-engine/test-helpers.ts";
+import {
+  checkCode,
+  executeTest,
+  generateCodeIfNotExists,
+  tryToFixCode,
+} from "./test-engine/test-exec.ts";
 import { generateCodeAndMetadata } from "./test-engine/test-llm.ts";
 import { allTests } from "./tests/index.ts";
 import { report } from "./report.ts";
 import { getConfig } from "./cli.ts";
 import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
-import { readFile } from "node:fs/promises";
-import { OllamaEngine } from "./llm-engine/OllamaEngine.ts";
+import { getModels } from "./llm-engine/BaseEngine.ts";
 
-const { run_llm, run_exec, run_shinkai, tests_to_run, random_count } = await getConfig();
-
-async function getModels() {
-  try {
-    const data = await readFile("models.txt", "utf-8");
-    return data.split("\n").filter((line) => line.trim() !== "").map((line) => {
-      const [prefix, ...modelParts] = line.split(":");
-      const modelName = modelParts.join(":");
-      if (prefix === "ollama") {
-        return new OllamaEngine(modelName);
-      }
-      // Add other engine types here if needed
-      return null;
-    }).filter((model) => model !== null);
-  } catch (err) {
-    if ((err as { code: string }).code === "ENOENT") {
-      // File does not exist, use getInstalledModels
-      return (await getInstalledModels()).filter((model) =>
-        !model.name.startsWith("snowflake-arctic")
-      );
-    } else {
-      throw err; // Re-throw if it's a different error
-    }
-  }
-}
+const { run_llm, run_exec, run_shinkai, tests_to_run, random_count } =
+  await getConfig();
 
 const models = await getModels();
 console.log(`[Testing] ${models.length} models found`);
@@ -90,6 +71,23 @@ for (const model of models) {
       await generateCodeAndMetadata(test, model);
     }
     if (run_exec) {
+      await generateCodeIfNotExists(test, model);
+
+      const errorPath = await checkCode(test, model);
+      const errors = await Deno.readTextFile(errorPath);
+      if (errors.length > 0) {
+        if (errors.match(/^Check file:\/\/\/.+?\.ts\n$/)) {
+          console.log(`    [No Errors]`);
+        } else {
+          console.log(
+            `    [Error] ${
+              errors.replace(/\n/g, " ").replace(/\s+/g, " ").substring(0, 100)
+            }...`,
+          );
+          await tryToFixCode(test, model, errors);
+        }
+      }
+
       await executeTest(test, model);
       const { score: s, max } = await report(test, model);
       score += s;

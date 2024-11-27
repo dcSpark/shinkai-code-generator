@@ -1,3 +1,0 @@
-type INPUTS = { videoFilePath: string }
-
-type OUTPUT = { subtitleFilePath: string }

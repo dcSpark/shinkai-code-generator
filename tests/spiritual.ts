@@ -14,7 +14,7 @@ export const spiritualTests: TestData[] = [
       "local:::shinkai_tool_duckduckgo_search:::shinkai__duckduckgo_search",
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },
@@ -29,7 +29,7 @@ export const spiritualTests: TestData[] = [
     },
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -47,7 +47,7 @@ export const spiritualTests: TestData[] = [
     tools: [
       "local:::shinkai_tool_perplexity_api:::shinkai__perplexity_api",
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },

@@ -1,3 +1,0 @@
-type INPUTS = { audioFile: string };
-
-type OUTPUT = { transcription: string };

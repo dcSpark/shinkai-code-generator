@@ -1,2 +1,0 @@
-shinkaiPerplexity  
-shinkaiPlaywrightExample

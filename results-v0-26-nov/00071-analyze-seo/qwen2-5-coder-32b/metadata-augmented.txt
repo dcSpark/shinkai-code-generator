@@ -1,8 +1,0 @@
-type INPUTS = {
-  url: string;
-}
-
-type OUTPUT = {
-  seoInsights: string[];
-  recommendations: string[];
-}

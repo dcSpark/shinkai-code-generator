@@ -1,6 +1,0 @@
-```
-shinkaiPerplexityApi
-shinkaiPlaywrightExample
-shinkaiLlmPromptProcessor
-shinkaiSqliteQueryExecutor
-```

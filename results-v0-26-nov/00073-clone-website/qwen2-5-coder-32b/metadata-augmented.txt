@@ -1,8 +1,0 @@
-type INPUTS = {
-    url: string;
-}
-
-type OUTPUT = {
-    siteMap: object;
-    analysisReport: string;
-}

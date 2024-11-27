@@ -1,6 +1,0 @@
-::ERROR:: ReferenceError: inputs is not defined
-    at file:///Users/edwardalvarado/shinkai-prompt-test/results/00035-create-podcast/qwen2-5-coder-32b/final-src-code.ts:46:37
-    at Array.forEach (<anonymous>)
-    at developScript (file:///Users/edwardalvarado/shinkai-prompt-test/results/00035-create-podcast/qwen2-5-coder-32b/final-src-code.ts:44:13)
-    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/00035-create-podcast/qwen2-5-coder-32b/final-src-code.ts:21:28)
-    at file:///Users/edwardalvarado/shinkai-prompt-test/results/00035-create-podcast/qwen2-5-coder-32b/final-src-code.ts:77:34

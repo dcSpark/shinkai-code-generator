@@ -1,2 +1,0 @@
-type INPUTS = { walletAddress: string };
-type OUTPUT = { nfts: Array<{ tokenId: string, contractAddress: string }> };

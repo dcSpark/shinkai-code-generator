@@ -1,4 +1,0 @@
-{
-  "success": false,
-  "message": "Failed to send email: Failed to fetch access token: {\n  \"error\": \"invalid_client\",\n  \"error_description\": \"The OAuth client was not found.\"\n}"
-}

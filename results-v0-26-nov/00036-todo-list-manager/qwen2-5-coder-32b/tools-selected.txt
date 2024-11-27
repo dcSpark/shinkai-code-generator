@@ -1,4 +1,0 @@
-Based on the command to generate a tool that can create and manage a categorized todo list with reminders, the following functions are selected from the provided list:
-
-- `shinkaiLlmPromptProcessor` - For processing prompts related to creating, managing, and categorizing tasks.
-- `shinkaiSqliteQueryExecutor` - For executing SQL queries to create tables, insert, update, and query tasks within a database.

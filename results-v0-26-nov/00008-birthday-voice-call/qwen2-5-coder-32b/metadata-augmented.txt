@@ -1,7 +1,0 @@
-type INPUTS = {
-  voice: string;
-}
-
-type OUTPUT = {
-  success: boolean;
-}

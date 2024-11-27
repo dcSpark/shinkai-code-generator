@@ -11,7 +11,7 @@ export const developmentTests: TestData[] = [
       api_name: "hello-world-api",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -25,7 +25,7 @@ export const developmentTests: TestData[] = [
       timeout_seconds: 30,
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -42,7 +42,7 @@ export const developmentTests: TestData[] = [
     },
     tools: [
       "local:::shinkai_tool_playwright_example:::shinkai__playwright_example",
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -57,7 +57,7 @@ export const developmentTests: TestData[] = [
       difficulty: "easy",
     },
     tools: [
-      "local:::rust_toolkit:::shinkai_llm_prompt_processor"
+      "local:::rust_toolkit:::shinkai_llm_prompt_processor",
     ],
     config: {},
   },
@@ -72,7 +72,7 @@ export const developmentTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_sqlite_query_executor"
+      "local:::rust_toolkit:::shinkai_sqlite_query_executor",
     ],
     config: {},
   },

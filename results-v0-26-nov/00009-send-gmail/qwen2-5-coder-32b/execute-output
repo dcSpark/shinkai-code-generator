@@ -1,4 +1,0 @@
-{
-  "success": false,
-  "message": "Error sending email: No refresh token or refresh handler callback is set."
-}

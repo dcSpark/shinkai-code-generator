@@ -1,4 +1,0 @@
-{
-  "success": false,
-  "message": "Failed to send email. Error: Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-7fbcc219426sm9427987a12.40 - gsmtp"
-}
