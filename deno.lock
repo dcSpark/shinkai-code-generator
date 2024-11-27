@@ -16,12 +16,15 @@
     "npm:imap@0.8.19": "0.8.19",
     "npm:mailparser@3.2.0": "3.2.0",
     "npm:nodemailer@6.9.1": "6.9.1",
+    "npm:nodemailer@6.9.3": "6.9.3",
     "npm:nodemailer@6.9.4": "6.9.4",
     "npm:sqlite3@2.0.4": "2.0.4",
     "npm:sqlite3@4.0.1": "4.0.1",
     "npm:sqlite3@5.0.2": "5.0.2",
     "npm:twilio@3.74.0": "3.74.0",
     "npm:twilio@3.84.0": "3.84.0",
+    "npm:twilio@latest": "5.3.6",
+    "npm:xoauth2@*": "1.2.0",
     "npm:ytdl-core@*": "4.11.5"
   },
   "npm": {
@@ -586,6 +589,21 @@
         "semver@5.7.2"
       ]
     },
+    "jsonwebtoken@9.0.2": {
+      "integrity": "sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==",
+      "dependencies": [
+        "jws@3.2.2",
+        "lodash.includes",
+        "lodash.isboolean",
+        "lodash.isinteger",
+        "lodash.isnumber",
+        "lodash.isplainobject",
+        "lodash.isstring",
+        "lodash.once",
+        "ms",
+        "semver@7.6.3"
+      ]
+    },
     "jwa@1.4.1": {
       "integrity": "sha512-qiLX/xhEEFKUAJ6FiBMbes3w9ATzyk5W7Hvzpa/SLYdxNtng+gcurvrI7TbACjIXlsJyr05/S1oUhZrc63evQA==",
       "dependencies": [
@@ -798,6 +816,9 @@
     "nodemailer@6.9.1": {
       "integrity": "sha512-qHw7dOiU5UKNnQpXktdgQ1d3OFgRAekuvbJLcdG5dnEo/GtcTHRYM7+UfJARdOFU9WUQO8OiIamgWPmiSFHYAA=="
     },
+    "nodemailer@6.9.3": {
+      "integrity": "sha512-fy9v3NgTzBngrMFkDsKEj0r02U7jm6XfC3b52eoNV+GCrGj+s8pt5OqhiJdWKuw51zCTdiNR/IUD1z33LIIGpg=="
+    },
     "nodemailer@6.9.4": {
       "integrity": "sha512-CXjQvrQZV4+6X5wP6ZIgdehJamI63MFoYFGGPtHudWym9qaEHDNdPzaj5bfMCvxG1vhAileSWW90q7nL0N36mA=="
     },
@@ -954,6 +975,9 @@
     "semver@5.7.2": {
       "integrity": "sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g=="
     },
+    "semver@7.6.3": {
+      "integrity": "sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A=="
+    },
     "set-blocking@2.0.0": {
       "integrity": "sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw=="
     },
@@ -1047,7 +1071,7 @@
         "axios@0.25.0",
         "dayjs",
         "https-proxy-agent@5.0.1",
-        "jsonwebtoken",
+        "jsonwebtoken@8.5.1",
         "lodash",
         "q",
         "qs",
@@ -1063,13 +1087,25 @@
         "axios@0.26.1",
         "dayjs",
         "https-proxy-agent@5.0.1",
-        "jsonwebtoken",
+        "jsonwebtoken@8.5.1",
         "lodash",
         "q",
         "qs",
         "rootpath",
         "scmp",
         "url-parse",
+        "xmlbuilder"
+      ]
+    },
+    "twilio@5.3.6": {
+      "integrity": "sha512-izHce9sWpiIYyFeZ5pJb5KQeHQ6NDyGuCQ+BOTbBS64ZWq+0InWXvWjZsXbFwGFrhn5MQq0ulouLtYOXiEYY8g==",
+      "dependencies": [
+        "axios@1.7.7",
+        "dayjs",
+        "https-proxy-agent@5.0.1",
+        "jsonwebtoken@9.0.2",
+        "qs",
+        "scmp",
         "xmlbuilder"
       ]
     },
@@ -1125,6 +1161,9 @@
     },
     "xmlbuilder@13.0.2": {
       "integrity": "sha512-Eux0i2QdDYKbdbA6AM6xE4m6ZTZr4G4xF9kahI2ukSEMCzwce2eX9WlTI5J3s+NU7hpasFsr8hWIONae7LluAQ=="
+    },
+    "xoauth2@1.2.0": {
+      "integrity": "sha512-hKuNbkj3q/ifCcfWnW6KURP+6ExSuLdLG007gasNhMEMKlLaejNkIA6eu5Ol1xPP0/kzTuA87XHDaAcUw5k73Q=="
     },
     "yallist@3.1.1": {
       "integrity": "sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g=="

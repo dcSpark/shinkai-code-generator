@@ -1,6 +1,7 @@
 import axios from "npm:axios";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TestData } from "../types.ts";
+import { Paths } from "../paths.ts";
 
 const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
   "http://localhost:9950";
@@ -40,21 +41,15 @@ export async function getToolImplementationPrompt(
   const { codePrompt, libraryCode, metadataPrompt } = response.data;
 
   await Deno.writeTextFile(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/shinkai-local-tools.ts`,
+    Paths.shinkaiLocalTools(test, model),
     libraryCode,
   );
   await Deno.writeTextFile(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/raw-prompts/create-metadata.md`,
+    Paths.createMetadata(test, model),
     metadataPrompt,
   );
   await Deno.writeTextFile(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/raw-prompts/create-tool.md`,
+    Paths.createTool(test, model),
     codePrompt,
   );
   console.log(

@@ -1,5 +1,6 @@
 import { BaseEngine } from "./llm-engine/BaseEngine.ts";
 import { TestData } from "./types.ts";
+import { Paths } from "./paths.ts";
 
 enum STATUS {
   GOOD = "✅",
@@ -18,21 +19,15 @@ export async function report(
   let max = 0;
   // Report Results
   const code = await checkIfExistsAndHasContent(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/src-code.ts`,
+    Paths.srcCode(test, model),
     false,
   );
   const metadata = await checkIfExistsAndHasContent(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/src-metadata.json`,
+    Paths.srcMetadata(test, model),
     false,
   );
   const execute = await checkIfExistsAndHasContent(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/execute-output`,
+    Paths.executeOutput(test, model),
     true,
   );
 
@@ -40,9 +35,7 @@ export async function report(
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
   console.log(
-    `    Path Source Code ${`./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/final-src-code.ts`}`,
+    `    Path Source Code ${Paths.finalSrcCode(test, model)}`,
   );
   console.log(`    [Done] ${test.code} @ ${model.path}`);
   if (code[0] === STATUS.GOOD) score += 1;
@@ -57,9 +50,7 @@ export async function report(
     if (execute[0] === STATUS.GOOD) {
       const check = test.check(
         await Deno.readTextFile(
-          `./results/${
-            test.id?.toString().padStart(5, "0")
-          }-${test.code}/${model.path}/execute-output`,
+          Paths.executeOutput(test, model),
         ),
       );
       score += check * multiplier;

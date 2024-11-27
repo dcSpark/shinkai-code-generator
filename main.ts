@@ -19,7 +19,6 @@ const models = await getModels();
 console.log(`[Testing] ${models.length} models found`);
 console.log(`List of models: ${models.map((m) => m.name).join(", ")}`);
 
-const total = models.length * allTests.length;
 const start = Date.now();
 let current = 1;
 let score = 0;
@@ -33,6 +32,7 @@ if (random_count && random_count > 0) {
     .sort(() => Math.random() - 0.5)
     .slice(0, random_count);
 }
+const total = models.length * selectedTests.length;
 
 for (const model of models) {
   for (const test of selectedTests) {

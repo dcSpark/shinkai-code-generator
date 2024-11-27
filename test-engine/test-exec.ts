@@ -1,20 +1,15 @@
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TestData } from "../types.ts";
 import { PromptTest } from "./PromptTest.ts";
-
-function generateCodePath(test: TestData, model: BaseEngine) {
-  return `./results/${
-    test.id?.toString().padStart(5, "0")
-  }-${test.code}/${model.path}/final-src-code.ts`;
-}
+import { Paths } from "./../paths.ts";
 
 export async function generateCodeIfNotExists(
   test: TestData,
   model: BaseEngine,
 ): Promise<string> {
   try {
-    if (await Deno.stat(generateCodePath(test, model))) {
-      return generateCodePath(test, model);
+    if (await Deno.stat(Paths.finalSrcCode(test, model))) {
+      return Paths.finalSrcCode(test, model);
     }
   } catch (_) { /* ignore */ }
 
@@ -29,9 +24,7 @@ export async function generateCodeIfNotExists(
   if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
   `,
     await Deno.readTextFile(
-      `./results/${
-        test.id?.toString().padStart(5, "0")
-      }-${test.code}/${model.path}/src-code.ts`,
+      Paths.srcCode(test, model),
     ),
     `
   
@@ -53,10 +46,10 @@ export async function generateCodeIfNotExists(
   ].join("\n");
 
   await Deno.writeTextFile(
-    generateCodePath(test, model),
+    Paths.finalSrcCode(test, model),
     code,
   );
-  return generateCodePath(test, model);
+  return Paths.finalSrcCode(test, model);
 }
 
 export async function executeTest(
@@ -64,11 +57,9 @@ export async function executeTest(
   model: BaseEngine,
 ): Promise<string> {
   // Execute Deno binary with the generated code
-  const outputPath = `./results/${
-    test.id?.toString().padStart(5, "0")
-  }-${test.code}/${model.path}/execute-output`;
+  const outputPath = Paths.executeOutput(test, model);
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", generateCodePath(test, model)],
+    args: ["run", "--allow-all", Paths.finalSrcCode(test, model)],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
@@ -101,11 +92,9 @@ export async function executeTest(
 }
 
 export async function checkCode(test: TestData, model: BaseEngine) {
-  const outputPath = `./results/${
-    test.id?.toString().padStart(5, "0")
-  }-${test.code}/${model.path}/execute-check`;
+  const outputPath = Paths.executeCheck(test, model);
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["check", generateCodePath(test, model)],
+    args: ["check", Paths.finalSrcCode(test, model)],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
@@ -143,31 +132,26 @@ export async function tryToFixCode(
   const promptTest = new PromptTest(test, model);
   console.log(`    [Fixing Code]`);
   const { code, raw, prompt } = await promptTest.fixCode(errors, [
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/shinkai-local-tools.ts`,
-    generateCodePath(test, model),
+    Paths.shinkaiLocalTools(test, model),
+    Paths.finalSrcCode(test, model),
   ]);
   // Write the raw prompt and the raw fixed code
   await Deno.writeTextFile(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/raw-prompts/try-fix-code.md`,
+    Paths.tryFixCode(test, model),
     prompt,
   );
-  await Deno.writeTextFile(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/raw-fixed-code.md`,
-    raw,
-  );
-
   if (code) {
     await Deno.writeTextFile(
-      `./results/${
-        test.id?.toString().padStart(5, "0")
-      }-${test.code}/${model.path}/fixed-code.ts`,
+      Paths.originalCode(test, model),
+      await Deno.readTextFile(Paths.finalSrcCode(test, model)),
+    );
+    await Deno.writeTextFile(
+      Paths.finalSrcCode(test, model),
       code,
     );
   }
+  await Deno.writeTextFile(
+    Paths.rawFixedCode(test, model),
+    raw,
+  );
 }

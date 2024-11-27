@@ -1,3 +1,5 @@
+import { Paths } from "./paths.ts";
+
 // CLI Config
 export async function getConfig(): Promise<
   {
@@ -32,8 +34,8 @@ export async function getConfig(): Promise<
 
   if (run_shinkai) {
     try {
-      if (await Deno.stat("./results")) {
-        await Deno.remove("./results", { recursive: true });
+      if (await Deno.stat(Paths.executionDir())) {
+        await Deno.remove(Paths.executionDir(), { recursive: true });
       }
     } catch (_) { /* nop */ }
   }

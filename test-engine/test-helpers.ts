@@ -1,6 +1,8 @@
 import { OllamaEngine } from "../llm-engine/OllamaEngine.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { TestData } from "../types.ts";
+import path from "node:path";
+import { Paths } from "../paths.ts";
 
 export async function getInstalledModels(): Promise<BaseEngine[]> {
   return [
@@ -20,11 +22,7 @@ export async function getInstalledModels(): Promise<BaseEngine[]> {
 
 export const createDir = async (test: TestData, model: BaseEngine) => {
   await Deno.mkdir(
-    `./results/${
-      test.id?.toString().padStart(5, "0")
-    }-${test.code}/${model.path}/raw-prompts`,
-    {
-      recursive: true,
-    },
+    path.join(Paths.getBasePath(test, model)),
+    { recursive: true },
   );
 };

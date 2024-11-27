@@ -1,6 +1,7 @@
 import { TestData } from "../types.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { getAllToolsHeaders } from "./shinkai-prompts.ts";
+import { Paths } from "../paths.ts";
 
 export type PromptTestResult = {
   prompt: string;
@@ -14,19 +15,18 @@ export class PromptTest {
   ) {}
 
   private async codePrompt(task: string) {
-    return `${await Deno.readTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/raw-prompts/create-tool.md`,
-    )}\n${task}\n`;
+    const rawPrompt = await Deno.readTextFile(
+      Paths.createTool(this.test, this.model),
+    );
+    return `${rawPrompt}\n${task}\n`;
   }
 
   private async metadataPrompt(task: string) {
-    return `${await Deno.readTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/raw-prompts/create-metadata.md`,
-    )}\n${task}\n`;
+    const rawPrompt = await Deno.readTextFile(
+      Paths.createMetadata(this.test, this.model),
+    );
+
+    return `${rawPrompt}\n${task}\n`;
   }
 
   private tryToExtractTS(text: string): string | null {
@@ -79,10 +79,8 @@ For this command:
 ${command}
 '''
 `;
-    Deno.writeTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/raw-prompts/augment-metadata.md`,
+    await Deno.writeTextFile(
+      Paths.augmentMetadata(this.test, this.model),
       prompt,
     );
 
@@ -113,10 +111,8 @@ ${command}
 '''
 
 `;
-    Deno.writeTextFile(
-      `./results/${
-        this.test.id?.toString().padStart(5, "0")
-      }-${this.test.code}/${this.model.path}/raw-prompts/select-tools.md`,
+    await Deno.writeTextFile(
+      Paths.selectTools(this.test, this.model),
       prompt,
     );
 
@@ -167,20 +163,16 @@ ${errors}
   > {
     const toolsSelected = await this.selectTools(this.test.prompt);
     if (toolsSelected) {
-      Deno.writeTextFile(
-        `./results/${
-          this.test.id?.toString().padStart(5, "0")
-        }-${this.test.code}/${this.model.path}/tools-selected.txt`,
+      await Deno.writeTextFile(
+        Paths.toolsSelected(this.test, this.model),
         toolsSelected || "",
       );
     }
 
     const metadataAugmented = await this.augmentMetadata(this.test.prompt);
     if (metadataAugmented) {
-      Deno.writeTextFile(
-        `./results/${
-          this.test.id?.toString().padStart(5, "0")
-        }-${this.test.code}/${this.model.path}/metadata-augmented.txt`,
+      await Deno.writeTextFile(
+        Paths.metadataAugmented(this.test, this.model),
         metadataAugmented || "",
       );
     }
