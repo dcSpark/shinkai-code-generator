@@ -1,0 +1,11 @@
+type INPUTS = {
+  taskDescription: string;
+}
+
+type OUTPUT = {
+  recommendedMethods: Array<{
+    method: string;
+    description: string;
+    resources: Array<string>;
+  }>;
+}

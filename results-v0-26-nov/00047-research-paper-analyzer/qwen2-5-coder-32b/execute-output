@@ -1,0 +1,12 @@
+{
+  "summaries": [
+    {
+      "url": "https://arxiv.org/abs/paper1",
+      "summary": "Failed to fetch or summarize paper from https://arxiv.org/abs/paper1: Request failed with status code 404"
+    },
+    {
+      "url": "https://arxiv.org/abs/paper2",
+      "summary": "Failed to fetch or summarize paper from https://arxiv.org/abs/paper2: Request failed with status code 404"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "suggestions": {
+    "/path/to/photo1.jpg": [
+      "Failed to analyze the image due to an error."
+    ],
+    "/path/to/photo2.jpg": [
+      "Failed to analyze the image due to an error."
+    ]
+  }
+}

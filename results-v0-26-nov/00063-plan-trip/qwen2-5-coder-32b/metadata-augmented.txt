@@ -1,0 +1,12 @@
+type INPUTS = {
+  destination: string;
+  startDate: Date;
+  endDate: Date;
+}
+
+type OUTPUT = {
+  itinerary: Array<{
+    date: Date;
+    activities: Array<string>;
+  }>;
+}

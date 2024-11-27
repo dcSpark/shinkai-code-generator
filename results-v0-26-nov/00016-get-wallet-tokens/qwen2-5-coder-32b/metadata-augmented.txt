@@ -1,0 +1,2 @@
+type INPUTS = { walletAddress: string, cryptocurrency: string };
+type OUTPUT = { tokenAmount: number };

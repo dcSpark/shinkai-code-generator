@@ -1,7 +1,10 @@
-import { TEST } from "./../tests.ts";
+import { TestData } from "./../types.ts";
 import { PromptTest, PromptTestResult } from "./PromptTest.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
-export async function generateCodeAndMetadata(test: TEST, model: BaseEngine) {
+export async function generateCodeAndMetadata(
+  test: TestData,
+  model: BaseEngine,
+) {
   const start = Date.now();
 
   const data = await new PromptTest(
@@ -11,6 +14,7 @@ export async function generateCodeAndMetadata(test: TEST, model: BaseEngine) {
   console.log(
     `    [LLM] ${model.path} - Execution Time: ${Date.now() - start}ms`,
   );
+
   // Write Code
   await writeToFile(test, model, "code", data.code);
   // Write Metadata
@@ -23,21 +27,27 @@ export async function generateCodeAndMetadata(test: TEST, model: BaseEngine) {
 }
 
 const writeToFile = async (
-  test: TEST,
+  test: TestData,
   model: BaseEngine,
   type: "code" | "metadata",
   data: PromptTestResult,
 ) => {
   await Deno.writeFile(
-    `./results/${test.code}/${model.path}/prompt-${type}.md`,
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/prompt-${type}.md`,
     new TextEncoder().encode(data.prompt),
   );
   await Deno.writeFile(
-    `./results/${test.code}/${model.path}/raw-response-${type}.md`,
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/raw-response-${type}.md`,
     new TextEncoder().encode(data.raw),
   );
   await Deno.writeFile(
-    `./results/${test.code}/${model.path}/src-${type}.${
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/src-${type}.${
       type === "code" ? "ts" : "json"
     }`,
     new TextEncoder().encode(data.src ?? ""),

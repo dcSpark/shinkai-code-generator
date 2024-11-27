@@ -1,5 +1,5 @@
 import { BaseEngine } from "./llm-engine/BaseEngine.ts";
-import { TEST } from "./tests.ts";
+import { TestData } from "./types.ts";
 
 enum STATUS {
   GOOD = "✅",
@@ -11,22 +11,28 @@ enum STATUS {
 }
 
 export async function report(
-  test: TEST,
+  test: TestData,
   model: BaseEngine,
 ): Promise<{ score: number; max: number }> {
   let score = 0;
   let max = 0;
   // Report Results
   const code = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.path}/src-code.ts`,
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/src-code.ts`,
     false,
   );
   const metadata = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.path}/src-metadata.json`,
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/src-metadata.json`,
     false,
   );
   const execute = await checkIfExistsAndHasContent(
-    `./results/${test.code}/${model.path}/execute-output`,
+    `./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/execute-output`,
     true,
   );
 
@@ -34,7 +40,9 @@ export async function report(
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
   console.log(
-    `    Path Source Code ${`./results/${test.code}/${model.path}/final-src-code.ts`}`,
+    `    Path Source Code ${`./results/${
+      test.id?.toString().padStart(5, "0")
+    }-${test.code}/${model.path}/final-src-code.ts`}`,
   );
   console.log(`    [Done] ${test.code} @ ${model.path}`);
   if (code[0] === STATUS.GOOD) score += 1;
@@ -49,7 +57,9 @@ export async function report(
     if (execute[0] === STATUS.GOOD) {
       const check = test.check(
         await Deno.readTextFile(
-          `./results/${test.code}/${model.path}/execute-output`,
+          `./results/${
+            test.id?.toString().padStart(5, "0")
+          }-${test.code}/${model.path}/execute-output`,
         ),
       );
       score += check * multiplier;

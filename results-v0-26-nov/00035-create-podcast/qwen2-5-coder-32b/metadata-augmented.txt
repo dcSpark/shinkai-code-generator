@@ -1,0 +1,7 @@
+type INPUTS = {
+  topic: string;
+}
+
+type OUTPUT = {
+  script: string;
+}

@@ -1,0 +1,7 @@
+type INPUTS = {
+  text: string;
+}
+
+type OUTPUT = {
+  audioFile: Buffer;
+}

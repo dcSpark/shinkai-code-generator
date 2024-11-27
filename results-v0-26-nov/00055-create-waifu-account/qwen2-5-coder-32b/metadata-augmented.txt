@@ -1,0 +1,9 @@
+type INPUTS = {
+  name: string;
+  description: string;
+}
+
+type OUTPUT = {
+  profilePictureUrl: string;
+  bioText: string;
+}

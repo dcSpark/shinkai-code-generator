@@ -1,0 +1,8 @@
+type INPUTS = {
+  shoppingList: string[];
+}
+
+type OUTPUT = {
+  successfulPurchases: string[];
+  failedPurchases: { item: string, reason: string }[];
+}

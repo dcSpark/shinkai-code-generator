@@ -1,0 +1,5 @@
+```
+shinkaiPerplexity
+shinkaiLlmPromptProcessor
+shinkaiSqliteQueryExecutor
+```

@@ -1,0 +1,7 @@
+type INPUTS = {
+  shoppingList: string[];
+}
+
+type OUTPUT = {
+  bestPrices: { [item: string]: number };
+}

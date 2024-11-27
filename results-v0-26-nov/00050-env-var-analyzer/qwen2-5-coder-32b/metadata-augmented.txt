@@ -1,0 +1,11 @@
+type INPUTS = {
+  envVars: Record<string, string>;
+}
+
+type OUTPUT = {
+  analysis: Array<{
+    name: string;
+    value: string;
+    description: string;
+  }>;
+}

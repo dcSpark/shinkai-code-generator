@@ -1,0 +1,6 @@
+```
+shinkaiPerplexityApi
+shinkaiLlmPromptProcessor
+shinkaiDownloadPages
+shinkaiJsonToMd
+```

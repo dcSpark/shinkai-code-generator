@@ -1,0 +1,8 @@
+type INPUTS = {
+    companyName: string;
+}
+
+type OUTPUT = {
+    analysisReport: string;
+    clonedModelCode?: string;
+}

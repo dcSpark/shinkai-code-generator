@@ -1,0 +1,10 @@
+type INPUTS = {
+  imageUrl: string;
+  subredditNames: string[];
+}
+
+type OUTPUT = {
+  success: boolean;
+  postedSubreddits: string[];
+  errors: string[];
+}

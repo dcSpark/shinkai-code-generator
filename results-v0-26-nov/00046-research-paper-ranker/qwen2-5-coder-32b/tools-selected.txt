@@ -1,0 +1,4 @@
+- shinkaiPerplexityApi
+- shinkaiDownloadPages
+- shinkaiLlmPromptProcessor
+- shinkaiSqliteQueryExecutor

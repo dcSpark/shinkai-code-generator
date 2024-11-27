@@ -1,0 +1,10 @@
+type INPUTS = {
+  name: string;
+  symbol: string;
+  initialSupply: number;
+}
+
+type OUTPUT = {
+  transactionHash: string;
+  contractAddress: string;
+}

@@ -1,0 +1,10 @@
+type INPUTS = {
+  phoneNumber: string;
+  message: string;
+}
+
+type OUTPUT = {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}

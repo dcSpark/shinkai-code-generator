@@ -1,7 +1,10 @@
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
-import { TEST } from "../tests.ts";
+import { TestData } from "../types.ts";
 
-async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
+async function generateCode(
+  test: TestData,
+  model: BaseEngine,
+): Promise<string> {
   return [
     `
   if (!Deno.env.has('SHINKAI_NODE_LOCATION')) Deno.env.set('SHINKAI_NODE_LOCATION', "http://localhost:9950");
@@ -11,7 +14,9 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
   `,
     await Deno.readTextFile(
-      `./results/${test.code}/${model.path}/src-code.ts`,
+      `./results/${
+        test.id?.toString().padStart(5, "0")
+      }-${test.code}/${model.path}/src-code.ts`,
     ),
     `
   
@@ -33,8 +38,10 @@ async function generateCode(test: TEST, model: BaseEngine): Promise<string> {
   ].join("\n");
 }
 
-export async function executeTest(test: TEST, model: BaseEngine) {
-  const path = `./results/${test.code}/${model.path}/final-src-code.ts`;
+export async function executeTest(test: TestData, model: BaseEngine) {
+  const path = `./results/${
+    test.id?.toString().padStart(5, "0")
+  }-${test.code}/${model.path}/final-src-code.ts`;
 
   let exists = false;
   try {
@@ -62,10 +69,15 @@ export async function executeTest(test: TEST, model: BaseEngine) {
 
     const child = command.spawn();
     child.stdout.pipeTo(
-      Deno.openSync(`./results/${test.code}/${model.path}/execute-output`, {
-        write: true,
-        create: true,
-      }).writable,
+      Deno.openSync(
+        `./results/${
+          test.id?.toString().padStart(5, "0")
+        }-${test.code}/${model.path}/execute-output`,
+        {
+          write: true,
+          create: true,
+        },
+      ).writable,
     );
 
     // manually close stdin
@@ -73,7 +85,7 @@ export async function executeTest(test: TEST, model: BaseEngine) {
 
     const _status = await child.status;
     console.log(`    [Exec] ${test.code} @ ${model.path}`);
-    // console.log(`Wrote to ${`./results/${test.code}/${model.path}/execute-output`}`);
+    // console.log(`Wrote to ${`./results/${test.id?.toString().padStart(5, '0')}-${test.code}/${model.path}/execute-output`}`);
     const s = await child.status;
     // console.log(s);
     // console.log("================================================");

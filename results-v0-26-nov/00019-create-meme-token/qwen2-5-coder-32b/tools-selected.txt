@@ -1,0 +1,4 @@
+- shinkaiLlmPromptProcessor
+- shinkaiCoinbaseWalletCreator
+- shinkaiSqliteQueryExecutor
+- shinkaiCoinbaseTransactionSender

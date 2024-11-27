@@ -1,0 +1,9 @@
+type INPUTS = {
+  language: string;
+  deploymentPlatform: string;
+}
+
+type OUTPUT = {
+  success: boolean;
+  message: string;
+}

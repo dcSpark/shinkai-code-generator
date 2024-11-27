@@ -1,0 +1,14 @@
+type INPUTS = {
+  filters: { [key: string]: any };
+  searchQuery: string;
+};
+
+type OUTPUT = {
+  emails: Array<{
+    id: string;
+    subject: string;
+    sender: string;
+    date: Date;
+    bodyPreview: string;
+  }>;
+};

@@ -1,0 +1,7 @@
+Based on the command to generate a tool that can get a list of all NFTs in a wallet, the needed function from the provided list is:
+
+```
+tokenBalanceForEvmEthereumAddressBasedOnEthplorer
+``` 
+
+This function fetches detailed token information for an Ethereum address, which includes NFTs if they are part of the tokens returned.

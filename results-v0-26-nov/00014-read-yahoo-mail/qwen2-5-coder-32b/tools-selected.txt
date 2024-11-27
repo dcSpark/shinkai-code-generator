@@ -1,0 +1,4 @@
+Based on the command provided and the list of available functions, here is the selected list of function names that would be needed to execute a tool capable of reading emails from a Yahoo Mail inbox with options for filtering and searching:
+
+- shinkaiPlaywrightExample (to handle web automation tasks such as logging into Yahoo Mail and navigating through the email interface)
+- shinkaiLlmPromptProcessor (for processing complex requests, text analysis, text matching, and any other AI LLM task that might be required for filtering or searching emails)

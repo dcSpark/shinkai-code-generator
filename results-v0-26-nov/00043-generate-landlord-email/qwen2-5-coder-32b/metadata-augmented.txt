@@ -1,0 +1,11 @@
+type INPUTS = {
+  recipientEmail: string;
+  tenantName: string;
+  rentalPropertyAddress: string;
+  requestedDiscountPercentage: number;
+}
+
+type OUTPUT = {
+  emailSentStatus: boolean;
+  emailContent?: string;
+}

@@ -1,0 +1,10 @@
+type INPUTS = {
+    walletAddress: string;
+}
+
+type OUTPUT = {
+    tokens: Array<{
+        symbol: string;
+        price: number;
+    }>;
+}

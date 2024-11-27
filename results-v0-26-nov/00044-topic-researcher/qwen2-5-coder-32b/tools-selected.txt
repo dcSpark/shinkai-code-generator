@@ -1,0 +1,6 @@
+```
+shinkaiDuckduckgoSearch
+shinkaiPerplexity
+shinkaiDownloadPages
+shinkaiLlmPromptProcessor
+```

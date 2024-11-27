@@ -1,0 +1,8 @@
+type INPUTS = {
+  startDate: Date;
+  endDate: Date;
+}
+
+type OUTPUT = {
+  birthdays: { name: string; date: Date }[];
+}

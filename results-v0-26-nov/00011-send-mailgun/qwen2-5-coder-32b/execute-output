@@ -1,0 +1,4 @@
+{
+  "status": 500,
+  "message": "No such file or directory (os error 2): readfile '/path/to/file.pdf': No such file or directory (os error 2): readfile '/path/to/file.pdf': No such file or directory (os error 2)"
+}

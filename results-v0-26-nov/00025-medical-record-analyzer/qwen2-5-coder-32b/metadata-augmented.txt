@@ -1,0 +1,8 @@
+type INPUTS = {
+  patientData: string;
+}
+
+type OUTPUT = {
+  diagnoses: string[];
+  solutions: string[];
+}

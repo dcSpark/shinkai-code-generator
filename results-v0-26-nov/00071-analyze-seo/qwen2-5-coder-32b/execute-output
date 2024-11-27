@@ -1,0 +1,5 @@
+::ERROR:: ReferenceError: DOMParser is not defined
+    at analyzeTitle (file:///Users/edwardalvarado/shinkai-prompt-test/results/00071-analyze-seo/qwen2-5-coder-32b/final-src-code.ts:39:24)
+    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/00071-analyze-seo/qwen2-5-coder-32b/final-src-code.ts:88:24)
+    at eventLoopTick (ext:core/01_core.js:175:7)
+    at async file:///Users/edwardalvarado/shinkai-prompt-test/results/00071-analyze-seo/qwen2-5-coder-32b/final-src-code.ts:118:28

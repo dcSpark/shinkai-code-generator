@@ -1,0 +1,2 @@
+type INPUTS = { image: Buffer };
+type OUTPUT = { cleanliness: number; fullness: number };

@@ -1,0 +1,9 @@
+type INPUTS = {
+    videoFilePath: string;
+    subtitleFilePath: string;
+}
+
+type OUTPUT = {
+    success: boolean;
+    message: string;
+}

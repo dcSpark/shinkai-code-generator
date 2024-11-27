@@ -1,0 +1,8 @@
+type INPUTS = {
+  items: string[];
+  quantities: number[];
+}
+
+type OUTPUT = {
+  shoppingList: string;
+}

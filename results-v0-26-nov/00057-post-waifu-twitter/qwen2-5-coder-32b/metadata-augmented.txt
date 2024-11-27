@@ -1,0 +1,9 @@
+type INPUTS = {
+  twitterAccessToken: string;
+  twitterAccessSecret: string;
+  waifuImageUrl: string;
+}
+
+type OUTPUT = {
+  tweetId: string;
+}

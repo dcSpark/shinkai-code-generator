@@ -1,0 +1,2 @@
+type INPUTS = { filePath: string };
+type OUTPUT = { audioFilePath: string };

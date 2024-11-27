@@ -1,0 +1,7 @@
+type INPUTS = {
+    companyName: string;
+}
+
+type OUTPUT = {
+    currentMarketValuation: number;
+}

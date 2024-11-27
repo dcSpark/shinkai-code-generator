@@ -1,0 +1,3 @@
+::ERROR:: TypeError: Cannot read properties of undefined (reading 'replace')
+    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/00013-read-gmail/qwen2-5-coder-32b/final-src-code.ts:45:21)
+    at file:///Users/edwardalvarado/shinkai-prompt-test/results/00013-read-gmail/qwen2-5-coder-32b/final-src-code.ts:132:34

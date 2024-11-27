@@ -1,0 +1,12 @@
+type INPUTS = {
+  city: string;
+}
+
+type OUTPUT = {
+  properties: Array<{
+    address: string;
+    price: number;
+    bedrooms: number;
+    bathrooms: number;
+  }>;
+}

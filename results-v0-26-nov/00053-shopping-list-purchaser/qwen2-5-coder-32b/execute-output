@@ -1,0 +1,28 @@
+{
+  "purchased_items": [
+    {
+      "store": "Walmart",
+      "item": "milk",
+      "quantity": 2,
+      "success": false
+    },
+    {
+      "store": "Walmart",
+      "item": "bread",
+      "quantity": 1,
+      "success": false
+    },
+    {
+      "store": "Target",
+      "item": "milk",
+      "quantity": 2,
+      "success": false
+    },
+    {
+      "store": "Target",
+      "item": "bread",
+      "quantity": 1,
+      "success": false
+    }
+  ]
+}

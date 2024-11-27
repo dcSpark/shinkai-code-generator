@@ -1,0 +1,11 @@
+type INPUTS = {
+  count: number;
+}
+
+type OUTPUT = {
+  verses: Array<{
+    reference: string;
+    text: string;
+    interpretation: string;
+  }>;
+}

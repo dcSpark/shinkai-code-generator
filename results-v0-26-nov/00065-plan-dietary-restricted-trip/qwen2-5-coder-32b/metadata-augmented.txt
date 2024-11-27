@@ -1,0 +1,10 @@
+type INPUTS = {
+    locations: string[];
+    startDate: Date;
+    endDate: Date;
+    dietaryRestrictions: string[];
+}
+
+type OUTPUT = {
+    itinerary: { [date: string]: string[] };
+}

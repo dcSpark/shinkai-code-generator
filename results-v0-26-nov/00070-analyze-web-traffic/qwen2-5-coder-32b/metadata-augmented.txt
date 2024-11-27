@@ -1,0 +1,11 @@
+type INPUTS = {
+    url: string;
+}
+
+type OUTPUT = {
+    trafficStatistics: {
+        totalVisits: number;
+        uniqueVisitors: number;
+    };
+    topKeywords: string[];
+}

@@ -1,0 +1,8 @@
+type INPUTS = {
+  productName: string;
+  stores?: string[];
+}
+
+type OUTPUT = {
+  results: { store: string, price: number }[];
+}

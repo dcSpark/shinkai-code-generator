@@ -1,0 +1,4 @@
+{
+  "success": false,
+  "message": "An error occurred: Command failed: docker run --rm web-scraper"
+}

@@ -1,7 +1,7 @@
 import { createDir, getInstalledModels } from "./test-engine/test-helpers.ts";
 import { executeTest } from "./test-engine/test-exec.ts";
 import { generateCodeAndMetadata } from "./test-engine/test-llm.ts";
-import { tests } from "./tests.ts";
+import { allTests } from "./tests/index.ts";
 import { report } from "./report.ts";
 import { getConfig } from "./cli.ts";
 import { getToolImplementationPrompt } from "./test-engine/shinkai-prompts.ts";
@@ -23,7 +23,7 @@ async function getModels() {
       return null;
     }).filter((model) => model !== null);
   } catch (err) {
-    if (err.code === "ENOENT") {
+    if ((err as { code: string }).code === "ENOENT") {
       // File does not exist, use getInstalledModels
       return (await getInstalledModels()).filter((model) =>
         !model.name.startsWith("snowflake-arctic")
@@ -38,17 +38,31 @@ const models = await getModels();
 console.log(`[Testing] ${models.length} models found`);
 console.log(`List of models: ${models.map((m) => m.name).join(", ")}`);
 
-const total = models.length * tests.length;
+const total = models.length * allTests.length;
 const start = Date.now();
 let current = 1;
 let score = 0;
 let maxScore = 0;
 const selectedTests = tests_to_run.length > 0
-  ? tests.filter((test) => tests_to_run.includes(test.code))
-  : tests;
+  ? allTests.filter((test) => tests_to_run.includes(test.code))
+  : allTests;
 
 for (const model of models) {
   for (const test of selectedTests) {
+    if (current % 4 === 0) test.sql_store = true;
+    console.log(
+      `[Test] ${current}/${total} ${test.code} @ ${model.path} ${
+        test.sql_store ? "[SQL Added]" : ""
+      }`,
+    );
+    current += 1;
+  }
+}
+
+current = 1;
+for (const model of models) {
+  for (const test of selectedTests) {
+    test.id = current;
     console.log("--------------------------------");
     console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.path}`);
     console.log(

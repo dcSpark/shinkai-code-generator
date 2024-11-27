@@ -1,0 +1,2 @@
+type INPUTS = { pythonCode: string }
+type OUTPUT = { result: string, error?: string }

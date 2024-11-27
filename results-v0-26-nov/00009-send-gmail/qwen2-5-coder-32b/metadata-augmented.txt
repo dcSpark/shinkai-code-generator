@@ -1,0 +1,10 @@
+type INPUTS = {
+  to: string;
+  subject: string;
+  body: string;
+}
+
+type OUTPUT = {
+  success: boolean;
+  message: string;
+}

@@ -1,0 +1,9 @@
+type INPUTS = {
+  websiteName: string;
+  petType: string;
+  ownerName: string;
+}
+
+type OUTPUT = {
+  deploymentUrl: string;
+}

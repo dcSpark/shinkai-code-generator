@@ -1,0 +1,8 @@
+type INPUTS = {
+  teamSize: number;
+  goals: string[];
+}
+
+type OUTPUT = {
+  toolRecommendation: string;
+}

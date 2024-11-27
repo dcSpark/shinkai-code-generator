@@ -1,0 +1,7 @@
+type INPUTS = {
+  request: string;
+}
+
+type OUTPUT = {
+  response: string;
+}

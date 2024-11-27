@@ -1,0 +1,12 @@
+type INPUTS = {
+  from: string;
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+}
+
+type OUTPUT = {
+  id: string;
+  message: string;
+}

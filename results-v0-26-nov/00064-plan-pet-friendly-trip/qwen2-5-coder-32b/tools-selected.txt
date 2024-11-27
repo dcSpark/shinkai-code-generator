@@ -1,0 +1,7 @@
+```
+shinkaiPerplexityApi
+shinkaiDuckduckgoSearch
+shinkaiLlmPromptProcessor
+shinkaiSqliteQueryExecutor
+shinkaiWeatherByCity
+```

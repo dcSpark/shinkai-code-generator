@@ -1,0 +1,7 @@
+type INPUTS = {
+  currency: string;
+}
+
+type OUTPUT = {
+  price: number;
+}
