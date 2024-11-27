@@ -477,14 +477,11 @@ export async function shinkaiSqliteQueryExecutor(database_name: string, query: s
     // );
 
     const code = await this.generateCode(
-      this.test.prompt + " given " + this.test.prompt_type +
-        (this.test.sql_store ? ` and store the result in SQL` : ""),
+      this.test.prompt +
+        (this.test.sql_store ? ` and store the result in SQL.` : "") + 
+        " Given " + this.test.prompt_type
     );
-    if (this.test.sql_store) {
-      this.test.tools.push(
-        "local:::rust_toolkit:::shinkai_sqlite_query_executor",
-      );
-    }
+
     const metadata = code.src ? await this.generateMetadata(code.src) : null;
     return { code, metadata };
   }

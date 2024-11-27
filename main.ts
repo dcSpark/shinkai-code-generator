@@ -69,6 +69,12 @@ current = 1;
 for (const model of models) {
   for (const test of selectedTests) {
     test.id = current;
+    if (test.sql_store) {
+      test.tools.push(
+        "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+      );
+    }
+
     console.log("--------------------------------");
     console.log(`[Testing] ${current}/${total} ${test.code} @ ${model.path}`);
     console.log(
