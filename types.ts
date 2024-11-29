@@ -7,5 +7,5 @@ export type TestData = {
   inputs: Record<string, unknown>;
   config: Record<string, unknown>;
   check?: (output: string) => number; // between 0 and 1
-  sql_store?: boolean;
+  save?: boolean;
 };

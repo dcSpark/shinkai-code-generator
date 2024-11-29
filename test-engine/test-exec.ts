@@ -3,16 +3,19 @@ import { TestData } from "../types.ts";
 import { PromptTest } from "./PromptTest.ts";
 import { Paths } from "./../paths.ts";
 
-export async function generateCodeIfNotExists(
+export function checkIfHeadersPresent(code: string) {
+  return code.includes("SHINKAI_NODE_LOCATION") &&
+    code.includes("BEARER") &&
+    code.includes("X_SHINKAI_TOOL_ID") &&
+    code.includes("X_SHINKAI_APP_ID") &&
+    code.includes("X_SHINKAI_LLM_PROVIDER");
+}
+
+export function appendAditionalCode(
+  code_: string,
   test: TestData,
   model: BaseEngine,
-): Promise<string> {
-  try {
-    if (await Deno.stat(Paths.finalSrcCode(test, model))) {
-      return Paths.finalSrcCode(test, model);
-    }
-  } catch (_) { /* ignore */ }
-
+) {
   const code = [
     `
   // These environment variables are required, before any import.
@@ -23,9 +26,7 @@ export async function generateCodeIfNotExists(
   if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
   if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
   `,
-    await Deno.readTextFile(
-      Paths.srcCode(test, model),
-    ),
+    code_,
     `
   
   // console.log('Running...')
@@ -44,12 +45,7 @@ export async function generateCodeIfNotExists(
 
 `,
   ].join("\n");
-
-  await Deno.writeTextFile(
-    Paths.finalSrcCode(test, model),
-    code,
-  );
-  return Paths.finalSrcCode(test, model);
+  return code;
 }
 
 export async function executeTest(
@@ -94,7 +90,7 @@ export async function executeTest(
 export async function checkCode(test: TestData, model: BaseEngine) {
   const outputPath = Paths.executeCheck(test, model);
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["check", Paths.finalSrcCode(test, model)],
+    args: ["check", Paths.srcCode(test, model)],
     stdin: "piped",
     stdout: "piped",
     stderr: "piped",
@@ -118,7 +114,7 @@ export async function checkCode(test: TestData, model: BaseEngine) {
   child.stdin.close();
 
   const _status = await child.status;
-  console.log(`    [Check] ${test.code} @ ${model.path}`);
+  console.log(`    [Check]`);
   const _s = await child.status;
 
   return outputPath;
@@ -133,7 +129,7 @@ export async function tryToFixCode(
   console.log(`    [Fixing Code]`);
   const { code, raw, prompt } = await promptTest.fixCode(errors, [
     Paths.shinkaiLocalTools(test, model),
-    Paths.finalSrcCode(test, model),
+    Paths.srcCode(test, model),
   ]);
   // Write the raw prompt and the raw fixed code
   await Deno.writeTextFile(
@@ -141,10 +137,14 @@ export async function tryToFixCode(
     prompt,
   );
   if (code) {
+    // Copy previous code
     await Deno.writeTextFile(
       Paths.originalCode(test, model),
-      await Deno.readTextFile(Paths.finalSrcCode(test, model)),
+      await Deno.readTextFile(Paths.srcCode(test, model)),
     );
+
+    // Write the fixed code
+
     await Deno.writeTextFile(
       Paths.finalSrcCode(test, model),
       code,

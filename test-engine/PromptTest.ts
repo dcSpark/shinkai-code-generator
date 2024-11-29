@@ -158,8 +158,8 @@ ${errors}
     return { prompt, raw, code: this.tryToExtractTS(raw) };
   }
 
-  public async run(): Promise<
-    { code: PromptTestResult; metadata: PromptTestResult | null }
+  public async startCodeGeneration(): Promise<
+    { code: PromptTestResult }
   > {
     const toolsSelected = await this.selectTools(this.test.prompt);
     if (toolsSelected) {
@@ -178,12 +178,15 @@ ${errors}
     }
 
     const code = await this.generateCode(
-      this.test.prompt +
-        (this.test.sql_store ? ` and store the result in SQL.` : "") +
-        " Given " + this.test.prompt_type,
+      this.test.prompt + " given " + this.test.prompt_type,
     );
+    return { code };
+  }
 
-    const metadata = code.src ? await this.generateMetadata(code.src) : null;
-    return { code, metadata };
+  public async startMetadataGeneration(
+    code: string,
+  ): Promise<{ metadata: PromptTestResult | null }> {
+    const metadata = code ? await this.generateMetadata(code) : null;
+    return { metadata };
   }
 }

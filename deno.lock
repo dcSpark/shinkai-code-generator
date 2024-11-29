@@ -11,10 +11,14 @@
     "npm:form-data@4.0.0": "4.0.0",
     "npm:fs@0.0.1-security": "0.0.1-security",
     "npm:google-auth-library@9.0.0": "9.0.0",
+    "npm:google-auth-library@latest": "9.15.0",
     "npm:googleapis@103.0.0": "103.0.0",
     "npm:googleapis@108.0.0": "108.0.0",
+    "npm:googleapis@latest": "144.0.0",
     "npm:imap@0.8.19": "0.8.19",
     "npm:mailparser@3.2.0": "3.2.0",
+    "npm:node-fetch@2.6.10": "2.6.10",
+    "npm:node-fetch@2.6.7": "2.6.7",
     "npm:nodemailer@6.9.1": "6.9.1",
     "npm:nodemailer@6.9.3": "6.9.3",
     "npm:nodemailer@6.9.4": "6.9.4",
@@ -22,6 +26,7 @@
     "npm:sqlite3@4.0.1": "4.0.1",
     "npm:sqlite3@5.0.2": "5.0.2",
     "npm:twilio@3.74.0": "3.74.0",
+    "npm:twilio@3.82.0": "3.82.0",
     "npm:twilio@3.84.0": "3.84.0",
     "npm:twilio@latest": "5.3.6",
     "npm:xoauth2@*": "1.2.0",
@@ -333,7 +338,7 @@
         "extend",
         "https-proxy-agent@5.0.1",
         "is-stream",
-        "node-fetch"
+        "node-fetch@2.7.0"
       ]
     },
     "gaxios@6.7.1": {
@@ -342,7 +347,7 @@
         "extend",
         "https-proxy-agent@7.0.5",
         "is-stream",
-        "node-fetch",
+        "node-fetch@2.7.0",
         "uuid"
       ]
     },
@@ -407,6 +412,17 @@
         "lru-cache"
       ]
     },
+    "google-auth-library@9.15.0": {
+      "integrity": "sha512-7ccSEJFDFO7exFbO6NRyC+xH8/mZ1GZGG2xxx9iHxZWcjUjJpjWxIMw3cofAKcueZ6DATiukmmprD7yavQHOyQ==",
+      "dependencies": [
+        "base64-js",
+        "ecdsa-sig-formatter",
+        "gaxios@6.7.1",
+        "gcp-metadata@6.1.0",
+        "gtoken@7.1.0",
+        "jws@4.0.0"
+      ]
+    },
     "google-p12-pem@4.0.1": {
       "integrity": "sha512-WPkN4yGtz05WZ5EhtlxNDWPhC4JIic6G8ePitwUWy4l+XPVYec+a0j0Ts47PDtW59y3RwAhUd9/h9ZZ63px6RQ==",
       "dependencies": [
@@ -424,18 +440,36 @@
         "uuid"
       ]
     },
+    "googleapis-common@7.2.0": {
+      "integrity": "sha512-/fhDZEJZvOV3X5jmD+fKxMqma5q2Q9nZNSF3kn1F18tpxmA86BcTxAGBQdM0N89Z3bEaIs+HVznSmFJEAmMTjA==",
+      "dependencies": [
+        "extend",
+        "gaxios@6.7.1",
+        "google-auth-library@9.15.0",
+        "qs",
+        "url-template",
+        "uuid"
+      ]
+    },
     "googleapis@103.0.0": {
       "integrity": "sha512-jS/6UJcy3Wci+8EF21EkAh5CA/sPDCiZ1PqCPQEFNtvM6/MPNS4OUH6Ty2aTx2OeoNe8dzIqRW0gF0+c43irlw==",
       "dependencies": [
         "google-auth-library@8.9.0",
-        "googleapis-common"
+        "googleapis-common@6.0.4"
       ]
     },
     "googleapis@108.0.0": {
       "integrity": "sha512-wQuBzCObtjpfg3CksOfUlX3yT8clw/vJFdGSfs9cpn84WSxNK3U5sxYxEH3mPM+d+SrA8znKM9G8sOuwQceGIA==",
       "dependencies": [
         "google-auth-library@8.9.0",
-        "googleapis-common"
+        "googleapis-common@6.0.4"
+      ]
+    },
+    "googleapis@144.0.0": {
+      "integrity": "sha512-ELcWOXtJxjPX4vsKMh+7V+jZvgPwYMlEhQFiu2sa9Qmt5veX8nwXPksOWGGN6Zk4xCiLygUyaz7xGtcMO+Onxw==",
+      "dependencies": [
+        "google-auth-library@9.15.0",
+        "googleapis-common@7.2.0"
       ]
     },
     "gopd@1.0.1": {
@@ -771,6 +805,18 @@
     "node-addon-api@3.2.1": {
       "integrity": "sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A=="
     },
+    "node-fetch@2.6.10": {
+      "integrity": "sha512-5YytjUVbwzjE/BX4N62vnPPkGNxlJPwdA9/ArUc4pcM6cYS4Hinuv4VazzwjMGgnWuiQqcemOanib/5PpcsGug==",
+      "dependencies": [
+        "whatwg-url"
+      ]
+    },
+    "node-fetch@2.6.7": {
+      "integrity": "sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==",
+      "dependencies": [
+        "whatwg-url"
+      ]
+    },
     "node-fetch@2.7.0": {
       "integrity": "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==",
       "dependencies": [
@@ -1069,6 +1115,22 @@
       "integrity": "sha512-r79CWIug+x2/1uGOdAzGESvUvycxPCvVJ9rm4y1TsAocshTh+f5+ipULxyT3T5q4wJNT+k2OEiUBkKFA+cpQ/A==",
       "dependencies": [
         "axios@0.25.0",
+        "dayjs",
+        "https-proxy-agent@5.0.1",
+        "jsonwebtoken@8.5.1",
+        "lodash",
+        "q",
+        "qs",
+        "rootpath",
+        "scmp",
+        "url-parse",
+        "xmlbuilder"
+      ]
+    },
+    "twilio@3.82.0": {
+      "integrity": "sha512-7j21FIb0tq3udzlOitrnMaIBIMrnB0gO9sDzxHytNfZlMAZXWVIRSP3SodU9lxLTVjyZeFLfr7Qqs1Xafo36uQ==",
+      "dependencies": [
+        "axios@0.26.1",
         "dayjs",
         "https-proxy-agent@5.0.1",
         "jsonwebtoken@8.5.1",

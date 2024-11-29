@@ -16,6 +16,7 @@ import { spiritualTests } from "./spiritual.ts";
 import { travelTests } from "./travel.ts";
 import { videoAudioTests } from "./video-audio.ts";
 import { webTests } from "./web.ts";
+import { benchmarkTests } from "./benchmark.ts";
 
 export const allTests: TestData[] = [
   ...businessTests,
@@ -35,4 +36,5 @@ export const allTests: TestData[] = [
   ...travelTests,
   ...videoAudioTests,
   ...webTests,
+  ...benchmarkTests,
 ];

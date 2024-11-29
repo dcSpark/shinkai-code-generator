@@ -3,8 +3,8 @@ import { TestData } from "./types.ts";
 import { BaseEngine } from "./llm-engine/BaseEngine.ts";
 
 export class Paths {
-  private static basePath = 'results';
-
+  private static basePath = "results";
+  private static editor = "editor";
   // Files
   private static createToolFile = "prompt-raw-create-tool.md";
   private static createMetadataFile = "prompt-raw-create-metadata.md";
@@ -25,11 +25,39 @@ export class Paths {
   private static promptMetadataFile = "prompt-metadata.md";
   private static rawResponseCodeFile = "raw-response-code.md";
   private static rawResponseMetadataFile = "raw-response-metadata.md";
+  private static vscodeSetup = ".vscode";
+  private static launchCodeFile = "launch.json";
+  private static editorFiles = "editor-files";
 
   public static executionDir() {
     return this.basePath;
   }
+  
+  public static pathToCreate(test: TestData, model: BaseEngine) {
+    return [
+      // this.basePath,
+      // this.getBasePath(test, model),
+      // this.editorBasePath(test, model),
+      this.editorVSCodeSetup(test, model),
+    ];
+  }
 
+  public static staticLaunchCodeFile() {
+    return path.join(this.editorFiles, this.vscodeSetup, this.launchCodeFile);
+  }
+
+  public static editorBasePath(test: TestData, model: BaseEngine) {
+    return path.join(this.getBasePath(test, model), this.editor);
+  }
+
+  private static editorVSCodeSetup(test: TestData, model: BaseEngine) {
+    return path.join(this.editorBasePath(test, model), this.vscodeSetup);
+  }
+
+  public static launchCode(test: TestData, model: BaseEngine) {
+    return path.join(this.editorVSCodeSetup(test, model), this.launchCodeFile);
+  }
+  
   private static toolId(test: TestData) {
     return `${(test.id || "").toString().padStart(5, "0")}-${test.code}`;
   }
@@ -71,7 +99,11 @@ export class Paths {
   }
 
   public static finalSrcCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.finalSrcCodeFile);
+    return path.join(
+      this.getBasePath(test, model),
+      this.editor,
+      this.finalSrcCodeFile,
+    );
   }
 
   public static toolsSelected(test: TestData, model: BaseEngine) {
@@ -95,7 +127,11 @@ export class Paths {
   }
 
   public static shinkaiLocalTools(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.shinkaiLocalToolsFile);
+    return path.join(
+      this.getBasePath(test, model),
+      this.editor,
+      this.shinkaiLocalToolsFile,
+    );
   }
 
   public static promptCode(test: TestData, model: BaseEngine) {
@@ -111,6 +147,9 @@ export class Paths {
   }
 
   public static rawResponseMetadata(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.rawResponseMetadataFile);
+    return path.join(
+      this.getBasePath(test, model),
+      this.rawResponseMetadataFile,
+    );
   }
 }
