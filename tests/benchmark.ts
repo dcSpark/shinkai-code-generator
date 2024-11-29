@@ -1,6 +1,19 @@
 import { tool_router_key } from "../test-engine/shinak-api.ts";
 import { TestData } from "../types.ts";
 
+
+// Impossible to implement
+const testNoTools = {
+  code: `benchmark-impossible`,
+  prompt: `Generate a tool that creates a post in Facebook, X/Twitter, Instagram and Reddit.`,
+  prompt_type: "type INPUT = { title: string, content: string }",
+  inputs: {
+    title: "Test",
+    content: "Test",
+  },
+  tools: [],
+  config: {},
+};
 // This test downloads a website and returns the HTML as a string.
 const test0 = {
   code: `benchmark-download-website`,
@@ -61,6 +74,7 @@ const test2 = {
 };
 
 export const benchmarkTests: TestData[] = [
+  testNoTools,
   test0,
   test1,
   test2,

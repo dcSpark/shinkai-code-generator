@@ -59,22 +59,30 @@ export class PromptTest {
     command: string,
     execute = false,
   ): Promise<string | null> {
-    const prompt = `Given this signature:
-\`\`\`typescript
-export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT>
-\`\`\`
+    const prompt = `
+<agent-code-definition>
+  Given this signature:
+  \`\`\`typescript
+  export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT>
+  \`\`\`
+</agent-code-definition>
 
-1. Define the Typescript type for INPUTS
-2. Define the Typescript type for OUTPUT
+<agent-code-output>
+  * Define the Typescript type for INPUTS
+  * Define the Typescript type for OUTPUT
+</agent-code-output>
 
-* Write only typescript code in a single code block
-* Avoid all comments, text, notes and metadata.
-* CONFIG is defined outside and cannot be changed.
-* type INPUT = { /* keys */ }
-* type OUTPUT = { /* keys */ }
-* Keep only the minimum keys required to make the command viable.
+<agent-code-rules>
+  * Write only typescript code in a single code block
+  * Avoid all comments, text, notes and metadata.
+  * CONFIG is defined outside and cannot be changed.
+  * type INPUT = { /* keys */ }
+  * type OUTPUT = { /* keys */ }
+  * Keep only the minimum keys required to make the command viable.
+  * Analyze the instruction in the command tag and define the INPUTS and OUTPUT following the rules above.
+</agent-code-rules>
 
-For this command:
+<command>
 '''
 ${command}
 '''
@@ -85,6 +93,7 @@ ${command}
     );
 
     if (execute) {
+      console.log("    [LLM] Metadata augmentation");
       const raw = await this.model.run(prompt);
       return this.tryToExtractTS(raw);
     }
@@ -98,14 +107,19 @@ ${command}
   ): Promise<string | null> {
     const headers = await getAllToolsHeaders();
     const prompt = `
-# Available Tools Definitions:
-${headers}
+<available-tools-definitions>
+  # Available Tools Definitions:
+  ${headers}
+</available-tools-definitions>
 
-* Only return a list of the function names from this list.
-* Avoid all comments, text, notes and metadata.
-* Select the tools that are needed to execute the command from this list.
+<agent-code-rules>
+  * Only return a list of the function names from this list.
+  * Avoid all comments, text, notes and metadata.
+  * Select the minimum required tools that are needed to execute the instruction in the command tag from this list.
+  * If there is a required tool that is not in the list, prefix with '!' to indicate that it is not available, but needed to execute the command tag instruction.
+</agent-code-rules>
 
-# Given this command:
+<command>
 '''
 ${command}
 '''
@@ -117,6 +131,7 @@ ${command}
     );
 
     if (execute) {
+      console.log("    [LLM] Tools selection");
       const raw = await this.model.run(prompt);
       return raw;
     }
@@ -161,16 +176,17 @@ ${errors}
   public async startCodeGeneration(): Promise<
     { code: PromptTestResult }
   > {
-    const toolsSelected = await this.selectTools(this.test.prompt);
-    if (toolsSelected) {
+    const execute = true;
+    const toolsSelected = await this.selectTools(this.test.prompt, execute);
+    if (execute) {
       await Deno.writeTextFile(
         Paths.toolsSelected(this.test, this.model),
         toolsSelected || "",
       );
     }
 
-    const metadataAugmented = await this.augmentMetadata(this.test.prompt);
-    if (metadataAugmented) {
+    const metadataAugmented = await this.augmentMetadata(this.test.prompt, execute);
+    if (execute) {
       await Deno.writeTextFile(
         Paths.metadataAugmented(this.test, this.model),
         metadataAugmented || "",

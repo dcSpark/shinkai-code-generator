@@ -7,18 +7,34 @@ const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
   "http://localhost:9950";
 
 export async function getAllToolsHeaders(): Promise<string> {
-  const response = await axios({
+  const response1 = await axios({
     method: "GET",
     url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
     params: {
       language: "typescript",
+      tools: [],
     },
     headers: {
       Authorization: "Bearer debug",
       "Content-Type": "application/json; charset=utf-8",
     },
   });
-  const { headers } = response.data;
+  const { availableTools } = response1.data;
+
+  const response2 = await axios({
+    method: "GET",
+    url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
+    params: {
+      language: "typescript",
+      tools: availableTools.join(","),
+    },
+    headers: {
+      Authorization: "Bearer debug",
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
+  const { headers } = response2.data;
+
   return headers;
 }
 

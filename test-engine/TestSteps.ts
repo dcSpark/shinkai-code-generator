@@ -48,6 +48,8 @@ export class TestSteps {
   }
 
   // Step 2: 
+  // - Run metadata augmentation
+  // - Run tools selection
   // - Generate Code
   // - Check for syntax errors
   // - Try to fix errors?
