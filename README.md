@@ -6,26 +6,15 @@ Requirements
 * Deno 2.x
 
 ## Run Prompts & Execute Results
-* `deno task start`
-
-## Stages:
-* `shinkai` - Fetches the prompts and tools from Shinkai and stores them in `results/{test}/{model}/` 
-* `llm` - Runs the promts against LLMs and stores the results in `results/{test}/{model}/`
-* `exec` - Executes the generated code and stores the results in `results/{test}/{model}/`
+* `deno task start test=benchmark-\*`
 
 ### Run specific tests:
 * `deno task start test=download-url-and-sql` - Runs only the `download-url-and-sql` test
 * `deno task start test=download-url-and-sql test=download-url-and-summary` - Runs the `download-url-and-sql` and `download-url-and-summary` tests
-
-### Stage selection examples:
-* `deno task start` - Runs all stages
-* `deno task start shinkai` - Runs only shinkai stage
-* `deno task start llm` - Runs only llm stage
-* `deno task start exec` - Runs only exec stage
-* Options can be combined, for example `deno task start shinkai llm` to run shinkai and llm stages.
+* Wildcards can be used: `deno task start test=benchmark-\*`
 
 ## Notes on Prompt Results:
-* Results will be stored in `results/{model-name}/{test-code}/` 
+* Results will be stored in `results/{language}/{model-name}/{test-code}/` 
 * `prompt-` stores prompts 
 * `raw-` store raw responses
 * `src-` store parsed response (valid Typescript or JSON)

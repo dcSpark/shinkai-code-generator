@@ -72,10 +72,19 @@ const test2 = {
   },
   save: true,
 };
+const basic_tool = {
+  code: `benchmark-basic-tool`,
+  prompt: `Generate a tool that calls a New foobar tool from template.`,
+  prompt_type: "type INPUT = {}",
+  inputs: {},
+  tools: ["local:::shinkai_tool_foobar:::shinkai__foobar"],
+  config: {},
+};
 
 export const benchmarkTests: TestData[] = [
-  // testNoTools,
+  basic_tool,
   test0,
   test1,
   test2,
+  testNoTools,
 ];
