@@ -158,12 +158,18 @@ ${code}
 `
     ).join("\n");
     const prompt = `
+<source-codes>
 * Here is the program soruce code files:
 ${srcCode}
+</source-codes>
 
+<agent-fix-code-rules>
 * Only return the fixed code in a single code block.
 * Only make the changes necessary to fix the errors above, no other changes to the code.
 * Avoid all comments, text, notes and metadata.
+</agent-fix-code-rules>
+
+<errors>
 * These are the following errors found:
 ${errors}
 
