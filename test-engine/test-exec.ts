@@ -34,7 +34,8 @@ if __name__ == "__main__":
     import asyncio
     
     config = CONFIG()
-    inputs = INPUTS(${Object.keys(test.inputs).map(k => `${k}=${JSON.stringify(test.inputs[k])}`).join(", ")})
+    inputs = INPUTS()
+    ${Object.keys(test.inputs).map(k => `inputs.${k}=${JSON.stringify(test.inputs[k])}`).join("\n")}
     
     # Run the async function
     result = asyncio.run(run(config, inputs))

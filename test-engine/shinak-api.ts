@@ -2,7 +2,7 @@ const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
   "http://localhost:9950";
 
 import axios from "npm:axios";
-import { TestData } from "../types.ts";
+import { Language, TestData } from "../types.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { Paths } from "../paths.ts";
 

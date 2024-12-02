@@ -28,8 +28,11 @@ export class Paths {
   private static originalCodeFile = (language: Language) =>
     `original-code.${this.languageToExtension[language]}`;
   private static rawFixedCodeFile = "raw-fixed-code.md";
-  private static shinkaiLocalToolsFile = (language: Language) =>
-    `shinkai-local-tools.${this.languageToExtension[language]}`;
+  private static shinkaiLocalToolsFile = (language: Language) => {
+    if (language === "python") return 'shinkai_local_tools.py'
+    if (language === "typescript") return 'shinkai-local-tools.ts'
+    throw new Error(`Unsupported language: ${language}`)
+  }
   private static tryFixCodeFile = "try-fix-code.md";
   private static promptCodeFile = "prompt-code.md";
   private static promptMetadataFile = "prompt-metadata.md";
