@@ -21,6 +21,7 @@ export function appendAditionalCode(
     const code = [
       `
 import os
+import json
 os.environ["SHINKAI_NODE_LOCATION"] = "http://localhost:9950"
 os.environ["BEARER"] = "debug"
 os.environ["X_SHINKAI_TOOL_ID"] = "tool-id-debug"
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     
     # Run the async function
     result = asyncio.run(run(config, inputs))
-    print(result)
+    print(json.dumps(result.__dict__))
 `,
     ].join("\n");
     return code;
@@ -67,7 +68,6 @@ if __name__ == "__main__":
     else console.log(program_result);
   } catch (e) {
     console.log('::ERROR::', e);
-  }
   }
 
 `,
