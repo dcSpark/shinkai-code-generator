@@ -2,6 +2,7 @@ import { allTests } from "./tests/index.ts";
 import { getConfig } from "./cli.ts";
 import { getModels } from "./llm-engine/getModels.ts";
 import { TestSteps } from "./test-engine/TestSteps.ts";
+import { Language } from "./types.ts";
 
 async function main() {
   const { run_llm, run_exec, run_shinkai, tests_to_run, random_count } =
@@ -33,32 +34,39 @@ async function main() {
       .slice(0, random_count);
   }
 
-  TestSteps.total = models.length * selectedTests.length;
+  const languages: Language[] = [
+    "typescript",
+    "python",
+  ];
+  TestSteps.total = languages.length * models.length * selectedTests.length;
 
-  for (const model of models) {
-    for (const test of selectedTests) {
-      test.id = TestSteps.current;
-      const testSteps = new TestSteps(
-        test,
-        model,
-        run_shinkai,
-        run_llm,
-        run_exec,
-      );
-      await testSteps.step_1();
-      await testSteps.step_2();
-      await testSteps.step_3();
-      await testSteps.step_4();
-      await testSteps.prepareEditor();
-      const scores = testSteps.getScores();
-      score += scores.score;
-      maxScore += scores.maxScore;
+  for (const language of languages) {
+    for (const model of models) {
+      for (const test of selectedTests) {
+        test.id = TestSteps.current;
+        const testSteps = new TestSteps(
+          test,
+          language,
+          model,
+          run_shinkai,
+          run_llm,
+          run_exec,
+        );
+        await testSteps.step_1();
+        await testSteps.step_2();
+        await testSteps.step_3();
+        await testSteps.step_4();
+        await testSteps.prepareEditor();
+        const scores = testSteps.getScores();
+        score += scores.score;
+        maxScore += scores.maxScore;
+      }
     }
-  }
 
-  console.log(`[Done] Total Time: ${Date.now() - start}ms`);
-  if (run_exec) {
-    console.log(`[Done] Total Score: ${score}/${maxScore}`);
+    console.log(`[Done] Total Time: ${Date.now() - start}ms`);
+    if (run_exec) {
+      console.log(`[Done] Total Score: ${score}/${maxScore}`);
+    }
   }
 }
 

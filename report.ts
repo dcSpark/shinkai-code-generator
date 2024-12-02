@@ -1,5 +1,5 @@
 import { BaseEngine } from "./llm-engine/BaseEngine.ts";
-import { TestData } from "./types.ts";
+import { Language, TestData } from "./types.ts";
 import { Paths } from "./paths.ts";
 
 enum STATUS {
@@ -12,6 +12,7 @@ enum STATUS {
 }
 
 export async function report(
+  language: Language,
   test: TestData,
   model: BaseEngine,
 ): Promise<{ score: number; max: number }> {
@@ -19,23 +20,23 @@ export async function report(
   let max = 0;
   // Report Results
   const code = await checkIfExistsAndHasContent(
-    Paths.srcCode(test, model),
+    Paths.srcCode(language, test, model),
     false,
   );
   const metadata = await checkIfExistsAndHasContent(
-    Paths.srcMetadata(test, model),
+    Paths.srcMetadata(language, test, model),
     false,
   );
   const execute = await checkIfExistsAndHasContent(
-    Paths.executeOutput(test, model),
+    Paths.executeOutput(language, test, model),
     true,
   );
-
+  console.log(`    [Language] ${language}`);
   console.log(`    ${code[0]} Code ${code[1]}`);
   console.log(`    ${metadata[0]} Metadata ${metadata[1]}`);
   console.log(`    ${execute[0]} Execute ${execute[1]}`);
   console.log(
-    `    Path Source Code ${Paths.finalSrcCode(test, model)}`,
+    `    Path Source Code ${Paths.finalSrcCode(language, test, model)}`,
   );
   console.log(`    [Done] ${test.code} @ ${model.path}`);
   if (code[0] === STATUS.GOOD) score += 1;
@@ -50,7 +51,7 @@ export async function report(
     if (execute[0] === STATUS.GOOD) {
       const check = test.check(
         await Deno.readTextFile(
-          Paths.executeOutput(test, model),
+          Paths.executeOutput(language, test, model),
         ),
       );
       score += check * multiplier;

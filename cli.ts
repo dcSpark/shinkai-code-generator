@@ -34,8 +34,15 @@ export async function getConfig(): Promise<
 
   if (run_shinkai) {
     try {
-      if (await Deno.stat(Paths.executionDir())) {
-        await Deno.remove(Paths.executionDir(), { recursive: true });
+      if (await Deno.stat(Paths.executionDir("python"))) {
+        await Deno.remove(Paths.executionDir("python"), { recursive: true });
+      }
+    } catch (_) { /* nop */ }
+    try {
+      if (await Deno.stat(Paths.executionDir("typescript"))) {
+        await Deno.remove(Paths.executionDir("typescript"), {
+          recursive: true,
+        });
       }
     } catch (_) { /* nop */ }
   }

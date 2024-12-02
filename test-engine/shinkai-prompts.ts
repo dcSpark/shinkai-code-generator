@@ -1,6 +1,6 @@
 import axios from "npm:axios";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
-import { TestData } from "../types.ts";
+import { Language, TestData } from "../types.ts";
 import { Paths } from "../paths.ts";
 
 const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
@@ -39,6 +39,7 @@ export async function getAllToolsHeaders(): Promise<string> {
 }
 
 export async function getToolImplementationPrompt(
+  language: Language,
   test: TestData,
   model: BaseEngine,
 ): Promise<void> {
@@ -46,7 +47,7 @@ export async function getToolImplementationPrompt(
     method: "GET",
     url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
     params: {
-      language: "typescript",
+      language,
       tools: test.tools.join(","),
     },
     headers: {
@@ -56,21 +57,26 @@ export async function getToolImplementationPrompt(
   });
   const { codePrompt, libraryCode, metadataPrompt } = response.data;
 
+  // Write the library code in the root and in the editor folder
   await Deno.writeTextFile(
-    Paths.shinkaiLocalTools(test, model),
+    Paths.shinkaiLocalTools(language, test, model, false),
     libraryCode,
   );
   await Deno.writeTextFile(
-    Paths.createMetadata(test, model),
+    Paths.shinkaiLocalTools(language, test, model, true),
+    libraryCode,
+  );
+  await Deno.writeTextFile(
+    Paths.createMetadata(language, test, model),
     metadataPrompt,
   );
   await Deno.writeTextFile(
-    Paths.createTool(test, model),
+    Paths.createTool(language, test, model),
     codePrompt,
   );
   console.log(
     `    [Shinkai] Fetched prompts & ${test.tools.length} tool${
       test.tools.length === 1 ? "" : "s"
-    }`,
+    } for ${language}`,
   );
 }

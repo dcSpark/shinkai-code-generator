@@ -1,8 +1,14 @@
 import path from "node:path";
 import { TestData } from "./types.ts";
 import { BaseEngine } from "./llm-engine/BaseEngine.ts";
+import { Language } from "./types.ts";
 
 export class Paths {
+  private static languageToExtension = {
+    typescript: "ts",
+    python: "py",
+  };
+
   private static basePath = "results";
   private static editor = "editor";
   // Files
@@ -10,16 +16,20 @@ export class Paths {
   private static createMetadataFile = "prompt-raw-create-metadata.md";
   private static augmentMetadataFile = "prompt-raw-augment-metadata.md";
   private static selectToolsFile = "prompt-raw-select-tools.md";
-  private static srcCodeFile = "extracted-src-code.ts";
+  private static srcCodeFile = (language: Language) =>
+    `extracted-src-code.${this.languageToExtension[language]}`;
   private static srcMetadataFile = "extracted-metadata.json";
   private static executeOutputFile = "execute-output.json";
-  private static finalSrcCodeFile = "final-src-code.ts";
+  private static finalSrcCodeFile = (language: Language) =>
+    `final-src-code.${this.languageToExtension[language]}`;
   private static toolsSelectedFile = "tools-selected.txt";
   private static metadataAugmentedFile = "metadata-augmented.txt";
   private static executeCheckFile = "execute-check.txt";
-  private static originalCodeFile = "original-code.ts";
+  private static originalCodeFile = (language: Language) =>
+    `original-code.${this.languageToExtension[language]}`;
   private static rawFixedCodeFile = "raw-fixed-code.md";
-  private static shinkaiLocalToolsFile = "shinkai-local-tools.ts";
+  private static shinkaiLocalToolsFile = (language: Language) =>
+    `shinkai-local-tools.${this.languageToExtension[language]}`;
   private static tryFixCodeFile = "try-fix-code.md";
   private static promptCodeFile = "prompt-code.md";
   private static promptMetadataFile = "prompt-metadata.md";
@@ -29,126 +39,276 @@ export class Paths {
   private static launchCodeFile = "launch.json";
   private static editorFiles = "editor-files";
 
-  public static executionDir() {
-    return this.basePath;
+  public static executionDir(language: Language) {
+    return path.join(this.basePath, language);
   }
-  
-  public static pathToCreate(test: TestData, model: BaseEngine) {
+
+  public static pathToCreate(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
     return [
-      // this.basePath,
-      // this.getBasePath(test, model),
-      // this.editorBasePath(test, model),
-      this.editorVSCodeSetup(test, model),
+      this.editorVSCodeSetup(language, test, model),
     ];
   }
 
-  public static staticLaunchCodeFile() {
+  public static staticLaunchCodeFile(_language: Language) {
     return path.join(this.editorFiles, this.vscodeSetup, this.launchCodeFile);
   }
 
-  public static editorBasePath(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.editor);
+  public static editorBasePath(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(this.getBasePath(language, test, model), this.editor);
   }
 
-  private static editorVSCodeSetup(test: TestData, model: BaseEngine) {
-    return path.join(this.editorBasePath(test, model), this.vscodeSetup);
-  }
-
-  public static launchCode(test: TestData, model: BaseEngine) {
-    return path.join(this.editorVSCodeSetup(test, model), this.launchCodeFile);
-  }
-  
-  private static toolId(test: TestData) {
-    return `${(test.id || "").toString().padStart(5, "0")}-${test.code}`;
-  }
-
-  public static getBasePath(test: TestData, model: BaseEngine) {
-    return path.join(this.basePath, this.toolId(test), model.path);
-  }
-
-  public static tryFixCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.tryFixCodeFile);
-  }
-
-  public static createTool(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.createToolFile);
-  }
-
-  public static createMetadata(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.createMetadataFile);
-  }
-
-  public static augmentMetadata(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.augmentMetadataFile);
-  }
-
-  public static selectTools(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.selectToolsFile);
-  }
-
-  public static srcCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.srcCodeFile);
-  }
-
-  public static srcMetadata(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.srcMetadataFile);
-  }
-
-  public static executeOutput(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.executeOutputFile);
-  }
-
-  public static finalSrcCode(test: TestData, model: BaseEngine) {
+  private static editorVSCodeSetup(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
     return path.join(
-      this.getBasePath(test, model),
-      this.editor,
-      this.finalSrcCodeFile,
+      this.editorBasePath(language, test, model),
+      this.vscodeSetup,
     );
   }
 
-  public static toolsSelected(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.toolsSelectedFile);
-  }
-
-  public static metadataAugmented(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.metadataAugmentedFile);
-  }
-
-  public static executeCheck(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.executeCheckFile);
-  }
-
-  public static originalCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.originalCodeFile);
-  }
-
-  public static rawFixedCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.rawFixedCodeFile);
-  }
-
-  public static shinkaiLocalTools(test: TestData, model: BaseEngine) {
+  public static launchCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
     return path.join(
-      this.getBasePath(test, model),
-      this.editor,
-      this.shinkaiLocalToolsFile,
+      this.editorVSCodeSetup(language, test, model),
+      this.launchCodeFile,
     );
   }
 
-  public static promptCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.promptCodeFile);
+  private static toolId(language: Language, test: TestData) {
+    return `${language}-${
+      (test.id || "").toString().padStart(5, "0")
+    }-${test.code}`;
   }
 
-  public static promptMetadata(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.promptMetadataFile);
-  }
-
-  public static rawResponseCode(test: TestData, model: BaseEngine) {
-    return path.join(this.getBasePath(test, model), this.rawResponseCodeFile);
-  }
-
-  public static rawResponseMetadata(test: TestData, model: BaseEngine) {
+  public static getBasePath(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
     return path.join(
-      this.getBasePath(test, model),
+      this.executionDir(language),
+      this.toolId(language, test),
+      model.path,
+    );
+  }
+
+  public static tryFixCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.tryFixCodeFile,
+    );
+  }
+
+  public static createTool(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.createToolFile,
+    );
+  }
+
+  public static createMetadata(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.createMetadataFile,
+    );
+  }
+
+  public static augmentMetadata(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.augmentMetadataFile,
+    );
+  }
+
+  public static selectTools(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.selectToolsFile,
+    );
+  }
+
+  public static srcCode(language: Language, test: TestData, model: BaseEngine) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.srcCodeFile(language),
+    );
+  }
+
+  public static srcMetadata(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.srcMetadataFile,
+    );
+  }
+
+  public static executeOutput(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.executeOutputFile,
+    );
+  }
+
+  public static finalSrcCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.editor,
+      this.finalSrcCodeFile(language),
+    );
+  }
+
+  public static toolsSelected(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.toolsSelectedFile,
+    );
+  }
+
+  public static metadataAugmented(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.metadataAugmentedFile,
+    );
+  }
+
+  public static executeCheck(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.executeCheckFile,
+    );
+  }
+
+  public static originalCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.originalCodeFile(language),
+    );
+  }
+
+  public static rawFixedCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.rawFixedCodeFile,
+    );
+  }
+
+  public static shinkaiLocalTools(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+    editorFolder: boolean,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      editorFolder ? this.editor : "",
+      this.shinkaiLocalToolsFile(language),
+    );
+  }
+
+  public static promptCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.promptCodeFile,
+    );
+  }
+
+  public static promptMetadata(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.promptMetadataFile,
+    );
+  }
+
+  public static rawResponseCode(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.rawResponseCodeFile,
+    );
+  }
+
+  public static rawResponseMetadata(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
       this.rawResponseMetadataFile,
     );
   }

@@ -9,3 +9,5 @@ export type TestData = {
   check?: (output: string) => number; // between 0 and 1
   save?: boolean;
 };
+
+export type Language = "python" | "typescript";

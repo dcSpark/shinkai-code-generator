@@ -1,6 +1,6 @@
 import { OllamaEngine } from "../llm-engine/OllamaEngine.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
-import { TestData } from "../types.ts";
+import { Language, TestData } from "../types.ts";
 import { Paths } from "../paths.ts";
 
 import { PromptTestResult } from "./PromptTest.ts";
@@ -21,13 +21,18 @@ export async function getInstalledModels(): Promise<BaseEngine[]> {
   ];
 }
 
-export const createDir = async (test: TestData, model: BaseEngine) => {
-  for (const dir of Paths.pathToCreate(test, model)) {
+export const createDir = async (
+  language: Language,
+  test: TestData,
+  model: BaseEngine,
+) => {
+  for (const dir of Paths.pathToCreate(language, test, model)) {
     await Deno.mkdir(dir, { recursive: true });
   }
 };
 
 export const writeToFile = async (
+  language: Language,
   test: TestData,
   model: BaseEngine,
   type: "code" | "metadata",
@@ -35,20 +40,20 @@ export const writeToFile = async (
 ) => {
   await Deno.writeFile(
     type === "code"
-      ? Paths.promptCode(test, model)
-      : Paths.promptMetadata(test, model),
+      ? Paths.promptCode(language, test, model)
+      : Paths.promptMetadata(language, test, model),
     new TextEncoder().encode(data.prompt),
   );
   await Deno.writeFile(
     type === "code"
-      ? Paths.rawResponseCode(test, model)
-      : Paths.rawResponseMetadata(test, model),
+      ? Paths.rawResponseCode(language, test, model)
+      : Paths.rawResponseMetadata(language, test, model),
     new TextEncoder().encode(data.raw),
   );
   await Deno.writeFile(
     type === "code"
-      ? Paths.srcCode(test, model)
-      : Paths.srcMetadata(test, model),
+      ? Paths.srcCode(language, test, model)
+      : Paths.srcMetadata(language, test, model),
     new TextEncoder().encode(data.src ?? ""),
   );
 };

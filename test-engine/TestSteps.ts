@@ -1,4 +1,4 @@
-import { TestData } from "../types.ts";
+import { Language, TestData } from "../types.ts";
 import { PromptTest } from "./PromptTest.ts";
 import { getToolImplementationPrompt } from "./shinkai-prompts.ts";
 import { Paths } from "../paths.ts";
@@ -18,6 +18,7 @@ export class TestSteps {
 
   constructor(
     private test: TestData,
+    private language: Language,
     private model: BaseEngine,
     private run_shinkai: boolean,
     private run_llm: boolean,
@@ -43,11 +44,11 @@ export class TestSteps {
         this.test.prompt.substring(0, 100).replaceAll("\n", " ")
       }...`,
     );
-    await createDir(this.test, this.model);
-    await getToolImplementationPrompt(this.test, this.model);
+    await createDir(this.language, this.test, this.model);
+    await getToolImplementationPrompt(this.language, this.test, this.model);
   }
 
-  // Step 2: 
+  // Step 2:
   // - Run metadata augmentation
   // - Run tools selection
   // - Generate Code
@@ -60,6 +61,7 @@ export class TestSteps {
     const start = Date.now();
     console.log(`    [LLM] Started execution`);
     const data = await new PromptTest(
+      this.language,
       this.test,
       this.model,
     ).startCodeGeneration();
@@ -68,17 +70,19 @@ export class TestSteps {
     );
 
     // Write Code
-    await writeToFile(this.test, this.model, "code", data.code);
+    await writeToFile(this.language, this.test, this.model, "code", data.code);
 
     // Try to fix errors
-    const errorPath = await checkCode(this.test, this.model);
+    const errorPath = await checkCode(this.language, this.test, this.model);
     const errors = await Deno.readTextFile(errorPath);
     if (errors.length > 0) {
       if (errors.match(/^Check file:\/\/\/.+?\.ts\n$/)) {
         console.log(`    [No Errors]`);
         await Deno.writeTextFile(
-          Paths.finalSrcCode(this.test, this.model),
-          await Deno.readTextFile(Paths.srcCode(this.test, this.model)),
+          Paths.finalSrcCode(this.language, this.test, this.model),
+          await Deno.readTextFile(
+            Paths.srcCode(this.language, this.test, this.model),
+          ),
         );
       } else {
         console.log(
@@ -86,12 +90,14 @@ export class TestSteps {
             errors.replace(/\n/g, " ").replace(/\s+/g, " ").substring(0, 100)
           }...`,
         );
-        await tryToFixCode(this.test, this.model, errors);
+        await tryToFixCode(this.language, this.test, this.model, errors);
       }
     } else {
       await Deno.writeTextFile(
-        Paths.finalSrcCode(this.test, this.model),
-        await Deno.readTextFile(Paths.srcCode(this.test, this.model)),
+        Paths.finalSrcCode(this.language, this.test, this.model),
+        await Deno.readTextFile(
+          Paths.srcCode(this.language, this.test, this.model),
+        ),
       );
     }
   }
@@ -102,13 +108,17 @@ export class TestSteps {
     if (!this.run_llm) return;
 
     const metadata = await new PromptTest(
+      this.language,
       this.test,
       this.model,
     ).startMetadataGeneration(
-      await Deno.readTextFile(Paths.finalSrcCode(this.test, this.model)),
+      await Deno.readTextFile(
+        Paths.finalSrcCode(this.language, this.test, this.model),
+      ),
     );
 
     await writeToFile(
+      this.language,
       this.test,
       this.model,
       "metadata",
@@ -124,35 +134,48 @@ export class TestSteps {
   async step_4() {
     if (!this.run_exec) return;
 
-    const code = await Deno.readTextFile(Paths.finalSrcCode(this.test, this.model));
+    const code = await Deno.readTextFile(
+      Paths.finalSrcCode(this.language, this.test, this.model),
+    );
     if (!checkIfHeadersPresent(code)) {
-      const updated_code = appendAditionalCode(code, this.test, this.model);
+      const updated_code = appendAditionalCode(this.language, code, this.test, this.model);
       await Deno.writeTextFile(
-        Paths.finalSrcCode(this.test, this.model),
+        Paths.finalSrcCode(this.language, this.test, this.model),
         updated_code,
       );
     }
 
-    await executeTest(this.test, this.model);
+    await executeTest(this.language, this.test, this.model);
 
     if (this.test.save) {
-      console.log("    [Save]", await save_tool(this.test, this.model));
+      console.log(
+        "    [Save]",
+        await save_tool(this.language, this.test, this.model),
+      );
     }
 
-    const { score: s, max } = await report(this.test, this.model);
+    const { score: s, max } = await report(
+      this.language,
+      this.test,
+      this.model,
+    );
     this.score += s;
     this.maxScore += max;
   }
 
   async prepareEditor() {
     await Deno.writeTextFile(
-      Paths.launchCode(this.test, this.model),
-      await Deno.readTextFile(Paths.staticLaunchCodeFile()),
+      Paths.launchCode(this.language, this.test, this.model),
+      await Deno.readTextFile(Paths.staticLaunchCodeFile(this.language)),
     );
-    console.log(`    [Editor] run > \`code ${Paths.editorBasePath(this.test, this.model)}\``);
+    console.log(
+      `    [Editor] run > \`code ${
+        Paths.editorBasePath(this.language, this.test, this.model)
+      }\``,
+    );
   }
 
-  getScores() { 
+  getScores() {
     return {
       score: this.score,
       maxScore: this.maxScore,

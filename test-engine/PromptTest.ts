@@ -1,4 +1,4 @@
-import { TestData } from "../types.ts";
+import { Language, TestData } from "../types.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
 import { getAllToolsHeaders } from "./shinkai-prompts.ts";
 import { Paths } from "../paths.ts";
@@ -10,27 +10,40 @@ export type PromptTestResult = {
 };
 export class PromptTest {
   constructor(
+    private language: Language,
     private test: TestData,
     private model: BaseEngine,
   ) {}
 
   private async codePrompt(task: string) {
     const rawPrompt = await Deno.readTextFile(
-      Paths.createTool(this.test, this.model),
+      Paths.createTool(this.language, this.test, this.model),
     );
-    return `${rawPrompt}\n${task}\n`;
+    return rawPrompt.replace(
+      /\<input_command\>/g,
+      `<input_command>\n${task}\n`,
+    );
   }
 
   private async metadataPrompt(task: string) {
     const rawPrompt = await Deno.readTextFile(
-      Paths.createMetadata(this.test, this.model),
+      Paths.createMetadata(this.language, this.test, this.model),
     );
 
-    return `${rawPrompt}\n${task}\n`;
+    return rawPrompt.replace(
+      /\<input_command\>/g,
+      `<input_command>\n${task}\n`,
+    );
   }
 
   private tryToExtractTS(text: string): string | null {
     const regex = /```(?:typescript)?\n([\s\S]+?)\n```/;
+    const match = text.match(regex);
+    return match ? match[1] : null;
+  }
+
+  private tryToExtractPython(text: string): string | null {
+    const regex = /```(?:python)?\n([\s\S]+?)\n```/;
     const match = text.match(regex);
     return match ? match[1] : null;
   }
@@ -44,7 +57,10 @@ export class PromptTest {
   private async generateCode(task: string): Promise<PromptTestResult> {
     const codePrompt = await this.codePrompt(task);
     const raw = await this.model.run(codePrompt);
-    const code = this.tryToExtractTS(raw);
+    const code = this.language === "typescript"
+      ? this.tryToExtractTS(raw)
+      // this.language === "python"
+      : this.tryToExtractPython(raw);
     return { prompt: codePrompt, raw, src: code };
   }
 
@@ -86,9 +102,10 @@ export class PromptTest {
 '''
 ${command}
 '''
+</command>
 `;
     await Deno.writeTextFile(
-      Paths.augmentMetadata(this.test, this.model),
+      Paths.augmentMetadata(this.language, this.test, this.model),
       prompt,
     );
 
@@ -123,10 +140,10 @@ ${command}
 '''
 ${command}
 '''
-
+</command>
 `;
     await Deno.writeTextFile(
-      Paths.selectTools(this.test, this.model),
+      Paths.selectTools(this.language, this.test, this.model),
       prompt,
     );
 
@@ -172,6 +189,7 @@ ${srcCode}
 <errors>
 * These are the following errors found:
 ${errors}
+</errors>
 
 
     `;
@@ -182,19 +200,22 @@ ${errors}
   public async startCodeGeneration(): Promise<
     { code: PromptTestResult }
   > {
-    const execute = true;
+    const execute = false;
     const toolsSelected = await this.selectTools(this.test.prompt, execute);
     if (execute) {
       await Deno.writeTextFile(
-        Paths.toolsSelected(this.test, this.model),
+        Paths.toolsSelected(this.language, this.test, this.model),
         toolsSelected || "",
       );
     }
 
-    const metadataAugmented = await this.augmentMetadata(this.test.prompt, execute);
+    const metadataAugmented = await this.augmentMetadata(
+      this.test.prompt,
+      execute,
+    );
     if (execute) {
       await Deno.writeTextFile(
-        Paths.metadataAugmented(this.test, this.model),
+        Paths.metadataAugmented(this.language, this.test, this.model),
         metadataAugmented || "",
       );
     }

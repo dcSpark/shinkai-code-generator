@@ -25,11 +25,15 @@ async function delete_if_exists(test: TestData) {
   } catch { /* ignore */ }
 }
 
-export async function save_tool(test: TestData, model: BaseEngine) {
+export async function save_tool(
+  language: Language,
+  test: TestData,
+  model: BaseEngine,
+) {
   try {
     await delete_if_exists(test);
     const metadata = JSON.parse(
-      await Deno.readTextFile(Paths.srcMetadata(test, model)),
+      await Deno.readTextFile(Paths.srcMetadata(language, test, model)),
     );
     const body = {
       metadata: {
@@ -39,7 +43,7 @@ export async function save_tool(test: TestData, model: BaseEngine) {
       },
       job_id: `id_${test.id}`,
       job_id_history: [],
-      code: await Deno.readTextFile(Paths.finalSrcCode(test, model)),
+      code: await Deno.readTextFile(Paths.finalSrcCode(language, test, model)),
     };
 
     const response = await axios({
