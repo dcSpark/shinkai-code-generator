@@ -138,7 +138,12 @@ export class TestSteps {
       Paths.finalSrcCode(this.language, this.test, this.model),
     );
     if (!checkIfHeadersPresent(code)) {
-      const updated_code = appendAditionalCode(this.language, code, this.test, this.model);
+      const updated_code = appendAditionalCode(
+        this.language,
+        code,
+        this.test,
+        this.model,
+      );
       await Deno.writeTextFile(
         Paths.finalSrcCode(this.language, this.test, this.model),
         updated_code,

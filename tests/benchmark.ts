@@ -14,6 +14,30 @@ const testNoTools = {
   tools: [],
   config: {},
 };
+// File store
+const test_file_store = {
+  code: `benchmark-file-store`,
+  prompt: `download a image URL and store it in a file.`,
+  prompt_type: "type INPUT = { url: string }",
+  inputs: {
+    url: "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/screenshot.png",
+  },
+  tools: [],
+  config: {},
+};
+const test_download_website = {
+  code: `benchmark-download-website-md-with-tool`,
+  prompt:
+    `Generate a tool that downloads a website, converts their HTML content to Markdown and finally return the Markdown content as { content: string }.`,
+  prompt_type: "type INPUT = { urls: string[] }",
+  inputs: {
+    urls: [
+      "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/test.html",
+    ],
+  },
+  tools: ["local:::shinkai_tool_download_pages:::shinkai__download_pages"],
+  config: {},
+};
 // This test downloads a website and returns the HTML as a string.
 const test0 = {
   code: `benchmark-download-website`,
@@ -82,6 +106,8 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
+  test_file_store,
+  test_download_website,
   basic_tool,
   test0,
   test1,

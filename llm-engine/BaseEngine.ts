@@ -5,7 +5,7 @@ export abstract class BaseEngine {
     this.path = name.replaceAll(/[^a-zA-Z0-9]/g, "-");
     // TODO how to generate names correctly for shinkai?
     this.shinkaiName = `o_${name.replaceAll(/[^a-zA-Z0-9]/g, "_")}`;
-    console.log({ name: this.shinkaiName, path: this.path });
+    // console.log({ name: this.shinkaiName, path: this.path });
   }
 
   abstract run(prompt: string): Promise<string>;

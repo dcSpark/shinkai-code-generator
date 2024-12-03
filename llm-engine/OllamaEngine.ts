@@ -5,12 +5,19 @@ const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL") ?? "http://localhost:11434";
 
 export class OllamaEngine extends BaseEngine {
   override async run(prompt: string): Promise<string> {
+    const start = Date.now();
     const payload = this.payload(prompt);
     const response = await axios({
       url: `${ollamaApiUrl}/api/chat`,
       method: "POST",
       data: JSON.stringify(payload),
     });
+    const end = Date.now();
+    console.log(
+      `    [Benchmark] Ollama took ${end - start}ms for ${
+        prompt.substring(0, 100)
+      } ... ${prompt.substring(prompt.length - 100)}`.replace(/\n/g, " "),
+    );
     return response.data.message.content;
   }
 

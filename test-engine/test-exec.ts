@@ -35,7 +35,11 @@ if __name__ == "__main__":
     
     config = CONFIG()
     inputs = INPUTS()
-    ${Object.keys(test.inputs).map(k => `inputs.${k}=${JSON.stringify(test.inputs[k])}`).join("\n")}
+    ${
+        Object.keys(test.inputs).map((k) =>
+          `inputs.${k}=${JSON.stringify(test.inputs[k])}`
+        ).join("\n")
+      }
     
     # Run the async function
     result = asyncio.run(run(config, inputs))
@@ -87,7 +91,9 @@ export async function executeTest(
   const command = new Deno.Command(
     language === "typescript" ? Deno.execPath() : "python3",
     {
-      args: language === "typescript" ? ["run", "--allow-all", Paths.finalSrcCode(language, test, model)] : [Paths.finalSrcCode(language, test, model)],
+      args: language === "typescript"
+        ? ["run", "--allow-all", Paths.finalSrcCode(language, test, model)]
+        : [Paths.finalSrcCode(language, test, model)],
       stdin: "piped",
       stdout: "piped",
       stderr: "piped",

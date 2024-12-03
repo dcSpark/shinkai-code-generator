@@ -55,17 +55,26 @@ export async function getToolImplementationPrompt(
       "Content-Type": "application/json; charset=utf-8",
     },
   });
-  const { codePrompt, libraryCode, metadataPrompt } = response.data;
+  const { codePrompt, libraryCode, metadataPrompt, supportLibrary } = response.data;
 
   // Write the library code in the root and in the editor folder
   await Deno.writeTextFile(
+    Paths.shinkaiSupportLibrary(language, test, model, false),
+    supportLibrary,
+  );
+  await Deno.writeTextFile(
+    Paths.shinkaiSupportLibrary(language, test, model, true),
+    supportLibrary,
+  );
+
+  const lib = libraryCode["shinkai-local-tools"] || libraryCode["shinkai_local_tools"] || ""; 
+  await Deno.writeTextFile(
     Paths.shinkaiLocalTools(language, test, model, false),
-    libraryCode,
+    lib,
   );
   await Deno.writeTextFile(
     Paths.shinkaiLocalTools(language, test, model, true),
-    libraryCode,
-  );
+    lib  );
   await Deno.writeTextFile(
     Paths.createMetadata(language, test, model),
     metadataPrompt,
