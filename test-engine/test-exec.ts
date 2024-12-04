@@ -38,7 +38,7 @@ if __name__ == "__main__":
     ${
         Object.keys(test.inputs).map((k) =>
           `inputs.${k}=${JSON.stringify(test.inputs[k])}`
-        ).join("\n")
+        ).join("\n    ")
       }
     
     # Run the async function
