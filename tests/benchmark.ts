@@ -15,12 +15,26 @@ const testNoTools = {
   config: {},
 };
 // File store
-const test_file_store = {
-  code: `benchmark-file-store`,
-  prompt: `download a image URL and store it in a file.`,
+const test_pdf_store = {
+  code: `benchmark-pdf-store`,
+  prompt:
+    `download a pdf from a URL, parse the PDF contents with "pdf-parse" and store the content in a file. Return the file path.`,
   prompt_type: "type INPUT = { url: string }",
   inputs: {
-    url: "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/screenshot.png",
+    url:
+      "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/sample.pdf",
+  },
+  tools: [],
+  config: {},
+};
+// File store
+const test_file_store = {
+  code: `benchmark-file-store`,
+  prompt: `download a image URL and store it in a file. Return the file path.`,
+  prompt_type: "type INPUT = { url: string }",
+  inputs: {
+    url:
+      "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/screenshot.png",
   },
   tools: [],
   config: {},
@@ -106,6 +120,7 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
+  test_pdf_store,
   test_file_store,
   test_download_website,
   basic_tool,

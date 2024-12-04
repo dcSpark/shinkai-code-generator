@@ -55,26 +55,26 @@ export async function getToolImplementationPrompt(
       "Content-Type": "application/json; charset=utf-8",
     },
   });
-  const { codePrompt, libraryCode, metadataPrompt, supportLibrary } = response.data;
+  const { codePrompt, libraryCode, metadataPrompt } = response.data;
 
-  // Write the library code in the root and in the editor folder
-  await Deno.writeTextFile(
-    Paths.shinkaiSupportLibrary(language, test, model, false),
-    supportLibrary,
-  );
-  await Deno.writeTextFile(
-    Paths.shinkaiSupportLibrary(language, test, model, true),
-    supportLibrary,
-  );
+  for (
+    const [fileName, code] of Object.entries(
+      libraryCode as Record<string, string>,
+    )
+  ) {
+    if (!test.supportFiles) test.supportFiles = [];
+    test.supportFiles?.push({ fileName, path: Paths.shinkaiLocalFile(language, test, model, false, fileName) });
+    // Write the library code in the root and in the editor folder
+    await Deno.writeTextFile(
+      Paths.shinkaiLocalFile(language, test, model, false, fileName),
+      code,
+    );
+    await Deno.writeTextFile(
+      Paths.shinkaiLocalFile(language, test, model, true, fileName),
+      code,
+    );
+  }
 
-  const lib = libraryCode["shinkai-local-tools"] || libraryCode["shinkai_local_tools"] || ""; 
-  await Deno.writeTextFile(
-    Paths.shinkaiLocalTools(language, test, model, false),
-    lib,
-  );
-  await Deno.writeTextFile(
-    Paths.shinkaiLocalTools(language, test, model, true),
-    lib  );
   await Deno.writeTextFile(
     Paths.createMetadata(language, test, model),
     metadataPrompt,

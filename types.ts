@@ -8,6 +8,7 @@ export type TestData = {
   config: Record<string, unknown>;
   check?: (output: string) => number; // between 0 and 1
   save?: boolean;
+  supportFiles?: { fileName: string; path: string }[];
 };
 
 export type Language = "python" | "typescript";

@@ -28,16 +28,6 @@ export class Paths {
   private static originalCodeFile = (language: Language) =>
     `original-code.${this.languageToExtension[language]}`;
   private static rawFixedCodeFile = "raw-fixed-code.md";
-  private static shinkaiLocalToolsFile = (language: Language) => {
-    if (language === "python") return "shinkai_local_tools.py";
-    if (language === "typescript") return "shinkai-local-tools.ts";
-    throw new Error(`Unsupported language: ${language}`);
-  };
-  private static shinkaiSupportLibraryFile = (language: Language) => {
-    if (language === "python") return "shinkai_local_support.py";
-    if (language === "typescript") return "shinkai-local-support.ts";
-    throw new Error(`Unsupported language: ${language}`);
-  };
   private static tryFixCodeFile = "try-fix-code.md";
   private static promptCodeFile = "prompt-code.md";
   private static promptMetadataFile = "prompt-metadata.md";
@@ -46,6 +36,9 @@ export class Paths {
   private static vscodeSetup = ".vscode";
   private static launchCodeFile = "launch.json";
   private static editorFiles = "editor-files";
+  private static homeFolder = "home";
+  private static mountFolder = "mount";
+  private static assetsFolder = "assets";
 
   public static executionDir(language: Language) {
     return path.join(this.basePath, language);
@@ -57,6 +50,9 @@ export class Paths {
     model: BaseEngine,
   ) {
     return [
+      this.editorHomePath(language, test, model),
+      this.editorMountPath(language, test, model),
+      this.editorAssetsPath(language, test, model),
       this.editorVSCodeSetup(language, test, model),
     ];
   }
@@ -71,6 +67,39 @@ export class Paths {
     model: BaseEngine,
   ) {
     return path.join(this.getBasePath(language, test, model), this.editor);
+  }
+
+  public static editorHomePath(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.editorBasePath(language, test, model),
+      this.homeFolder,
+    );
+  }
+
+  public static editorAssetsPath(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.editorBasePath(language, test, model),
+      this.assetsFolder,
+    );
+  }
+
+  public static editorMountPath(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.editorBasePath(language, test, model),
+      this.mountFolder,
+    );
   }
 
   private static editorVSCodeSetup(
@@ -264,33 +293,19 @@ export class Paths {
     );
   }
 
-  public static shinkaiLocalTools(
+  public static shinkaiLocalFile(
     language: Language,
     test: TestData,
     model: BaseEngine,
     editorFolder: boolean,
+    fileName: string,
   ) {
     return path.join(
       this.getBasePath(language, test, model),
       editorFolder ? this.editor : "",
-      this.shinkaiLocalToolsFile(language),
+      `${fileName}.${this.languageToExtension[language]}`,
     );
   }
-
-
-  public static shinkaiSupportLibrary(
-    language: Language,
-    test: TestData,
-    model: BaseEngine,
-    editorFolder: boolean,
-  ) {
-    return path.join(
-      this.getBasePath(language, test, model),
-      editorFolder ? this.editor : "",
-      this.shinkaiSupportLibraryFile(language),
-    );
-  }
-
 
   public static promptCode(
     language: Language,

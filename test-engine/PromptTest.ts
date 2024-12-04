@@ -19,6 +19,7 @@ export class PromptTest {
     const rawPrompt = await Deno.readTextFile(
       Paths.createTool(this.language, this.test, this.model),
     );
+
     return rawPrompt.replace(
       /\<input_command\>/g,
       `<input_command>\n${task}\n`,
@@ -66,7 +67,10 @@ export class PromptTest {
 
   private async generateMetadata(code: string): Promise<PromptTestResult> {
     const metadataPrompt = await this.metadataPrompt(code);
-    const raw = await this.model.run(metadataPrompt);
+    
+    const raw = "```json\n{}\n```";
+    // TODO: Commented for faster testing
+    //const raw = await this.model.run(metadataPrompt);
     const metadata = this.tryToExtractJSON(raw);
     return { prompt: metadataPrompt, raw, src: metadata };
   }

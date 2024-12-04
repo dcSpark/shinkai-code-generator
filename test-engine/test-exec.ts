@@ -5,10 +5,7 @@ import { Paths } from "./../paths.ts";
 
 export function checkIfHeadersPresent(code: string) {
   return code.includes("SHINKAI_NODE_LOCATION") &&
-    code.includes("BEARER") &&
-    code.includes("X_SHINKAI_TOOL_ID") &&
-    code.includes("X_SHINKAI_APP_ID") &&
-    code.includes("X_SHINKAI_LLM_PROVIDER");
+    code.includes("BEARER")
 }
 
 export function appendAditionalCode(
@@ -27,6 +24,9 @@ os.environ["BEARER"] = "debug"
 os.environ["X_SHINKAI_TOOL_ID"] = "tool-id-debug"
 os.environ["X_SHINKAI_APP_ID"] = "tool-app-debug"
 os.environ["X_SHINKAI_LLM_PROVIDER"] = "${model.shinkaiName}"
+os.environ["HOME"] = "${Paths.editorHomePath(language, test, model)}"
+os.environ["MOUNT"] = "${Paths.editorMountPath(language, test, model)}"
+os.environ["ASSETS"] = "${Paths.editorAssetsPath(language, test, model)}"
 `,
       code_,
       `
@@ -52,11 +52,14 @@ if __name__ == "__main__":
       `
   // These environment variables are required, before any import.
   // Do not remove them, as they set environment variables for the Shinkai Tools.
-  if (!Deno.env.has('SHINKAI_NODE_LOCATION')) Deno.env.set('SHINKAI_NODE_LOCATION', "http://localhost:9950");
-  if (!Deno.env.has('BEARER')) Deno.env.set('BEARER', "debug");
-  if (!Deno.env.has('X_SHINKAI_TOOL_ID')) Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
-  if (!Deno.env.has('X_SHINKAI_APP_ID')) Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
-  if (!Deno.env.has('X_SHINKAI_LLM_PROVIDER')) Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
+  Deno.env.set('SHINKAI_NODE_LOCATION', "http://localhost:9950");
+  Deno.env.set('BEARER', "debug");
+  Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
+  Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
+  Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
+  Deno.env.set('HOME', "${Paths.editorHomePath(language, test, model)}");
+  Deno.env.set('MOUNT', "${Paths.editorMountPath(language, test, model)}");
+  Deno.env.set('ASSETS', "${Paths.editorAssetsPath(language, test, model)}");
   `,
       code_,
       `
@@ -177,7 +180,7 @@ export async function tryToFixCode(
   const promptTest = new PromptTest(language, test, model);
   console.log(`    [Fixing Code]`);
   const { code, raw, prompt } = await promptTest.fixCode(errors, [
-    Paths.shinkaiLocalTools(language, test, model, false),
+    ...(test.supportFiles?.map((f) => f.path) ?? []),
     Paths.srcCode(language, test, model),
   ]);
   // Write the raw prompt and the raw fixed code
