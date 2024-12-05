@@ -1,0 +1,6 @@
+Posting to Facebook: { title: "Test", content: "Test" }
+Posting to X/Twitter: { title: "Test", content: "Test" }
+{
+  "success": false,
+  "message": "Failed to create posts: TypeError: error sending request for url (https://api.x/twitter.com/post): client error (Connect): dns error: failed to lookup address information: nodename nor servname provided, or not known: failed to lookup address information: nodename nor servname provided, or not known"
+}

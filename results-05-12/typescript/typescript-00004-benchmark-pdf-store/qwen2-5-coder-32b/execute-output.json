@@ -1,0 +1,4 @@
+error: Uncaught SyntaxError: The requested module 'npm:pdf-parse' does not provide an export named 'PDFParser'
+import { PDFParser } from 'npm:pdf-parse';
+         ^
+    at <anonymous> (file:///Users/edwardalvarado/shinkai-prompt-test/results/typescript/typescript-00004-benchmark-pdf-store/qwen2-5-coder-32b/editor/final-src-code.ts:14:10)

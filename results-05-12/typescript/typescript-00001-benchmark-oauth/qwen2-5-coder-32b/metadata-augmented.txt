@@ -1,0 +1,11 @@
+type INPUT = { 
+  summary: string; 
+  location?: string; 
+  description?: string; 
+  start: Date | string; 
+  end: Date | string; 
+}
+
+type OUTPUT = { 
+  eventId: string; 
+}

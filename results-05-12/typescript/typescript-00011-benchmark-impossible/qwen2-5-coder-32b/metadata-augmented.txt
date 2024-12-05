@@ -1,0 +1,8 @@
+type INPUT = {
+  content: string;
+}
+
+type OUTPUT = {
+  success: boolean;
+  errors?: { [platform: string]: string };
+}

@@ -1,0 +1,4 @@
+::ERROR:: Error: HTTP error! status: 401
+    at run (file:///Users/edwardalvarado/shinkai-prompt-test/results/typescript/typescript-00002-benchmark-config/qwen2-5-coder-32b/editor/final-src-code.ts:37:11)
+    at eventLoopTick (ext:core/01_core.js:175:7)
+    at async file:///Users/edwardalvarado/shinkai-prompt-test/results/typescript/typescript-00002-benchmark-config/qwen2-5-coder-32b/editor/final-src-code.ts:50:28

@@ -1,0 +1,7 @@
+type INPUTS = { 
+  url: string; 
+}
+
+type OUTPUT = { 
+  summary: string; 
+}
