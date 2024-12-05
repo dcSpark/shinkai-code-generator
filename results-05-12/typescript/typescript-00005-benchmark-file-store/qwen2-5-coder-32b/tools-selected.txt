@@ -1,3 +1,0 @@
-!download_image
-!store_file
-!return_path

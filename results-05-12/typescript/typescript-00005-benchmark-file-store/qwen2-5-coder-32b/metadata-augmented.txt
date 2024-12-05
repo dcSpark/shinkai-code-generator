@@ -1,2 +1,0 @@
-type INPUT = { imageUrl: string }
-type OUTPUT = { filePath: string }

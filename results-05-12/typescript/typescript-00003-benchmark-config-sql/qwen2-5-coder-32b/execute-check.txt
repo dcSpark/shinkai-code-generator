@@ -1,1 +1,0 @@
-Check file:///Users/edwardalvarado/shinkai-prompt-test/results/typescript/typescript-00003-benchmark-config-sql/qwen2-5-coder-32b/extracted-src-code.ts

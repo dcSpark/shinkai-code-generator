@@ -1,7 +1,0 @@
-type INPUT = {
-  template: string;
-}
-
-type OUTPUT = {
-  result: string;
-}
