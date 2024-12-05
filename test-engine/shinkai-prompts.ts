@@ -8,7 +8,7 @@ const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
 
 export async function getAllToolsHeaders(): Promise<{
   "shinkai-local-support": string;
-  "shinkai-tool-implementation": string;
+  "shinkai-local-tools": string;
 }> {
   const response1 = await axios({
     method: "GET",

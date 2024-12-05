@@ -131,7 +131,7 @@ ${command}
     const prompt = `
 <available-tools-definitions>
   # Available Tools Definitions:
-  ${headers["shinkai-tool-implementation"]}
+  ${headers["shinkai-local-tools"]}
 </available-tools-definitions>
 
 <agent-code-rules>
@@ -205,7 +205,7 @@ ${errors}
   public async startCodeGeneration(): Promise<
     { code: PromptTestResult }
   > {
-    const execute = false;
+    const execute = true;
     const toolsSelected = await this.selectTools(this.test.prompt, execute);
     if (execute) {
       await Deno.writeTextFile(
