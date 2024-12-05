@@ -6,7 +6,10 @@ import { Paths } from "../paths.ts";
 const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL") ??
   "http://localhost:9950";
 
-export async function getAllToolsHeaders(): Promise<string> {
+export async function getAllToolsHeaders(): Promise<{
+  "shinkai-local-support": string;
+  "shinkai-tool-implementation": string;
+}> {
   const response1 = await axios({
     method: "GET",
     url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,

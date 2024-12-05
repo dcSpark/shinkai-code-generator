@@ -1,6 +1,57 @@
 import { tool_router_key } from "../test-engine/shinak-api.ts";
 import { TestData } from "../types.ts";
 
+
+// OAuth Test
+const test_oauth = {
+  code: `benchmark-oauth`,
+  prompt: `Generate a tool that creates a event in Google Calendar. All OAuth variables should be set in the config.`,
+  prompt_type: "type INPUT = { event: string, description: string, start_iso: string, end_iso: string }",
+  inputs: {
+    event: "Test Event",
+    description: "Test Description",
+    start_iso: "2024-12-05T10:00:00",
+    end_iso: "2024-12-05T11:00:00",
+  },
+  tools: [],
+  config: {},
+};
+
+// Tool with Config
+const test_config = {
+  code: `benchmark-config`,
+  prompt: `Generate a tool that does this call: curl https://api.openai.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {config.api_key}" \
+  -d '{
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "{input.prompt}"}]
+  }'`,
+  prompt_type: "type INPUT = { prompt: string }",
+  inputs: { prompt: "2 + 2 = ?" },
+  tools: [],
+  config: { api_key: Deno.env.get("OPENAI_API_KEY") ?? "" },
+};
+
+// Test with a config & SQL
+const test_config_sql = {
+  code: `benchmark-config-sql`,
+  prompt: `Generate a tool that does this call: curl https://api.openai.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {config.api_key}" \
+  -d '{
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "{input.prompt}"}]
+  }'. Store the result in a database.`,
+  prompt_type: "type INPUT = { prompt: string }",
+  inputs: { prompt: "2 + 2 = ?" },
+  tools: [
+    "local:::rust_toolkit:::shinkai_sqlite_query_executor",
+  ],
+  config: { api_key: Deno.env.get("OPENAI_API_KEY") ?? "" },
+};
+
+
 // Impossible to implement
 const testNoTools = {
   code: `benchmark-impossible`,
@@ -120,6 +171,9 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
+  test_oauth,
+  test_config,
+  test_config_sql,
   test_pdf_store,
   test_file_store,
   test_download_website,

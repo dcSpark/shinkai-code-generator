@@ -68,9 +68,10 @@ export class PromptTest {
   private async generateMetadata(code: string): Promise<PromptTestResult> {
     const metadataPrompt = await this.metadataPrompt(code);
     
-    const raw = "```json\n{}\n```";
-    // TODO: Commented for faster testing
-    //const raw = await this.model.run(metadataPrompt);
+    // const raw = "```json\n{}\n```";
+    // TODO: Comment for faster testing
+    
+    const raw = await this.model.run(metadataPrompt);
     const metadata = this.tryToExtractJSON(raw);
     return { prompt: metadataPrompt, raw, src: metadata };
   }
@@ -130,7 +131,7 @@ ${command}
     const prompt = `
 <available-tools-definitions>
   # Available Tools Definitions:
-  ${headers}
+  ${headers["shinkai-tool-implementation"]}
 </available-tools-definitions>
 
 <agent-code-rules>
