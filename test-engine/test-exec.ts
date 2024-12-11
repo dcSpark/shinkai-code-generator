@@ -24,9 +24,9 @@ os.environ["BEARER"] = "debug"
 os.environ["X_SHINKAI_TOOL_ID"] = "tool-id-debug"
 os.environ["X_SHINKAI_APP_ID"] = "tool-app-debug"
 os.environ["X_SHINKAI_LLM_PROVIDER"] = "${model.shinkaiName}"
-os.environ["HOME"] = "${Paths.editorHomePath(language, test, model)}"
-os.environ["MOUNT"] = "${Paths.editorMountPath(language, test, model)}"
-os.environ["ASSETS"] = "${Paths.editorAssetsPath(language, test, model)}"
+os.environ["SHINKAI_HOME"] = "${Paths.editorHomePath(language, test, model)}"
+os.environ["SHINKAI_MOUNT"] = "${Paths.editorMountPath(language, test, model)}"
+os.environ["SHINKAI_ASSETS"] = "${Paths.editorAssetsPath(language, test, model)}"
 `,
       code_,
       `
@@ -57,9 +57,9 @@ if __name__ == "__main__":
   Deno.env.set('X_SHINKAI_TOOL_ID', "tool-id-debug");
   Deno.env.set('X_SHINKAI_APP_ID', "tool-app-debug");
   Deno.env.set('X_SHINKAI_LLM_PROVIDER', "${model.shinkaiName}");
-  Deno.env.set('HOME', "${Paths.editorHomePath(language, test, model)}");
-  Deno.env.set('MOUNT', "${Paths.editorMountPath(language, test, model)}");
-  Deno.env.set('ASSETS', "${Paths.editorAssetsPath(language, test, model)}");
+  Deno.env.set('SHINKAI_HOME', "${Paths.editorHomePath(language, test, model)}");
+  Deno.env.set('SHINKAI_MOUNT', "${Paths.editorMountPath(language, test, model)}");
+  Deno.env.set('SHINKAI_ASSETS', "${Paths.editorAssetsPath(language, test, model)}");
   `,
       code_,
       `

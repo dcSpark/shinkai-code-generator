@@ -12,6 +12,7 @@
     "npm:fs@0.0.1-security": "0.0.1-security",
     "npm:google-auth-library@9.0.0": "9.0.0",
     "npm:google-auth-library@latest": "9.15.0",
+    "npm:googleapis@*": "144.0.0",
     "npm:googleapis@103.0.0": "103.0.0",
     "npm:googleapis@108.0.0": "108.0.0",
     "npm:googleapis@latest": "144.0.0",

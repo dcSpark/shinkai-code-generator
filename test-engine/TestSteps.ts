@@ -45,7 +45,7 @@ export class TestSteps {
       }...`,
     );
     await createDir(this.language, this.test, this.model);
-    await getToolImplementationPrompt(this.language, this.test, this.model);
+    await getToolImplementationPrompt(this.language, this.test, "", this.model);
   }
 
   // Step 2:
@@ -100,6 +100,11 @@ export class TestSteps {
         ),
       );
     }
+    const code = await Deno.readTextFile(
+      Paths.finalSrcCode(this.language, this.test, this.model),
+    );
+    await getToolImplementationPrompt(this.language, this.test, code, this.model);
+
   }
 
   // Step 3:

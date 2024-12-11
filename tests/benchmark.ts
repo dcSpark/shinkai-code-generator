@@ -3,9 +3,18 @@ import { TestData } from "../types.ts";
 
 
 // OAuth Test
-const test_oauth = {
-  code: `benchmark-oauth`,
-  prompt: `Generate a tool that creates a event in Google Calendar. All OAuth variables should be set in the config.`,
+const test_oauth_github = {
+  code: `benchmark-oauth-github`,
+  prompt: `Generate a tool that fetches the user profile from GitHub.`,
+  prompt_type: "type INPUT = {}",
+  inputs: {},
+  tools: [],
+  config: {},
+};
+// OAuth Test Google Calendar
+const test_oauth_google_calendar = {
+  code: `benchmark-oauth-google-calendar`,
+  prompt: `Generate a tool that creates a event in Google Calendar.`,
   prompt_type: "type INPUT = { event: string, description: string, start_iso: string, end_iso: string }",
   inputs: {
     event: "Test Event",
@@ -85,7 +94,7 @@ const test_file_store = {
   prompt_type: "type INPUT = { url: string }",
   inputs: {
     url:
-      "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/screenshot.png",
+      "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/Lenna.png",
   },
   tools: [],
   config: {},
@@ -171,7 +180,8 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
-  test_oauth,
+  test_oauth_github,
+  test_oauth_google_calendar,
   test_config,
   test_config_sql,
   test_pdf_store,

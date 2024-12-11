@@ -44,6 +44,7 @@ export async function getAllToolsHeaders(): Promise<{
 export async function getToolImplementationPrompt(
   language: Language,
   test: TestData,
+  code: string,
   model: BaseEngine,
 ): Promise<void> {
   const response = await axios({
@@ -51,6 +52,7 @@ export async function getToolImplementationPrompt(
     url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
     params: {
       language,
+      code,
       tools: test.tools.join(","),
     },
     headers: {
