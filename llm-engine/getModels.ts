@@ -1,5 +1,6 @@
 import { BaseEngine } from "./BaseEngine.ts";
 import { OllamaEngine } from "./OllamaEngine.ts";
+import { TogetherEngine } from "./TogetherEngine.ts";
 
 export async function getModels(): Promise<BaseEngine[]> {
   try {
@@ -14,13 +15,14 @@ export async function getModels(): Promise<BaseEngine[]> {
         const availableModels = await OllamaEngine.fetchModels();
         const m = availableModels.find((m) => m === modelName);
         if (!m) {
-          throw new Error(
-            `Model ${modelName} not found @ ` + JSON.stringify(models),
-          );
+          throw new Error(`Model ${modelName} not found @ ` + JSON.stringify(models));
         }
         models.push(new OllamaEngine(m));
-      } // TODO: Add other model prefixes
-      else throw new Error(`Unknown model prefix: ${prefix}`);
+      } else if (prefix === "together") {
+        models.push(new TogetherEngine(modelName));
+      } else {
+        throw new Error(`Unknown model prefix: ${prefix}`);
+      }
     }
     if (models.length === 0) throw new Error("No models found");
     return models;
