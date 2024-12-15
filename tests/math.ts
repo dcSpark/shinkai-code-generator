@@ -21,7 +21,6 @@ export const mathTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_math_expression_evaluator",
     ],
     config: {},
   },
@@ -42,7 +41,6 @@ export const mathTests: TestData[] = [
     },
     tools: [
       "local:::rust_toolkit:::shinkai_llm_prompt_processor",
-      "local:::rust_toolkit:::shinkai_equation_solver",
     ],
     config: {},
   },
