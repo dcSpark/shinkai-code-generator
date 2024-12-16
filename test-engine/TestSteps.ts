@@ -155,29 +155,36 @@ export class TestSteps {
       parameters: this.test.inputs,
     });
 
-   // download files
-   if (shinkaiExecution?.__created_files__) {
-    for (const file of shinkaiExecution.__created_files__) {
-       await resolveShinkaiFile({ fileUrl: file, folder: Paths.editorAssetsPath(this.language, this.test, this.model) });
-       console.log(`    [Download] ${file}`);
-    }
-  }
-    
-    
-    
-    console.log(JSON.stringify(shinkaiExecution).substring(0, 100) + '...');
-    Deno.writeTextFile(
-      Paths.executeOutput(this.language, this.test, this.model),
-      JSON.stringify(shinkaiExecution, null, 2),
-    );
-
-    if (this.test.save) {
-      console.log(
-        "    [Save]",
-        await save_tool(this.language, this.test, this.model),
+    if (shinkaiExecution.error) {
+      console.log(`    [Error] ${shinkaiExecution.error.substring(0, 100)}...`);
+      Deno.writeTextFile(
+        Paths.executeErrorOutput(this.language, this.test, this.model),
+        shinkaiExecution.error,
       );
-    }
+    } else {
+        console.log(`    [Success]`);   
+        // download files
+        if (shinkaiExecution?.data?.__created_files__) {
+          for (const file of shinkaiExecution.data.__created_files__) {
+            await resolveShinkaiFile({ fileUrl: file, folder: Paths.editorAssetsPath(this.language, this.test, this.model) });
+            console.log(`    [Download] ${file}`);
+          }
+        }
+      
 
+      console.log(JSON.stringify(shinkaiExecution.data).substring(0, 100) + '...');
+      Deno.writeTextFile(
+        Paths.executeOutput(this.language, this.test, this.model),
+        JSON.stringify(shinkaiExecution.data ?? {}, null, 2),
+      );
+
+      if (this.test.save) {
+        console.log(
+          "    [Save]",
+          await save_tool(this.language, this.test, this.model),
+        );
+      }
+    }
     const { score: s, max } = await report(
       this.language,
       this.test,
@@ -188,10 +195,6 @@ export class TestSteps {
   }
 
   async prepareEditor() {
-    await Deno.writeTextFile(
-      Paths.launchCode(this.language, this.test, this.model),
-      await Deno.readTextFile(Paths.staticLaunchCodeFile(this.language)),
-    );
     console.log(
       `    [Editor] run > \`code ${
         Paths.editorBasePath(this.language, this.test, this.model)

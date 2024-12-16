@@ -2,6 +2,72 @@ import { tool_router_key } from "../test-engine/shinak-api.ts";
 import { TestData } from "../types.ts";
 
 
+// Python only test
+ const test_python_hn = {
+  skip: 'python-hn library broken',
+  code: `benchmark-python-hn-topic`,
+  prompt: `Generate a tool that fetches the top news using python-hn by topic. 
+<python-hn documentation>
+Install instructions
+$ pip install python-hn
+
+Usage
+Check out Interactive Docs to try the library without installing it.
+
+from hn import search_by_date
+
+# Search everything (stories, comments, etc) containing the keyword 'python'
+search_by_date('python')
+
+# Search everything (stories, comments, etc) from author 'pg' and keyword 'lisp'
+search_by_date('lisp', author='pg', created_at__lt='2018-01-01')
+
+# Search only stories
+search_by_date('lisp', author='pg', stories=True, created_at__lt='2018-01-01')
+
+# Search stories *or* comments
+search_by_date(q='lisp', author='pg', stories=True, comments=True, created_at__lt='2018-01-01')
+</python-hn documentation>  
+  `,
+  prompt_type: "type INPUT = { topic: string }",
+  inputs: { topic: "robotics" },
+  tools: [],
+  config: {},
+  limited_language: "python",
+};
+const test_python_hn_date_range = {
+  skip: 'python-hn library broken',
+  code: `benchmark-python-hn-date-range`,
+  prompt: `Generate a tool that fetches the top news using python-hn by topic and optional date range. 
+<python-hn documentation>
+Install instructions
+$ pip install python-hn
+
+Usage
+Check out Interactive Docs to try the library without installing it.
+
+from hn import search_by_date
+
+# Search everything (stories, comments, etc) containing the keyword 'python'
+search_by_date('python')
+
+# Search everything (stories, comments, etc) from author 'pg' and keyword 'lisp'
+search_by_date('lisp', author='pg', created_at__lt='2018-01-01')
+
+# Search only stories
+search_by_date('lisp', author='pg', stories=True, created_at__lt='2018-01-01')
+
+# Search stories *or* comments
+search_by_date(q='lisp', author='pg', stories=True, comments=True, created_at__lt='2018-01-01')
+</python-hn documentation>  
+  `,
+  prompt_type: "type INPUT = { topic: string, created_at__lt?: string, created_at__gt?: string }",
+  inputs: { topic: "robotics", created_at__gt: "2024-12-15" },
+  tools: [],
+  config: {},
+  limited_language: "python",
+};
+
 // OAuth Test
 const test_email_smtp = {
   code: `benchmark-email-smtp`,
@@ -192,6 +258,8 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
+  test_python_hn,
+  test_python_hn_date_range,
   test_email_smtp,
   test_oauth_github,
   test_oauth_google_calendar,

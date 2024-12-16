@@ -17,6 +17,15 @@ async function main() {
   for (const language of config.languages) {
     for (const model of config.models) {
       for (const test of config.tests_to_run) {
+        // Skip test if it is limited to a different language
+        if (test.limited_language && test.limited_language !== language) {
+          console.log(`[Skip] ${test.code} is limited to ${test.limited_language} and not ${language}`);
+          continue;
+        }
+        if (test.skip) {
+          console.log(`[Skip] ${test.code} is skipped because ${test.skip}`);
+          continue;
+        }
         test.id = TestSteps.current;
         const testSteps = new TestSteps(
           test,

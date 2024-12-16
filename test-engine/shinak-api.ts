@@ -82,7 +82,7 @@ interface ExecuteCodeParams {
   parameters: Record<string, unknown>;
 }
 
-export async function executeCode(params: ExecuteCodeParams) {
+export async function executeCode(params: ExecuteCodeParams): Promise<{ status: boolean, data?: any, error?: string }> {
   const url = `${shinkaiApiUrl}/v2/code_execution`;
   try {
     const response = await axios({
@@ -103,20 +103,29 @@ export async function executeCode(params: ExecuteCodeParams) {
         "Content-Type": "application/json",
       },
     });
-    return response.data;
+    return { status: true, data: response.data };
     // deno-lint-ignore no-explicit-any
   } catch (error: any) {
-    if (error.response) {
-      console.log(error.response.data);
-      console.log(error.response.status);
-      console.log(error.response.headers);
-    } else if (error.request) {
-      console.log(error.request);
-    } else {
-      console.log("Error", error.message);
+    const message: string[] = [];
+    // deno-lint-ignore no-inner-declarations
+    function addToMessage(data: any) {
+      if (data && typeof data === 'object') {
+        message.push(JSON.stringify(data, null, 2));
+      } else {
+        message.push(data);
+      }
     }
-    console.log(error.config);
-    throw error;
+    if (error.response) {
+      addToMessage(error.response.data);
+      addToMessage(error.response.status);
+      addToMessage(error.response.headers);
+    } else if (error.request) {
+      addToMessage(error.request);
+    } else {
+      addToMessage(error.message);
+    }
+    addToMessage(error.config);
+    return { status: false, error: message.join("\n") };
   }
 }
 

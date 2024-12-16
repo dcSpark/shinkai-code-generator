@@ -9,6 +9,8 @@ export type TestData = {
   check?: (output: string) => number; // between 0 and 1
   save?: boolean;
   supportFiles?: { fileName: string; path: string }[];
+  limited_language?: Language;
+  skip?: string;
 };
 
 export type Language = "python" | "typescript";

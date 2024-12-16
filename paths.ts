@@ -20,6 +20,7 @@ export class Paths {
     `extracted-src-code.${this.languageToExtension[language]}`;
   private static srcMetadataFile = "extracted-metadata.json";
   private static executeOutputFile = "execute-output.json";
+  private static executeErrorOutputFile = "execute-error-output.txt";
   private static finalSrcCodeFile = (language: Language) =>
     `final-src-code.${this.languageToExtension[language]}`;
   private static toolsSelectedFile = "tools-selected.txt";
@@ -223,6 +224,17 @@ export class Paths {
     return path.join(
       this.getBasePath(language, test, model),
       this.executeOutputFile,
+    );
+  }
+
+  public static executeErrorOutput(
+    language: Language,
+    test: TestData,
+    model: BaseEngine,
+  ) {
+    return path.join(
+      this.getBasePath(language, test, model),
+      this.executeErrorOutputFile,
     );
   }
 
