@@ -3,6 +3,18 @@ import { TestData } from "../types.ts";
 
 
 // OAuth Test
+const test_email_smtp = {
+  code: `benchmark-email-smtp`,
+  prompt: `Generate a tool that sends an email to a given email address using nodemailer.`,
+  prompt_type: "type INPUT = { to: string, subject: string, body: string }",
+  inputs: {
+    to: "example@example.com",
+    subject: "Test Email",
+    body: "This is a test email.",
+  },
+  tools: [],
+  config: {},
+};
 const test_oauth_github = {
   code: `benchmark-oauth-github`,
   prompt: `Generate a tool that fetches the user profile from GitHub.`,
@@ -180,6 +192,7 @@ const basic_tool = {
 };
 
 export const benchmarkTests: TestData[] = [
+  test_email_smtp,
   test_oauth_github,
   test_oauth_google_calendar,
   test_config,

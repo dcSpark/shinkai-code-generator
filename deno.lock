@@ -20,6 +20,7 @@
     "npm:mailparser@3.2.0": "3.2.0",
     "npm:node-fetch@2.6.10": "2.6.10",
     "npm:node-fetch@2.6.7": "2.6.7",
+    "npm:nodemailer@*": "6.9.4",
     "npm:nodemailer@6.9.1": "6.9.1",
     "npm:nodemailer@6.9.3": "6.9.3",
     "npm:nodemailer@6.9.4": "6.9.4",

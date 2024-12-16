@@ -2,11 +2,12 @@ import { Language, TestData } from "../types.ts";
 import { PromptTest } from "./PromptTest.ts";
 import { getToolImplementationPrompt } from "./shinkai-prompts.ts";
 import { Paths } from "../paths.ts";
-import { save_tool } from "./shinak-api.ts";
+import { executeCode, resolveShinkaiFile, save_tool } from "./shinak-api.ts";
 import { writeToFile } from "./test-helpers.ts";
-import { appendAditionalCode, checkIfHeadersPresent } from "./test-exec.ts";
+// import { appendAditionalCode, checkIfHeadersPresent } from "./test-exec.ts";
 import { BaseEngine } from "../llm-engine/BaseEngine.ts";
-import { checkCode, executeTest, tryToFixCode } from "./test-exec.ts";
+// import { checkCode, executeTest, 
+// import {tryToFixCode } from "./test-exec.ts";
 import { createDir } from "./test-helpers.ts";
 import { report } from "../report.ts";
 
@@ -73,33 +74,33 @@ export class TestSteps {
     await writeToFile(this.language, this.test, this.model, "code", data.code);
 
     // Try to fix errors
-    const errorPath = await checkCode(this.language, this.test, this.model);
-    const errors = await Deno.readTextFile(errorPath);
-    if (errors.length > 0) {
-      if (errors.match(/^Check file:\/\/\/.+?\.ts\n$/)) {
-        console.log(`    [No Errors]`);
-        await Deno.writeTextFile(
-          Paths.finalSrcCode(this.language, this.test, this.model),
-          await Deno.readTextFile(
-            Paths.srcCode(this.language, this.test, this.model),
-          ),
-        );
-      } else {
-        console.log(
-          `    [Error] ${
-            errors.replace(/\n/g, " ").replace(/\s+/g, " ").substring(0, 100)
-          }...`,
-        );
-        await tryToFixCode(this.language, this.test, this.model, errors);
-      }
-    } else {
-      await Deno.writeTextFile(
-        Paths.finalSrcCode(this.language, this.test, this.model),
-        await Deno.readTextFile(
-          Paths.srcCode(this.language, this.test, this.model),
-        ),
-      );
-    }
+    // const errorPath = await checkCode(this.language, this.test, this.model);
+    // const errors = await Deno.readTextFile(errorPath);
+    // if (errors.length > 0) {
+    //   if (errors.match(/^Check file:\/\/\/.+?\.ts\n$/)) {
+    //     console.log(`    [No Errors]`);
+    //     await Deno.writeTextFile(
+    //       Paths.finalSrcCode(this.language, this.test, this.model),
+    //       await Deno.readTextFile(
+    //         Paths.srcCode(this.language, this.test, this.model),
+    //       ),
+    //     );
+    //   } else {
+    //     console.log(
+    //       `    [Error] ${
+    //         errors.replace(/\n/g, " ").replace(/\s+/g, " ").substring(0, 100)
+    //       }...`,
+    //     );
+    //     await tryToFixCode(this.language, this.test, this.model, errors);
+    //   }
+    // } else {
+    await Deno.writeTextFile(
+      Paths.finalSrcCode(this.language, this.test, this.model),
+      await Deno.readTextFile(
+        Paths.srcCode(this.language, this.test, this.model),
+      ),
+    );
+    // }
     const code = await Deno.readTextFile(
       Paths.finalSrcCode(this.language, this.test, this.model),
     );
@@ -139,23 +140,36 @@ export class TestSteps {
   async step_4() {
     if (!this.run_exec) return;
 
-    const code = await Deno.readTextFile(
+    await Deno.readTextFile(
       Paths.finalSrcCode(this.language, this.test, this.model),
     );
-    if (!checkIfHeadersPresent(code)) {
-      const updated_code = appendAditionalCode(
-        this.language,
-        code,
-        this.test,
-        this.model,
-      );
-      await Deno.writeTextFile(
+    
+    // await executeTest(this.language, this.test, this.model);
+    const shinkaiExecution = await executeCode({
+      code: await Deno.readTextFile(
         Paths.finalSrcCode(this.language, this.test, this.model),
-        updated_code,
-      );
-    }
+      ),
+      toolType: this.language === 'typescript' ? 'denodynamic' : 'pythondynamic',
+      llmProvider: this.model.shinkaiName,
+      tools: this.test.tools,
+      parameters: this.test.inputs,
+    });
 
-    await executeTest(this.language, this.test, this.model);
+   // download files
+   if (shinkaiExecution?.__created_files__) {
+    for (const file of shinkaiExecution.__created_files__) {
+       await resolveShinkaiFile({ fileUrl: file, folder: Paths.editorAssetsPath(this.language, this.test, this.model) });
+       console.log(`    [Download] ${file}`);
+    }
+  }
+    
+    
+    
+    console.log(JSON.stringify(shinkaiExecution).substring(0, 100) + '...');
+    Deno.writeTextFile(
+      Paths.executeOutput(this.language, this.test, this.model),
+      JSON.stringify(shinkaiExecution, null, 2),
+    );
 
     if (this.test.save) {
       console.log(

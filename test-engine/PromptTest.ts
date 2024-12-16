@@ -40,19 +40,22 @@ export class PromptTest {
   private tryToExtractTS(text: string): string | null {
     const regex = /```(?:typescript)?\n([\s\S]+?)\n```/;
     const match = text.match(regex);
-    return match ? match[1] : null;
+    if (match) return match[1];
+    else return text;
   }
 
   private tryToExtractPython(text: string): string | null {
     const regex = /```(?:python)?\n([\s\S]+?)\n```/;
     const match = text.match(regex);
-    return match ? match[1] : null;
+    if (match) return match[1];
+    else return text;
   }
 
   private tryToExtractJSON(text: string): string | null {
     const regex = /```(?:json)?\n([\s\S]+?)\n```/;
     const match = text.match(regex);
-    return match ? match[1] : null;
+    if (match) return match[1];
+    else return text;
   }
 
   private async generateCode(task: string): Promise<PromptTestResult> {
@@ -205,7 +208,7 @@ ${errors}
   public async startCodeGeneration(): Promise<
     { code: PromptTestResult }
   > {
-    const execute = true;
+    const execute = false;
     const toolsSelected = await this.selectTools(this.test.prompt, execute);
     if (execute) {
       await Deno.writeTextFile(

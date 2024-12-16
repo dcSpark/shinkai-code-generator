@@ -73,3 +73,98 @@ export async function save_tool(
     console.log(error.config);
   }
 }
+
+interface ExecuteCodeParams {
+  code: string;
+  toolType: 'denodynamic' | 'pythondynamic';
+  llmProvider: string;
+  tools: string[];
+  parameters: Record<string, unknown>;
+}
+
+export async function executeCode(params: ExecuteCodeParams) {
+  const url = `${shinkaiApiUrl}/v2/code_execution`;
+  try {
+    const response = await axios({
+      url,
+      method: "post",
+      data: {
+        code: params.code,
+        tool_type: params.toolType,
+        llm_provider: params.llmProvider,
+        tools: params.tools,
+        parameters: params.parameters,
+      },
+      headers: {
+        Authorization: "Bearer debug",
+        "x-shinkai-tool-id": "tool-id-" + new Date().getTime(),
+        "x-shinkai-app-id": "app-id-" + new Date().getTime(),
+        "x-shinkai-llm-provider": params.llmProvider,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+    // deno-lint-ignore no-explicit-any
+  } catch (error: any) {
+    if (error.response) {
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+    } else if (error.request) {
+      console.log(error.request);
+    } else {
+      console.log("Error", error.message);
+    }
+    console.log(error.config);
+    throw error;
+  }
+}
+
+interface ResolveFileParams {
+  fileUrl: string;
+  folder: string;
+}
+
+export async function resolveShinkaiFile({ fileUrl, folder }: ResolveFileParams) {
+  const url = `${shinkaiApiUrl}/v2/resolve_shinkai_file_protocol`;
+  try {
+    const response = await axios({
+      url,
+      method: "get",
+      params: {
+        file: fileUrl,
+      },
+      headers: {
+        Authorization: "Bearer debug",
+      },
+      responseType: 'arraybuffer'  // Important for handling binary files
+    });
+
+    // Extract filename from the fileUrl
+    const fileName = fileUrl.split('/').pop() || 'downloaded_file';
+    const filePath = `${folder}/${fileName}`;
+
+    // Ensure the folder exists
+    await Deno.mkdir(folder, { recursive: true });
+
+    // Write the file
+    await Deno.writeFile(filePath, new Uint8Array(response.data));
+
+    return filePath;
+  // deno-lint-ignore no-explicit-any
+  } catch (error: any) {
+    if (error.response) {
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+    } else if (error.request) {
+      console.log(error.request);
+    } else {
+      console.log("Error", error.message);
+    }
+    console.log(error.config);
+    throw error;
+  }
+}
+
+
