@@ -5,6 +5,7 @@ import { cryptoTests } from "./crypto.ts";
 import { developmentTests } from "./development.ts";
 import { healthTests } from "./health.ts";
 import { intelligenceTests } from "./intelligence.ts";
+import { mathTests } from "./math.ts";
 import { mediaTests } from "./media.ts";
 import { productivityTests } from "./productivity.ts";
 import { realEstateTests } from "./real-estate.ts";
@@ -25,6 +26,7 @@ export const allTests: TestData[] = [
   ...developmentTests,
   ...healthTests,
   ...intelligenceTests,
+  ...mathTests,
   ...mediaTests,
   ...productivityTests,
   ...realEstateTests,
