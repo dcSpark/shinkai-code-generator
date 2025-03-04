@@ -18,6 +18,7 @@ import { travelTests } from "./travel.ts";
 import { videoAudioTests } from "./video-audio.ts";
 import { webTests } from "./web.ts";
 import { benchmarkTests } from "./benchmark.ts";
+import { oauthTests } from "./oauth.ts";
 
 export const allTests: TestData[] = [
   ...businessTests,
@@ -39,4 +40,5 @@ export const allTests: TestData[] = [
   ...videoAudioTests,
   ...webTests,
   ...benchmarkTests,
+  ...oauthTests,
 ];

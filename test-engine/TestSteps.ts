@@ -144,6 +144,11 @@ export class TestSteps {
       Paths.finalSrcCode(this.language, this.test, this.model),
     );
     
+    const metadata = await Deno.readTextFile(
+      Paths.srcMetadata(this.language, this.test, this.model)
+    );
+    const oauth = JSON.parse(metadata).oauth || [];
+
     // await executeTest(this.language, this.test, this.model);
     const shinkaiExecution = await executeCode({
       code: await Deno.readTextFile(
@@ -153,6 +158,7 @@ export class TestSteps {
       llmProvider: this.model.shinkaiName,
       tools: this.test.tools,
       parameters: this.test.inputs,
+      oauth: oauth,
     });
 
     if (shinkaiExecution.error) {

@@ -81,28 +81,28 @@ const test_email_smtp = {
   tools: [],
   config: {},
 };
-const test_oauth_github = {
-  code: `benchmark-oauth-github`,
-  prompt: `Generate a tool that fetches the user profile from GitHub.`,
-  prompt_type: "type INPUT = {}",
-  inputs: {},
-  tools: [],
-  config: {},
-};
+// const test_oauth_github = {
+//   code: `benchmark-oauth-github`,
+//   prompt: `Generate a tool that fetches the user profile from GitHub.`,
+//   prompt_type: "type INPUT = {}",
+//   inputs: {},
+//   tools: [],
+//   config: {},
+// };
 // OAuth Test Google Calendar
-const test_oauth_google_calendar = {
-  code: `benchmark-oauth-google-calendar`,
-  prompt: `Generate a tool that creates a event in Google Calendar.`,
-  prompt_type: "type INPUT = { event: string, description: string, start_iso: string, end_iso: string }",
-  inputs: {
-    event: "Test Event",
-    description: "Test Description",
-    start_iso: "2024-12-05T10:00:00",
-    end_iso: "2024-12-05T11:00:00",
-  },
-  tools: [],
-  config: {},
-};
+// const test_oauth_google_calendar = {
+//   code: `benchmark-oauth-google-calendar`,
+//   prompt: `Generate a tool that creates a event in Google Calendar.`,
+//   prompt_type: "type INPUT = { event: string, description: string, start_iso: string, end_iso: string }",
+//   inputs: {
+//     event: "Test Event",
+//     description: "Test Description",
+//     start_iso: "2024-12-05T10:00:00",
+//     end_iso: "2024-12-05T11:00:00",
+//   },
+//   tools: [],
+//   config: {},
+// };
 
 // Tool with Config
 const test_config = {
@@ -261,8 +261,8 @@ export const benchmarkTests: TestData[] = [
   test_python_hn,
   test_python_hn_date_range,
   test_email_smtp,
-  test_oauth_github,
-  test_oauth_google_calendar,
+  // test_oauth_github,
+  // test_oauth_google_calendar,
   test_config,
   test_config_sql,
   test_pdf_store,

@@ -74,12 +74,27 @@ export async function save_tool(
   }
 }
 
+interface OAuth {
+  name: string;
+  authorizationUrl: string;
+  tokenUrl: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUrl: string;
+  version: string;
+  responseType: string;
+  scopes: string[];
+  pkceType: string;
+  refreshToken: string;
+}
+
 interface ExecuteCodeParams {
   code: string;
   toolType: 'denodynamic' | 'pythondynamic';
   llmProvider: string;
   tools: string[];
   parameters: Record<string, unknown>;
+  oauth: OAuth[];
 }
 
 export async function executeCode(params: ExecuteCodeParams): Promise<{ status: boolean, data?: any, error?: string }> {
@@ -94,6 +109,7 @@ export async function executeCode(params: ExecuteCodeParams): Promise<{ status: 
         llm_provider: params.llmProvider,
         tools: params.tools,
         parameters: params.parameters,
+        oauth: params.oauth,
       },
       headers: {
         Authorization: "Bearer debug",
