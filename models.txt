@@ -1,2 +1,3 @@
-ollama:qwen2.5-coder:32b
+ollama:deepseek-r1:32b
+# ollama:qwen2.5-coder:32b
 # ollama:llama3.2:latest
