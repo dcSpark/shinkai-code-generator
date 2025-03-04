@@ -1,0 +1,37 @@
+=========================================================
+🔨 Running test #[0] benchmark-download-website @ typescript
+[Step 0] System Requirements & Feedback Prompt
+[Benchmark] Ollama took 92803ms for <rules> Given a input_command, First analyze the p...e HTML as { content: string }.  </input_command>  
+[Step 1] User Requirements & Feedback Prompt
+[Benchmark] Ollama took 55527ms for <rules> * The user has requested to apply changes ...pm:axios to download the website  </input_command>
+[Step 2] Library Search Prompt
+[Benchmark] Ollama took 18008ms for <rules> * You need to generate queries to search o...l Libraries * Return only one json </formatting>  
+[Web Search] query: axios - typescript documentation
+[Web Search] (#1) Getting Started | Axios Docs - https://axios-http.com/docs/intro
+[Web Search] (#2) GitHub - axios/axios: Promise based HTTP client for the browser and node.js - https://github.com/axios/axios
+[Web Search] (#3) Axios API | Axios Docs - https://axios-http.com/docs/api_intro
+[Web Search] (#4) How to Use Axios and Typescript to Build APIs - https://apidog.com/blog/axios-typescript/
+[Web Search] (#5) Documentation for the typescript-axios Generator | OpenAPI Generator - https://openapi-generator.tech/docs/generators/typescript-axios/
+[Web Search] (#6) How to use Axios with Typescript a beginner’s guide - https://geshan.com.np/blog/2023/11/axios-typescript/
+[Web Search] (#7) DevDocs — Axios documentation - https://devdocs.io/axios/
+[Web Search] (#8) A Beginner’s Guide to Using Axios in Node.js: Simplifying HTTP Requests | by Reggie Cheston | Medium - https://medium.com/@reggiecheston/a-beginners-guide-to-using-axios-in-node-js-simplifying-http-requests-441291fef064
+[Web Search] (#9) Why using AXIOS with Typescript? - DEV Community - https://dev.to/limacodes/why-using-axios-with-typescript-1fnj
+[Web Search] (#10) GitHub - geshan/axios-typescript: Axios with typescript example for a blog post - https://github.com/geshan/axios-typescript
+[Web Search] (#11) Exploring the Possibilities of Axios with Typescript - https://www.dhiwise.com/post/exploring-the-possibilities-of-axios-with-typescript
+[Web Search] (#12) axios - npm - https://www.npmjs.com/package/axios
+[Web Search] (#13) Axios - https://axios-http.com/
+[Web Search] (#14) How to call APIs using Axios in TypeScript? - https://rapidapi.com/guides/call-apis-using-axios-in-typescript
+[Web Search] (#15) Complete Guide to Axios HTTP Client - https://reflectoring.io/tutorial-guide-axios/
+[Web Search] (#16) Understanding Axios GET requests - LogRocket Blog - https://blog.logrocket.com/understanding-axios-get-requests/
+[Web Search] (#17) Axios tutorial - GET/POST requests in JavaScript with Axios - https://zetcode.com/javascript/axios/
+[Web Search] (#18) axios typescript Code Example - https://iqcode.com/code/typescript/axios-typescript
+[Web Search] (#19) Refactoring Axios in TypeScript - Moment For Technology - https://www.mo4tech.com/refactoring-axios-in-typescript.html
+[Web Search] (#20) axios typescript documentation Code Example - Grepper - https://www.codegrepper.com/code-examples/typescript/axios+typescript+documentation
+[Crawl] https://axios-http.com/docs/intro
+[Step 3] Internal Libraries Prompt
+[Benchmark] Ollama took 41186ms for <rules> * You need to generate of list of tool-rou...that contains the tool-router-keys </formatting>  
+[Step 4] Generate the tool code
+[Benchmark] Ollama took 126021ms for  <agent_libraries>   * You may use any of the foll...ios>  </libraries_documentation>                  
+[Step 5] Generate the metadata
+[Benchmark] Ollama took 83090ms for  <agent_metadata_schema>   * This is the SCHEMA fo...;         throw error;     } } </input_command>   
+[Done] took 416743ms
