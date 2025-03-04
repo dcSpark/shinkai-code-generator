@@ -3,6 +3,7 @@
 ## Requirements 
 * Shinkai Node running
 * Ollama running
+* Firecrawl running
 * Deno 2.x
 
 ## Install
