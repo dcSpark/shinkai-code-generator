@@ -34,6 +34,6 @@
 
 * Do not change the libraries, do not add or remove libraries.
 * Do not include System Libraies or External Libraries
-* Return the final json array that contains the tool-router-keys
+* Return the only final output json array that contains the tool-router-keys
 </formatting>
 

@@ -38,33 +38,33 @@ class ShinkaiPipeline {
         await this.fileManager.log(`🔨 Running test #[${this.test.id}] ${this.test.code} @ ${this.language} w/ ${this.llmModel.name}`, true);
     }
 
-    private async retryUntilSuccess<T>(fn: () => Promise<T>, expected: { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean }): Promise<T> {
+    private async retryUntilSuccess(fn: () => Promise<string>, expected: { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean }): Promise<string> {
         let retries = 3;
         while (retries > 0) {
             try {
-                const result: T = await fn();
+                const result = await fn();
+                // Do checks
                 if (expected.regex) {
                     for (const r of expected.regex) {
-                        if (!r.test(result as any as string)) {
+                        if (!r.test(result)) {
                             console.log({ r, result })
                             throw new Error('Does not match format:' + String(r));
                         }
                     }
-                    return result;
                 }
+
                 if (expected.isJSONArray) {
-                    let json = JSON.parse(result as any as string);
-                    if (Array.isArray(json)) {
-                        return result;
+                    const json = JSON.parse(result);
+                    if (!Array.isArray(json)) {
+                        throw new Error('Does not match format')
                     }
-                    throw new Error('Does not match format')
                 }
+
                 if (expected.isJSONObject) {
-                    let json = JSON.parse(result as any as string);
-                    if (typeof json === 'object') {
-                        return result;
+                    const json = JSON.parse(result);
+                    if (typeof json !== 'object') {
+                        throw new Error('Does not match format')
                     }
-                    throw new Error('Does not match format')
                 }
                 return result
             } catch (e) {
@@ -98,7 +98,7 @@ class ShinkaiPipeline {
         }, {
             regex: [
                 new RegExp("# Requirements"),
-                new RegExp("# System Libraries"),
+                new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
                 new RegExp("# Example Inputs and Outputs"),
@@ -135,7 +135,7 @@ class ShinkaiPipeline {
         }, {
             regex: [
                 new RegExp("# Requirements"),
-                new RegExp("# System Libraries"),
+                new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
                 new RegExp("# Example Inputs and Outputs"),
@@ -218,7 +218,12 @@ ${Object.entries(this.docs).map(([library, doc]) => `
 `).join('\n')}
 </libraries_documentation>
         
-        ` + toolCode_1;
+        ` + toolCode_1.replace(
+            "* Prefer libraries in the following order:",
+            `
+            * As first preference use the libraries described in the "Internal Libraries" and "External Libraries" sections.
+            * For missing and additional required libraries, prefer the following order:`
+        );
 
         const llmResponse = await this.llmModel.run(toolCode, this.fileManager, undefined);
         const promptResponse = llmResponse.message;
@@ -277,8 +282,8 @@ ${Object.entries(this.docs).map(([library, doc]) => `
 async function start() {
     await TestFileManager.clearFolder();
     const llm = [
-        getDeepSeekR132B(), // Good results (for testing outputs)
-        // getLlama318bInstruct() // Fast results (for testing engine)
+        // getDeepSeekR132B(), // Good results (for testing outputs)
+        getLlama318bInstruct() // Fast results (for testing engine)
     ];
     for (const llmModel of llm) {
         for (const language of (['typescript', 'python']) as Language[]) {
