@@ -1,7 +1,7 @@
 <rules>
 Given a input_command, First analyze the problem, think about the standard-libraries, internal-libraries, external-libraries and IO test, then do the following 5 actions.
     1. Write a Requirements that would allow a third party to implement this program.
-    2. What {LANGUAGE} standard-libraries (only libraries that need to be imported to work inside the code to be used) and that are bundled in {RUNTIME} runtime.
+    2. What {LANGUAGE} standard-libraries (only libraries that need to be imported to work inside the code to be used) and that are bundled in {RUNTIME} runtime are required to resolve this requierement.
     3. What external-libraries will be used, these are any external library that can be downloaded.
     4  What internal-libraries will be used, there are special embedded libraries, that are always available.
     5. Show an Inputs and Outputs example.

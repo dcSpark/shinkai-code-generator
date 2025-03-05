@@ -4,6 +4,11 @@ import { Language } from "./types.ts";
 const shinkaiApiUrl = Deno.env.get("SHINKAI_API_URL");
 const bearerToken = Deno.env.get("SHINKAI_BEARER_TOKEN");
 
+export type CheckCodeResponse = {
+    success: boolean;
+    warnings: string[];
+};
+
 export type GetTypescriptToolImplementationPromptResponse = {
     headers: {
         "shinkai-local-support": string;
@@ -50,12 +55,28 @@ export class ShinkaiAPI {
     public async getTypescriptToolImplementationPrompt(tools: string[] = [], code: string = ""): Promise<GetTypescriptToolImplementationPromptResponse> {
         return await this.getToolImplementationPrompt('typescript', tools, code) as GetTypescriptToolImplementationPromptResponse;
     }
-    
+
     public async getPythonToolImplementationPrompt(tools: string[] = [], code: string = ""): Promise<GetPythonToolImplementationPromptResponse> {
         return await this.getToolImplementationPrompt('python', tools, code) as GetPythonToolImplementationPromptResponse;
     }
 
-    private async getToolImplementationPrompt(language: Language,tools: string[] = [], code: string = ""): Promise<GetTypescriptToolImplementationPromptResponse | GetPythonToolImplementationPromptResponse> {
+    public async checkCode(language: Language, code: string): Promise<CheckCodeResponse> {
+        const response = await axios<CheckCodeResponse>({
+            method: "POST",
+            url: `${this.shinkaiApiUrl}/v2/tool_check`,
+            data: {
+                language,
+                code,
+            },
+            headers: {
+                Authorization: `Bearer ${this.bearerToken}`,
+                "Content-Type": "application/json; charset=utf-8",
+            },
+        });
+        return response.data;
+    }
+
+    private async getToolImplementationPrompt(language: Language, tools: string[] = [], code: string = ""): Promise<GetTypescriptToolImplementationPromptResponse | GetPythonToolImplementationPromptResponse> {
         const fetch_tools = await axios<GetTypescriptToolImplementationPromptResponse | GetPythonToolImplementationPromptResponse>({
             method: "GET",
             url: `${shinkaiApiUrl}/v2/get_tool_implementation_prompt`,
@@ -69,6 +90,6 @@ export class ShinkaiAPI {
                 "Content-Type": "application/json; charset=utf-8",
             },
         });
-      return fetch_tools.data;
+        return fetch_tools.data;
     }
 }

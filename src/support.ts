@@ -19,38 +19,60 @@ export async function getFullHeadersAndTools(code: string = ""): Promise<{
   }
 }
 
-export function tryToExtractTS(text: string): string | null {
+export function tryToExtractTS(text: string, index: number): string | undefined {
+  // Capture outer block
   const regex = text.match(/```typescript/) ?
-    /```typescript\n([\s\S]+?)\n```/ :
-    /```(?:typescript)?\n([\s\S]+?)\n```/;
+    /```typescript\n([\s\S]+?)\n```/g :
+    /```(?:typescript)?\n([\s\S]+?)\n```/g;
   const match = text.match(regex);
-  if (match) return match[1];
-  return text;
+  if (match && match[index]) {
+    // Capture internal block
+    const regex2 = text.match(/```typescript/) ?
+      /```typescript\n([\s\S]+?)\n```/ :
+      /```(?:typescript)?\n([\s\S]+?)\n```/;
+    return match[index]?.match(regex2)?.[1];
+  }
+  return;
 }
 
-export function tryToExtractPython(text: string): string | null {
+export function tryToExtractPython(text: string, index: number): string | undefined {
   const regex = text.match(/```python/) ?
-    /```python\n([\s\S]+?)\n```/ :
-    /```(?:python)?\n([\s\S]+?)\n```/;
+    /```python\n([\s\S]+?)\n```/g :
+    /```(?:python)?\n([\s\S]+?)\n```/g;
   const match = text.match(regex);
-  if (match) return match[1];
-  return text;
+  if (match && match[index]) {
+    const regex2 = text.match(/```python/) ?
+      /```python\n([\s\S]+?)\n```/ :
+      /```(?:python)?\n([\s\S]+?)\n```/;
+    return match[index]?.match(regex2)?.[1];
+  }
+  return;
 }
 
-export function tryToExtractJSON(text: string): string | null {
+export function tryToExtractJSON(text: string, index: number): string | undefined {
   const regex = text.match(/```json/) ?
-    /```json\n([\s\S]+?)\n```/ :
-    /```(?:json)?\n([\s\S]+?)\n```/;
+    /```json\n([\s\S]+?)\n```/g :
+    /```(?:json)?\n([\s\S]+?)\n```/g;
   const match = text.match(regex);
-  if (match) return match[1];
-  return text;
+  if (match && match[index]) {
+    const regex2 = text.match(/```json/) ?
+      /```json\n([\s\S]+?)\n```/ :
+      /```(?:json)?\n([\s\S]+?)\n```/;
+    return match[index]?.match(regex2)?.[1];
+  }
+  return;
 }
 
-export function tryToExtractMarkdown(text: string): string | null {
+export function tryToExtractMarkdown(text: string, index: number): string | undefined {
   const regex = text.match(/```markdown/) ?
-    /```markdown\n([\s\S]+?)\n```/ :
-    /```(?:markdown)?\n([\s\S]+?)\n```/;
+    /```markdown\n([\s\S]+?)\n```/g :
+    /```(?:markdown)?\n([\s\S]+?)\n```/g;
   const match = text.match(regex);
-  if (match) return match[1];
-  return text;
+  if (match && match[index]) {
+    const regex2 = text.match(/```markdown/) ?
+      /```markdown\n([\s\S]+?)\n```/ :
+      /```(?:markdown)?\n([\s\S]+?)\n```/;
+    return match[index]?.match(regex2)?.[1];
+  }
+  return;
 }

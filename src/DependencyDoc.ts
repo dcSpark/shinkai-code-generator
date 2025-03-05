@@ -171,7 +171,19 @@ export class DependencyDoc {
         }
 
         // How to get the best match? trust the first result?
-        const url = searchResponse.web.results[0].url;
+        const url = searchResponse.web.results.find(r => {
+            const isCompressedFile = r.url.match(/\.(zip|tar|gz|bz2|rar|7z|iso)$/);
+            const isBinaryFile = r.url.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|dmg|pkg|deb|rpm|msi|exe|app|exe|app|pkg|rpm|deb|msi)$/);
+            if (isCompressedFile || isBinaryFile) {
+                console.log('Skipping', r.url);
+            }
+            return !isCompressedFile && !isBinaryFile;
+        })?.url;
+        if (!url) {
+            throw new Error('No URL found');
+        }
+
+
         await logger?.log(`[Crawl] ${url}`);
         const crawl = await this.crawlWebsite({ url });
         return crawl.data.map(d => d.markdown).join('\n');
