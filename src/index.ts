@@ -320,7 +320,7 @@ ${additionalRules}
         this.step++;
     }
 
-    private async checkGeneratedCode() {
+    private async checkGeneratedCode(): Promise<{ warnings: boolean }> {
         this.fileManager.log(`[Step ${this.step}] Check generated code`, true);
         const shinkaiAPI = new ShinkaiAPI();
         const checkResult = await shinkaiAPI.checkCode(this.language, this.code);
@@ -329,14 +329,39 @@ ${additionalRules}
         if (checkResult.warnings.length > 0) {
             const parsedLLMResponse = await this.retryUntilSuccess(async () => {
 
-                const warningString = checkResult.warnings.join('\n')
+                let warningString = checkResult.warnings.join('\n')
                     .replace(/file:\/\/\/[a-zA-Z0-9_\/-]+?\/code\/[a-zA-Z0-9_-]+?\//g, '/')
                     .replace(/Stack backtrace:[\s\S]*/, '');
+                if (this.language === 'typescript') {
+                    warningString = warningString.replace(/^Download [^ ]+$/g, '');
+                }
                 // Read the fix-code prompt
                 const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/fix-code.md'))
                     .replace('<warnings>\n\n</warnings>', `<warnings>\n${warningString}\n</warnings>`)
                     .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
-                    .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python');
+                    .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
+                    .replace('{LANG-RULES}', this.language === 'typescript' ? `
+All libraries must be imported at the start of the code with either:
+\`import { xx } from './shinkai-local-support.ts\`; 
+\`import { xx } from 'npm:yyy'\`;
+\`import { xx } from 'jsr:@std/yyy'\`;
+\`import { xx } from 'node:yyy'\`;
+` : `
+At the start of the file add a commented toml code block with the dependencies used and required to be downloaded by pip.
+Only add the dependencies that are required to be downloaded by pip, do not add the dependencies that are already available in the Python environment.
+This is an example of the commented script block that MUST be present before any python code or imports.
+
+# /// script
+# requires-python = ">=3.10,<3.12"
+# dependencies = [
+#   "requests",
+#   "ruff >=0.3.0",
+#   "torch ==2.2.2",
+#   "other_dependency",
+#   "other_dependency_2",
+# ]
+# ///
+`)
                 await this.fileManager.save(this.step, 'b', fixCodePrompt, 'fix-code-prompt.md');
 
                 // Run the fix prompt
@@ -357,10 +382,11 @@ ${additionalRules}
                 await this.fileManager.save(this.step, 'd', parsedLLMResponse || '', 'fixed-tool.py');
             }
             this.step++;
-            return this.code;
+            return { warnings: true }
         } else {
             // Nothing to fix
             this.step++;
+            return { warnings: false }
         }
     }
 
@@ -406,7 +432,12 @@ ${additionalRules}
         await this.processLibrarySearch();
         await this.processInternalTools();
         await this.generateCode();
-        await this.checkGeneratedCode();
+        let retries = 5;
+        while (retries > 0) {
+            const { warnings } = await this.checkGeneratedCode();
+            if (!warnings) break;
+            retries--;
+        }
         await this.generateMetadata();
         await this.logCompletion();
     }

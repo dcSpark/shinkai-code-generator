@@ -8,10 +8,10 @@ Focus on:
 1. Addressing each warning specifically
 2. Maintaining the original functionality
 3. Following best practices for the language
-4. Ensuring compatibility with the existing codebase
 
 Provide ONLY the entire fixed code without any explanations.
 This program is for {RUNTIME}
+{LANG-RULES}
 </rules>
 
 <warnings>
