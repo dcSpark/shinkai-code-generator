@@ -9,7 +9,7 @@ export class TestFileManager {
     public toolDir: string;
     private static basePath = path.join(Deno.cwd(), '.execution');
 
-    constructor(language: Language, test: Test, model: BaseEngine) {
+    constructor(private language: Language, test: Test, model: BaseEngine) {
         this.toolDir = path.join(
             TestFileManager.basePath,
             model.path,
@@ -33,6 +33,23 @@ export class TestFileManager {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         await Deno.mkdir(this.toolDir, { recursive: true });
         await Deno.writeTextFile(filePath, text);
+    }
+
+    async saveFinal(tool: string, metadata: string) {
+        const srcPath = path.join(this.toolDir, `src`);
+        if (this.language === 'typescript') {
+            const filePath1 = path.join(srcPath, `tool.ts`);
+            const filePath2 = path.join(srcPath, `metadata.json`);
+            await Deno.mkdir(srcPath, { recursive: true });
+            await Deno.writeTextFile(filePath1, tool);
+            await Deno.writeTextFile(filePath2, metadata);
+        } else if (this.language === 'python') {
+            const filePath = path.join(srcPath, `tool.py`);
+            const filePath2 = path.join(srcPath, `metadata.json`);
+            await Deno.mkdir(srcPath, { recursive: true });
+            await Deno.writeTextFile(filePath, tool);
+            await Deno.writeTextFile(filePath2, metadata);
+        }
     }
 
     async exists(step: number, substep: string, fileName: string) {

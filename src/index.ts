@@ -1,12 +1,13 @@
 import "jsr:@std/dotenv/load";
 import { BaseEngine, getDeepSeekR132B, getLlama318bInstruct, getOpenAIO4Mini, Payload } from "./llm-engines.ts";
-import { getFullHeadersAndTools, tryToExtractJSON, tryToExtractMarkdown, tryToExtractPython, tryToExtractTS } from "./support.ts";
+import { getFullHeadersAndTools } from "./support.ts";
 import { getTests, Test } from "./Test.ts";
 import { Language } from "./types.ts";
 import { TestFileManager } from "./TestFileManager.ts";
 import { DependencyDoc } from "./DependencyDoc.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
+import { LLMFormatter } from "./LLMFormatter.ts";
 
 
 const flags = parseArgs(Deno.args, {
@@ -18,6 +19,7 @@ const FORCE_DOCS_GENERATION = flags["force-docs"];
 class ShinkaiPipeline {
     // Setup in constructor
     private fileManager: TestFileManager;
+    private llmFormatter: LLMFormatter;
 
     // State machine step
     private step: number = 0;
@@ -36,6 +38,7 @@ class ShinkaiPipeline {
 
     // Generated code
     private code: string = '';
+    private metadata: string = '';
 
     // Shinkai prompts
     private shinkaiPrompts: any;;
@@ -48,6 +51,7 @@ class ShinkaiPipeline {
 
     constructor(private language: Language, private test: Test, private llmModel: BaseEngine) {
         this.fileManager = new TestFileManager(language, test, llmModel);
+        this.llmFormatter = new LLMFormatter();
         this.startTime = Date.now();
     }
 
@@ -58,94 +62,6 @@ class ShinkaiPipeline {
         await this.fileManager.log(`=========================================================`, true);
         await this.fileManager.log(`🔨 Running test #[${this.test.id}] ${this.test.code} @ ${this.language} w/ ${this.llmModel.name}`, true);
     }
-
-    private async retryUntilSuccess(
-        fn: () => Promise<string>,
-        extractor: 'markdown' | 'json' | 'typescript' | 'python' | 'none',
-        expected: { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean }): Promise<string> {
-        let retries = 3;
-
-        const checkExtracted = (result: string) => {
-            if (!result) {
-                throw new Error('Empty result');
-            }
-            // Do checks
-            if (expected.regex && !expected.isJSONArray) {
-                for (const r of expected.regex) {
-                    if (!r.test(result)) {
-                        console.log({ r, result })
-                        throw new Error('Does not match format:' + String(r));
-                    }
-                }
-            }
-
-            if (expected.isJSONArray) {
-                const json = JSON.parse(result);
-                if (!Array.isArray(json)) {
-                    throw new Error('Does not match format')
-                }
-                if (expected.regex) {
-                    for (const item of json) {
-                        for (const r of expected.regex) {
-                            if (!r.test(item)) {
-                                throw new Error('Does not match format:' + String(r));
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (expected.isJSONObject) {
-                const json = JSON.parse(result);
-                if (typeof json !== 'object') {
-                    throw new Error('Does not match format')
-                }
-            }
-            // All good, finish.
-            return result
-        }
-        const extract = (result: string, index = 0) => {
-            switch (extractor) {
-                case 'markdown':
-                    return tryToExtractMarkdown(result, index);
-                case 'json':
-                    return tryToExtractJSON(result, index);
-                case 'typescript':
-                    return tryToExtractTS(result, index);
-                case 'python':
-                    return tryToExtractPython(result, index);
-                case 'none':
-                    return result;
-            }
-        }
-
-
-        while (retries > 0) {
-            try {
-                const result = await fn();
-                let extractIndex = 0;
-                while (true) {
-                    const partialResult = extract(result, extractIndex);
-                    if (!partialResult) {
-                        throw new Error('Failed to extract. Rerun LLM Prompt.');
-                    }
-                    try {
-                        const finalResult = checkExtracted(partialResult);
-                        return finalResult;
-                    } catch (e) {
-                        console.log(`Failed extraction ${extractIndex} : ${String(e)}`);
-                        extractIndex++;
-                    }
-                }
-            } catch (e) {
-                console.log(String(e));
-                console.log('Stage failed...', retries);
-                retries--;
-            }
-        }
-        throw new Error('Failed to get result after 3 retries')
-    }
-
 
     private async processRequirementsAndFeedback() {
         // Check if output file exists
@@ -161,7 +77,7 @@ class ShinkaiPipeline {
             return;
         }
 
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] System Requirements & Feedback Prompt`, true);
             const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_tools'];
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
@@ -201,7 +117,7 @@ class ShinkaiPipeline {
             return;
         }
 
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
             this.fileManager.log(`[Step ${this.step}] User Requirements & Feedback Prompt`, true);
             let user_feedback = '';
@@ -247,7 +163,7 @@ class ShinkaiPipeline {
             parsedLLMResponse = existingLibraryJson;
             // Load existing dependency docs
         } else {
-            parsedLLMResponse = await this.retryUntilSuccess(async () => {
+            parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                 this.fileManager.log(`[Step ${this.step}] Library Search Prompt`, true);
                 const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/library.md')).replace(
                     '<input_command>\n\n</input_command>',
@@ -268,16 +184,18 @@ class ShinkaiPipeline {
 
         const libQueries = JSON.parse(parsedLLMResponse) as string[];
         const codes = 'defghijklmnopqrstuvwxyz';
+        const docManager = new DependencyDoc(this.llmModel, this.fileManager);
         for (const [index, library] of libQueries.entries()) {
-            if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length] as any, 'dependency-doc.md')) {
+            const safeLibraryName = library.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
+            if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md')) {
                 console.log(`<SKIPPING> Step ${this.step} - Dependency Doc already exists`);
-                const existingFile = await this.fileManager.load(this.step, codes[index % codes.length] as any, 'dependency-doc.md');
+                const existingFile = await this.fileManager.load(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md');
                 this.docs[library] = existingFile;
             } else {
                 this.fileManager.log(`[Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
-                const dependencyDoc = await new DependencyDoc().getDependencyDocumentation(library, this.language, this.fileManager);
+                const dependencyDoc = await docManager.getDependencyDocumentation(library, this.language);
                 this.docs[library] = dependencyDoc;
-                await this.fileManager.save(this.step, codes[index % codes.length] as any, dependencyDoc, 'dependency-doc.md');
+                await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
             }
         }
 
@@ -294,7 +212,7 @@ class ShinkaiPipeline {
             return;
         }
 
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
@@ -333,7 +251,7 @@ class ShinkaiPipeline {
             return;
         }
 
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
             this.fileManager.log(`[Step ${this.step}] Generate the tool code`, true);
             let toolPrompt = '';
@@ -355,7 +273,7 @@ class ShinkaiPipeline {
             const toolCode = `
 <libraries_documentation>
 ${Object.entries(this.docs).map(([library, doc]) => `
-    The folling libraries_documentation tags are just for reference on how to use the libraries, and do not imply how to implement the rules bellow.
+    The folling libraries_documentation tags are just for reference on how to use the libraries, and do not imply how to implement the rules below.
     <library_documentation=${library}>
     # ${library}
     ${doc}
@@ -400,7 +318,7 @@ ${additionalRules}
             checkResult = JSON.parse(existingFile) as CheckCodeResponse;
         } else {
             checkResult = await shinkaiAPI.checkCode(this.language, this.code);
-            this.fileManager.log(`[Step ${this.step}] Code check results: ${JSON.stringify(checkResult.warnings, null, 2)}`, true);
+            this.fileManager.log(`[Step ${this.step}] Code check results ${checkResult.warnings.length} warnings`, true);
             await this.fileManager.save(this.step, 'a', JSON.stringify(checkResult, null, 2), 'code-check-results.json');
         }
 
@@ -422,7 +340,7 @@ ${additionalRules}
             }
             this.fileManager.log(`[Step ${this.step}] Check generated code`, true);
 
-            const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+            const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
                 let warningString = checkResult.warnings.join('\n')
                     .replace(/file:\/\/\/[a-zA-Z0-9_\/-]+?\/code\/[a-zA-Z0-9_-]+?\//g, '/')
@@ -495,12 +413,13 @@ In the next example tag is an example of the commented script block that MUST be
         // Check if output file exists
         if (await this.fileManager.exists(this.step, 'c', 'metadata.json')) {
             console.log(`<SKIPPING> Step ${this.step} - Metadata already exists`);
-            const _ = await this.fileManager.load(this.step, 'c', 'metadata.json');
+            const m = await this.fileManager.load(this.step, 'c', 'metadata.json');
+            this.metadata = m;
             this.step++;
             return;
         }
 
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] Generate the metadata`, true);
 
             let metadataPrompt = '';
@@ -523,15 +442,16 @@ In the next example tag is an example of the commented script block that MUST be
                 new RegExp("result"),
             ]
         });
-
-        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'metadata.json');
+        this.metadata = parsedLLMResponse;
+        await this.fileManager.save(this.step, 'c', this.metadata, 'metadata.json');
+        this.step++;
     }
 
     private async logCompletion() {
         const end = Date.now();
         const time = end - this.startTime;
         await this.fileManager.log(`[Done] took ${time}ms`, true);
-        console.log('code available at', this.fileManager.toolDir);
+        console.log('code available at', this.fileManager.toolDir + '/src');
     }
 
     public async run() {
@@ -548,6 +468,7 @@ In the next example tag is an example of the commented script block that MUST be
             retries--;
         }
         await this.generateMetadata();
+        await this.fileManager.saveFinal(this.code, this.metadata);
         await this.logCompletion();
     }
 }
