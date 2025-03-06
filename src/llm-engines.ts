@@ -1,5 +1,11 @@
 import axios from "npm:axios";
 import { TestFileManager } from "./TestFileManager.ts";
+
+const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");
+const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");
+
+export type Payload = OllamaPayload | OpenAIPayload;
+
 export abstract class BaseEngine {
   public readonly path: string;
   public readonly shinkaiName: string;
@@ -22,23 +28,148 @@ export abstract class BaseEngine {
   }
 }
 
-const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL")
-
 export function getLlama318bInstruct() {
   return new OllamaEngine('llama3.1:8b-instruct-q4_1');
 }
+
 export function getDeepSeekR132B() {
   return new OllamaEngine('deepseek-r1:32b');
 }
+
+export function getOpenAIO4Mini() {
+  return new OpenAI('gpt-4o-mini');
+}
+
+interface OpenAIPayload {
+  model: string;
+  messages: OpenAIMessage[];
+  // stream: boolean;
+}
+interface OpenAIResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: {
+    index: number;
+    message: {
+      role: string;
+      content: string;
+      refusal: null;
+    };
+    logprobs: null;
+    finish_reason: string;
+  }[];
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    prompt_tokens_details: {
+      cached_tokens: number;
+      audio_tokens: number;
+    };
+    completion_tokens_details: {
+      reasoning_tokens: number;
+      audio_tokens: number;
+      accepted_prediction_tokens: number;
+      rejected_prediction_tokens: number;
+    };
+  };
+  service_tier: string;
+  system_fingerprint: string;
+}
+
+
+class OpenAI extends BaseEngine {
+
+  override async run(prompt: string, logger: TestFileManager | undefined, payloadHistory: OpenAIPayload | undefined): Promise<{ message: string, metadata: OpenAIPayload }> {
+    const start = Date.now();
+    let payload = payloadHistory ? this.addToOpenAIPayload(prompt, 'user', payloadHistory) : this.newOpenAIPayload(prompt);
+    if (!OPEN_AI_KEY) {
+      throw new Error("OPEN_AI_KEY is not set");
+    }
+
+    const response = await axios<OpenAIResponse>({
+      url: `https://api.openai.com/v1/chat/completions`,
+      method: "POST",
+      data: payload,
+      headers: {
+        Authorization: `Bearer ${OPEN_AI_KEY}`,
+      }
+    });
+
+    const end = Date.now();
+    const time = end - start;
+    const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
+    logger?.log(`[Benchmark] OpenAI took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
+    payload = this.addToOpenAIPayload(response.data.choices[0].message.content, 'assistant', payload);
+    return {
+      message: response.data.choices[0].message.content,
+      metadata: payload
+    };
+
+  }
+
+
+  private addToOpenAIPayload(prompt: string, role: OpenAIMessage['role'], payload: OpenAIPayload): OpenAIPayload {
+    payload.messages.push({
+      role: role,
+      content: [{ type: 'text', text: prompt }],
+      // content: prompt
+    });
+    return payload;
+  }
+
+  private newOpenAIPayload(prompt: string): OpenAIPayload {
+    const payload: OpenAIPayload = {
+      model: this.name,
+      messages: [{
+        role: 'developer',
+        content:
+          [{
+            type: 'text',
+            text:
+              "You are a very helpful assistant. You may be provided with documents or content to analyze and answer questions about them, in that case refer to the content provided in the user message for your responses.",
+          }],
+      }],
+      // stream: false,
+    };
+    return this.addToOpenAIPayload(prompt, 'user', payload);
+  }
+}
+
+interface OpenAIMessage {
+  role: 'developer' | 'user' | 'assistant';
+  content: {
+    type: 'text',
+    text: string,
+  }[];
+}
+
+interface OllamaPayload {
+  model: string;
+  messages: OllamaMessage[];
+  options: {
+    num_ctx: number;
+  };
+  stream: boolean;
+}
+
+export interface OllamaMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+
 
 class OllamaEngine extends BaseEngine {
   override async run(
     prompt: string,
     logger: TestFileManager | undefined = undefined,
-    payloadHistory: Payload | undefined = undefined,
-  ): Promise<{ message: string, metadata: Payload }> {
+    payloadHistory: OllamaPayload | undefined = undefined,
+  ): Promise<{ message: string, metadata: OllamaPayload }> {
     const start = Date.now();
-    let payload = payloadHistory ? this.addToPayload(prompt, 'user', payloadHistory) : this.newPayload(prompt);
+    let payload = payloadHistory ? this.addToOllamaPayload(prompt, 'user', payloadHistory) : this.newOllamaPayload(prompt);
     if (!ollamaApiUrl) {
       throw new Error("OLLAMA_API_URL is not set");
     }
@@ -52,7 +183,7 @@ class OllamaEngine extends BaseEngine {
     const time = end - start;
     const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
     logger?.log(`[Benchmark] Ollama took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
-    payload = this.addToPayload(response.data.message.content, 'assistant', payload);
+    payload = this.addToOllamaPayload(response.data.message.content, 'assistant', payload);
     return {
       message: response.data.message.content,
       metadata: payload
@@ -80,8 +211,10 @@ class OllamaEngine extends BaseEngine {
     }
   }
 
+
+
   // Ollama specific methods\
-  private addToPayload(prompt: string, role: Message['role'], payload: Payload): Payload {
+  private addToOllamaPayload(prompt: string, role: OllamaMessage['role'], payload: OllamaPayload): OllamaPayload {
     payload.messages.push({
       "role": role,
       "content": prompt,
@@ -89,8 +222,8 @@ class OllamaEngine extends BaseEngine {
     return payload;
   }
 
-  private newPayload(prompt: string): Payload {
-    const payload: Payload = {
+  private newOllamaPayload(prompt: string): OllamaPayload {
+    const payload: OllamaPayload = {
       "model": this.name,
       "messages": [
         {
@@ -104,24 +237,10 @@ class OllamaEngine extends BaseEngine {
       },
       "stream": false,
     };
-    return this.addToPayload(prompt, 'user', payload);
+    return this.addToOllamaPayload(prompt, 'user', payload);
   }
 }
 
-export type Payload = OllamaPayload;
 
-interface OllamaPayload {
-  model: string;
-  messages: Message[];
-  options: Options;
-  stream: boolean;
-}
 
-export interface Message {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
 
-export interface Options {
-  num_ctx: number;
-}

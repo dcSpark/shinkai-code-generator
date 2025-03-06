@@ -21,6 +21,16 @@ cp .env.example .env
 deno -A src/index.ts
 ```
 
+## Quick reruns
+Only rerun missing steps from `.execution/{model}/{code}/{language}/{file}`
+```
+deno -A src/index.ts --keepcache
+```
+Rerun documentation stage (implies --keepcache)
+```
+deno -A src/index.ts --force-docs
+```
+
 ## Pipeline Flow Diagram
 
 ```mermaid

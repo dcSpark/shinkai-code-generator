@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'npm:axios';
 import { TestFileManager } from "./TestFileManager.ts";
 import { exists } from "jsr:@std/fs/exists";
 import { Language } from "./types.ts";
+import { BaseEngine } from './llm-engines.ts';
 const BRAVE_API_KEY = Deno.env.get('BRAVE_API_KEY');
 const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');
 
@@ -160,8 +161,42 @@ interface CrawlInitResponse {
     url: string;
 }
 
+interface MapResponse {
+    status: string;
+    links: string[];
+}
+
+interface ScrapeResponse {
+    success: boolean;
+    data: {
+        markdown?: string;
+        html?: string;
+        metadata: {
+            title?: string;
+            description?: string;
+            language?: string;
+            keywords?: string;
+            robots?: string;
+            ogTitle?: string;
+            ogDescription?: string;
+            ogUrl?: string;
+            ogImage?: string;
+            ogLocaleAlternate?: string[];
+            ogSiteName?: string;
+            sourceURL: string;
+            statusCode: number;
+        }
+    }
+}
+
+interface ScrapeOptions {
+    url: string;
+    formats?: 'markdown' | 'html'[];
+}
 
 export class DependencyDoc {
+    // constructor(private llm: BaseEngine) { }
+
     public async getDependencyDocumentation(query: string, language: Language, logger: TestFileManager | undefined = undefined): Promise<string> {
         const query_ = `${query} - ${language} documentation`;
         const searchResponse = await this.braveSearch(query_);
@@ -182,6 +217,21 @@ export class DependencyDoc {
         if (!url) {
             throw new Error('No URL found');
         }
+
+        //         await this.llm.run(`
+        // In the search results tag, there is JSON with a internet serach result for ${query_}
+        // <search_results>
+        // ${JSON.stringify(searchResponse.web.results.map(r => ({
+        //             title: r.title,
+        //             url: r.url,
+        //             description: r.description,
+        //         })))}
+        // </search_results>
+
+        // <rules>
+        // * We want to get the links that 
+
+        //             `, logger, undefined);
 
 
         await logger?.log(`[Crawl] ${url}`);
@@ -295,6 +345,81 @@ export class DependencyDoc {
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 throw new Error(`Crawl API error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    private async mapWebsite(url: string): Promise<string[]> {
+        if (!url) {
+            throw new Error('URL is required');
+        }
+
+        const safeFilename = this.toSafeFilename('map_' + url);
+        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
+            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)).links;
+        }
+
+        try {
+            if (!FIRECRAWL_API_URL) {
+                throw new Error('FIRECRAWL_API_URL is not set');
+            }
+            if (!url.match(/https?:\/\//)) {
+                throw new Error(url + ' - URL must start with http:// or https://');
+            }
+
+            const response = await axios.post(FIRECRAWL_API_URL + '/v1/map', {
+                url: url
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const mapResponse: MapResponse = response.data;
+            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(mapResponse));
+            return mapResponse.links;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(`Map API error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    private async scrapeWebsite(options: ScrapeOptions): Promise<ScrapeResponse> {
+        if (!options.url) {
+            throw new Error('URL is required');
+        }
+
+        const safeFilename = this.toSafeFilename('scrape_' + options.url);
+        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
+            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)) as ScrapeResponse;
+        }
+
+        try {
+            if (!FIRECRAWL_API_URL) {
+                throw new Error('FIRECRAWL_API_URL is not set');
+            }
+            if (!options.url.match(/https?:\/\//)) {
+                throw new Error(options.url + ' - URL must start with http:// or https://');
+            }
+
+            const response = await axios.post(FIRECRAWL_API_URL + '/v1/scrape', {
+                url: options.url,
+                formats: options.formats || ['markdown']
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const scrapeResponse: ScrapeResponse = response.data;
+            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(scrapeResponse));
+            return scrapeResponse;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(`Scrape API error: ${error.message}`);
             }
             throw error;
         }

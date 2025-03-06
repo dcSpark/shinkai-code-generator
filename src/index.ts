@@ -1,11 +1,19 @@
 import "jsr:@std/dotenv/load";
-import { BaseEngine, getDeepSeekR132B, getLlama318bInstruct, Payload } from "./llm-engines.ts";
+import { BaseEngine, getDeepSeekR132B, getLlama318bInstruct, getOpenAIO4Mini, Payload } from "./llm-engines.ts";
 import { getFullHeadersAndTools, tryToExtractJSON, tryToExtractMarkdown, tryToExtractPython, tryToExtractTS } from "./support.ts";
 import { getTests, Test } from "./Test.ts";
 import { Language } from "./types.ts";
 import { TestFileManager } from "./TestFileManager.ts";
 import { DependencyDoc } from "./DependencyDoc.ts";
-import { ShinkaiAPI } from "./ShinkaiAPI.ts";
+import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
+import { parseArgs } from "jsr:@std/cli/parse-args";
+
+
+const flags = parseArgs(Deno.args, {
+    boolean: ["keepcache", "force-docs"],
+});
+const KEEP_CACHE = flags.keepcache || flags["force-docs"];
+const FORCE_DOCS_GENERATION = flags["force-docs"];
 
 class ShinkaiPipeline {
     // Setup in constructor
@@ -140,9 +148,22 @@ class ShinkaiPipeline {
 
 
     private async processRequirementsAndFeedback() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'requirements.md') &&
+            await this.fileManager.exists(this.step, 'x', 'promptHistory.json')
+        ) {
+            console.log(`<SKIPPING> Step ${this.step} - Requirements & Feedback already exists`);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'requirements.md');
+            this.feedback = existingFile;
+            const promptHistory = await this.fileManager.load(this.step, 'x', 'promptHistory.json');
+            this.promptHistory = JSON.parse(promptHistory);
+            this.step++;
+            return;
+        }
+
         const parsedLLMResponse = await this.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] System Requirements & Feedback Prompt`, true);
-            const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_support'];
+            const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_tools'];
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.test.prompt}\n\n</input_command>`
@@ -152,6 +173,7 @@ class ShinkaiPipeline {
                 .replace("<internal-libraries>\n\n</internal-libraries>", `<internal-libraries>\n${headers}\n</internal-libraries>`)
             await this.fileManager.save(this.step, 'a', prompt, 'requirements-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            await this.fileManager.save(this.step, 'x', JSON.stringify(llmResponse.metadata), 'promptHistory.json');
             this.promptHistory = llmResponse.metadata;
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-requirements-response.md');
             return llmResponse.message;
@@ -170,6 +192,15 @@ class ShinkaiPipeline {
     }
 
     private async processUserFeedback() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
+            console.log(`<SKIPPING> Step ${this.step} - User Requirements & Feedback already exists`);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'feedback.md');
+            this.feedback = existingFile;
+            this.step++;
+            return;
+        }
+
         const parsedLLMResponse = await this.retryUntilSuccess(async () => {
 
             this.fileManager.log(`[Step ${this.step}] User Requirements & Feedback Prompt`, true);
@@ -208,35 +239,61 @@ class ShinkaiPipeline {
     }
 
     private async processLibrarySearch() {
-        const parsedLLMResponse = await this.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Step ${this.step}] Library Search Prompt`, true);
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/library.md')).replace(
-                '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.feedback}\n\n</input_command>`
-            );
-            await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
-            const promptResponse = llmResponse.message;
-            await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
-            return promptResponse;
-        }, 'json', {
-            isJSONArray: true
-        });
 
-        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'library.json');
+        let parsedLLMResponse = ''
+        if (await this.fileManager.exists(this.step, 'c', 'library.json')) {
+            console.log(`<SKIPPING> Step ${this.step} - Library Search already exists`);
+            const existingLibraryJson = await this.fileManager.load(this.step, 'c', 'library.json');
+            parsedLLMResponse = existingLibraryJson;
+            // Load existing dependency docs
+        } else {
+            parsedLLMResponse = await this.retryUntilSuccess(async () => {
+                this.fileManager.log(`[Step ${this.step}] Library Search Prompt`, true);
+                const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/library.md')).replace(
+                    '<input_command>\n\n</input_command>',
+                    `<input_command>\n${this.feedback}\n\n</input_command>`
+                );
+                await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
+                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+                const promptResponse = llmResponse.message;
+                await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
+                return promptResponse;
+            }, 'json', {
+                isJSONArray: true
+            });
+
+            await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'library.json');
+        }
+
 
         const libQueries = JSON.parse(parsedLLMResponse) as string[];
         const codes = 'defghijklmnopqrstuvwxyz';
         for (const [index, library] of libQueries.entries()) {
-            const dependencyDoc = await new DependencyDoc().getDependencyDocumentation(library, this.language, this.fileManager);
-            this.docs[library] = dependencyDoc;
-            await this.fileManager.save(this.step, codes[index % codes.length] as any, dependencyDoc, 'dependency-doc.md');
+            if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length] as any, 'dependency-doc.md')) {
+                console.log(`<SKIPPING> Step ${this.step} - Dependency Doc already exists`);
+                const existingFile = await this.fileManager.load(this.step, codes[index % codes.length] as any, 'dependency-doc.md');
+                this.docs[library] = existingFile;
+            } else {
+                this.fileManager.log(`[Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
+                const dependencyDoc = await new DependencyDoc().getDependencyDocumentation(library, this.language, this.fileManager);
+                this.docs[library] = dependencyDoc;
+                await this.fileManager.save(this.step, codes[index % codes.length] as any, dependencyDoc, 'dependency-doc.md');
+            }
         }
 
         this.step++;
     }
 
     private async processInternalTools() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'internal-tools.json')) {
+            console.log(`<SKIPPING> Step ${this.step} - Internal Tools already exists`);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'internal-tools.json');
+            this.internalToolsJSON = JSON.parse(existingFile) as string[];
+            this.step++;
+            return;
+        }
+
         const parsedLLMResponse = await this.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
@@ -260,6 +317,22 @@ class ShinkaiPipeline {
     }
 
     private async generateCode() {
+        // Check if output file exists
+        if (this.language === 'typescript' && await this.fileManager.exists(this.step, 'c', 'tool.ts')) {
+            console.log(`<SKIPPING> Step ${this.step} - Tool code already exists`);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'tool.ts');
+            this.code = existingFile;
+            this.step++;
+            return;
+        }
+        if (this.language === 'python' && await this.fileManager.exists(this.step, 'c', 'tool.py')) {
+            console.log(`<SKIPPING> Step ${this.step} - Tool code already exists`);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'tool.py');
+            this.code = existingFile;
+            this.step++;
+            return;
+        }
+
         const parsedLLMResponse = await this.retryUntilSuccess(async () => {
 
             this.fileManager.log(`[Step ${this.step}] Generate the tool code`, true);
@@ -298,11 +371,10 @@ ${Object.entries(this.docs).map(([library, doc]) => `
 ${additionalRules}
     * For missing and additional required libraries, prefer the following order:`
             );
-
+            await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
             const llmResponse = await this.llmModel.run(toolCode, this.fileManager, undefined);
             const promptResponse = llmResponse.message;
 
-            await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-code-response.md');
             return promptResponse;
         }, this.language, {
@@ -321,12 +393,35 @@ ${additionalRules}
     }
 
     private async checkGeneratedCode(): Promise<{ warnings: boolean }> {
-        this.fileManager.log(`[Step ${this.step}] Check generated code`, true);
         const shinkaiAPI = new ShinkaiAPI();
-        const checkResult = await shinkaiAPI.checkCode(this.language, this.code);
-        this.fileManager.log(`[Step ${this.step}] Code check results: ${JSON.stringify(checkResult.warnings, null, 2)}`, true);
-        await this.fileManager.save(this.step, 'a', JSON.stringify(checkResult, null, 2), 'code-check-results.json');
+        let checkResult: CheckCodeResponse;
+        if (await this.fileManager.exists(this.step, 'a', 'code-check-results.json')) {
+            const existingFile = await this.fileManager.load(this.step, 'a', 'code-check-results.json');
+            checkResult = JSON.parse(existingFile) as CheckCodeResponse;
+        } else {
+            checkResult = await shinkaiAPI.checkCode(this.language, this.code);
+            this.fileManager.log(`[Step ${this.step}] Code check results: ${JSON.stringify(checkResult.warnings, null, 2)}`, true);
+            await this.fileManager.save(this.step, 'a', JSON.stringify(checkResult, null, 2), 'code-check-results.json');
+        }
+
         if (checkResult.warnings.length > 0) {
+
+            if (this.language === 'typescript' && await this.fileManager.exists(this.step, 'd', 'fixed-tool.ts')) {
+                console.log(`<SKIPPING> Step ${this.step} - Fixed code already exists`);
+                const existingFile = await this.fileManager.load(this.step, 'd', 'fixed-tool.ts');
+                this.code = existingFile;
+                this.step++;
+                return { warnings: true };
+            }
+            if (this.language === 'python' && await this.fileManager.exists(this.step, 'd', 'fixed-tool.py')) {
+                console.log(`<SKIPPING> Step ${this.step} - Fixed code already exists`);
+                const existingFile = await this.fileManager.load(this.step, 'd', 'fixed-tool.py');
+                this.code = existingFile;
+                this.step++;
+                return { warnings: true };
+            }
+            this.fileManager.log(`[Step ${this.step}] Check generated code`, true);
+
             const parsedLLMResponse = await this.retryUntilSuccess(async () => {
 
                 let warningString = checkResult.warnings.join('\n')
@@ -349,8 +444,9 @@ All libraries must be imported at the start of the code with either:
 ` : `
 At the start of the file add a commented toml code block with the dependencies used and required to be downloaded by pip.
 Only add the dependencies that are required to be downloaded by pip, do not add the dependencies that are already available in the Python environment.
-This is an example of the commented script block that MUST be present before any python code or imports.
 
+In the next example tag is an example of the commented script block that MUST be present before any python code or imports, where the exact list of dependencies depends on the source code.
+<example>
 # /// script
 # requires-python = ">=3.10,<3.12"
 # dependencies = [
@@ -361,6 +457,9 @@ This is an example of the commented script block that MUST be present before any
 #   "other_dependency_2",
 # ]
 # ///
+</example>
+
+  * Do not implement __init__ or __new__ methods for CONFIG, INPUTS or OUTPUT. So OUTPUT should be set with dot notation.
 `)
                 await this.fileManager.save(this.step, 'b', fixCodePrompt, 'fix-code-prompt.md');
 
@@ -385,12 +484,22 @@ This is an example of the commented script block that MUST be present before any
             return { warnings: true }
         } else {
             // Nothing to fix
+            this.fileManager.log(`[Step ${this.step}] No warnings found`, true);
+
             this.step++;
             return { warnings: false }
         }
     }
 
     private async generateMetadata() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'metadata.json')) {
+            console.log(`<SKIPPING> Step ${this.step} - Metadata already exists`);
+            const _ = await this.fileManager.load(this.step, 'c', 'metadata.json');
+            this.step++;
+            return;
+        }
+
         const parsedLLMResponse = await this.retryUntilSuccess(async () => {
             this.fileManager.log(`[Step ${this.step}] Generate the metadata`, true);
 
@@ -444,13 +553,20 @@ This is an example of the commented script block that MUST be present before any
 }
 
 async function start() {
-    await TestFileManager.clearFolder();
+    if (!KEEP_CACHE) {
+        await TestFileManager.clearFolder();
+    }
     const llm = [
         // getDeepSeekR132B(), // Good results (for testing outputs)
-        getLlama318bInstruct() // Fast results (for testing engine)
+        // getLlama318bInstruct() // Fast results (for testing engine)
+        getOpenAIO4Mini() // Fast + Good
+    ];
+    const languages: Language[] = [
+        'typescript',
+        'python'
     ];
     for (const llmModel of llm) {
-        for (const language of (['typescript', 'python']) as Language[]) {
+        for (const language of languages) {
             for (const test of getTests()) {
                 const pipeline = new ShinkaiPipeline(language, test, llmModel);
                 await pipeline.run();
@@ -458,5 +574,6 @@ async function start() {
         }
     }
 }
+
 
 start();
