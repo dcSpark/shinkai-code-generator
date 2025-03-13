@@ -109,6 +109,19 @@
             overflow-y: auto;
             max-height: 400px;
             border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .code-box.empty,
+        .metadata-box.empty {
+            max-height: 45px;
+            overflow: hidden;
+        }
+
+        .code-box.empty #code-content,
+        .metadata-box.empty #metadata-content {
+            height: 18px;
+            display: block;
         }
 
         .box-header {
@@ -173,6 +186,26 @@
         .feedback-actions button.secondary:hover {
             background-color: #5a6268;
         }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .language-selector label {
+            margin-bottom: 0;
+        }
+
+        .language-selector select {
+            width: auto;
+        }
     </style>
 </head>
 
@@ -181,19 +214,20 @@
 
     <div class="form-container">
         <div class="form-group">
-            <label for="language">Programming Language:</label>
-            <select id="language">
-                <option value="typescript">TypeScript</option>
-                <option value="python">Python</option>
-            </select>
-        </div>
-
-        <div class="form-group">
             <label for="prompt">Prompt:</label>
             <textarea id="prompt" placeholder="Describe what you want to generate..."></textarea>
         </div>
 
-        <button id="generate-btn">Generate Code</button>
+        <div class="form-actions">
+            <button id="generate-btn">Generate Code</button>
+            <div class="language-selector">
+                <label for="language">Language:</label>
+                <select id="language">
+                    <option value="typescript">TypeScript</option>
+                    <option value="python">Python</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="output-container">
@@ -231,9 +265,15 @@
             const promptTextarea = document.getElementById('prompt');
             const outputDiv = document.getElementById('output');
             const statusSpan = document.getElementById('status');
+            const codeBox = document.querySelector('.code-box');
+            const metadataBox = document.querySelector('.metadata-box');
+            const codeContent = document.getElementById('code-content');
+            const metadataContent = document.getElementById('metadata-content');
 
-            let codeContent = '';
-            let metadataContent = '';
+            // Initialize empty state
+            codeBox.classList.add('empty');
+            metadataBox.classList.add('empty');
+
             let requestUuid = '';
 
             generateBtn.addEventListener('click', async () => {
@@ -251,6 +291,10 @@
                 document.getElementById('metadata-content').textContent = '';
                 statusSpan.textContent = 'Processing...';
                 generateBtn.disabled = true;
+
+                // Reset to empty state
+                codeBox.classList.add('empty');
+                metadataBox.classList.add('empty');
 
                 try {
                     // Call the API with fetch
@@ -348,9 +392,11 @@
                                         const codeObj = JSON.parse(data.message);
                                         console.log('Parsed code object:', codeObj);
                                         if (codeObj.code) {
-                                            codeContent = codeObj.code;
+                                            let codeContent = codeObj.code;
                                             document.getElementById('code-content').textContent = codeObj.code;
                                             outputDiv.innerHTML += `<div class="progress-item">Code received and displayed</div>`;
+                                            // Remove empty class when code is received
+                                            codeBox.classList.remove('empty');
                                         }
                                     } catch (e) {
                                         console.warn('Failed to parse code from progress message:', e);
@@ -367,7 +413,7 @@
                                         const metadataObj = JSON.parse(data.message);
                                         console.log('Parsed metadata object:', metadataObj);
                                         if (metadataObj.metadata) {
-                                            metadataContent = metadataObj.metadata;
+                                            let metadataContent = metadataObj.metadata;
                                             try {
                                                 const prettyMetadata = JSON.stringify(JSON.parse(metadataObj.metadata), null, 2);
                                                 document.getElementById('metadata-content').textContent = prettyMetadata;
@@ -376,6 +422,8 @@
                                                 document.getElementById('metadata-content').textContent = metadataObj.metadata;
                                             }
                                             outputDiv.innerHTML += `<div class="progress-item">Metadata received and displayed</div>`;
+                                            // Remove empty class when metadata is received
+                                            metadataBox.classList.remove('empty');
                                         }
                                     } catch (e) {
                                         console.warn('Failed to parse metadata from progress message:', e);
@@ -410,86 +458,130 @@
                             console.log('Event: request-feedback', data);
                             outputDiv.innerHTML += `<div class="progress-item">Feedback requested. Please provide your thoughts below.</div>`;
 
-                            // Show the feedback form
-                            const feedbackContainer = document.getElementById('feedback-container');
-                            feedbackContainer.style.display = 'block';
+                            // Create a new feedback form each time
+                            // First, remove any existing feedback form
+                            const existingFeedbackContainer = document.getElementById('feedback-container');
+                            if (existingFeedbackContainer) {
+                                existingFeedbackContainer.remove();
+                            }
 
-                            // Set up feedback submission
-                            const submitFeedbackBtn = document.getElementById('submit-feedback');
-                            const skipFeedbackBtn = document.getElementById('skip-feedback');
-                            const feedbackText = document.getElementById('feedback-text');
+                            // Create a new feedback container
+                            const feedbackContainer = document.createElement('div');
+                            feedbackContainer.id = 'feedback-container';
+                            feedbackContainer.className = 'feedback-form';
 
-                            // Clear previous event listeners to prevent duplicates
-                            const newSubmitBtn = submitFeedbackBtn.cloneNode(true);
-                            const newSkipBtn = skipFeedbackBtn.cloneNode(true);
-                            submitFeedbackBtn.parentNode.replaceChild(newSubmitBtn, submitFeedbackBtn);
-                            skipFeedbackBtn.parentNode.replaceChild(newSkipBtn, skipFeedbackBtn);
+                            // Create the heading
+                            const heading = document.createElement('h3');
+                            heading.textContent = 'Provide Feedback';
+                            feedbackContainer.appendChild(heading);
 
-                            // Add event listeners for the feedback buttons
-                            newSubmitBtn.addEventListener('click', async () => {
+                            // Create the textarea
+                            const feedbackText = document.createElement('textarea');
+                            feedbackText.id = 'feedback-text';
+                            feedbackText.placeholder = 'Enter your feedback here...';
+                            feedbackContainer.appendChild(feedbackText);
+
+                            // Create the buttons container
+                            const buttonsDiv = document.createElement('div');
+                            buttonsDiv.className = 'feedback-actions';
+
+                            // Create submit button
+                            const submitBtn = document.createElement('button');
+                            submitBtn.id = 'submit-feedback';
+                            submitBtn.className = 'primary';
+                            submitBtn.textContent = 'Submit Feedback';
+
+                            // Create skip button
+                            const skipBtn = document.createElement('button');
+                            skipBtn.id = 'skip-feedback';
+                            skipBtn.className = 'secondary';
+                            skipBtn.textContent = 'Skip';
+
+                            // Add buttons to container
+                            buttonsDiv.appendChild(submitBtn);
+                            buttonsDiv.appendChild(skipBtn);
+                            feedbackContainer.appendChild(buttonsDiv);
+
+                            // Add the feedback container to the output container
+                            document.querySelector('.output-container').appendChild(feedbackContainer);
+
+                            // Ensure the feedback form is visible by scrolling to it
+                            feedbackContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                            // Focus on the textarea
+                            setTimeout(() => feedbackText.focus(), 300);
+
+                            // Add event listeners for the buttons
+                            submitBtn.addEventListener('click', async () => {
                                 const feedback = feedbackText.value.trim();
-                                if (feedback) {
-                                    try {
-                                        // Send feedback to the server
-                                        const response = await fetch('http://localhost:8080/generate?language=' + encodeURIComponent(languageSelect.value) +
-                                            '&prompt=' + encodeURIComponent(promptTextarea.value) +
-                                            '&feedback=' + encodeURIComponent(feedback) +
-                                            '&x_shinkai_request_uuid=' + requestUuid, {
-                                            method: 'GET',
-                                            headers: {
-                                                'Accept': 'text/event-stream',
-                                            }
-                                        });
+                                submitFeedback(feedback);
+                            });
 
-                                        if (response.ok) {
-                                            outputDiv.innerHTML += `<div class="progress-item">Feedback submitted successfully. Thank you!</div>`;
+                            skipBtn.addEventListener('click', () => {
+                                submitFeedback('');
+                            });
 
-                                            // Process the stream response to continue the generation
-                                            if (response.body) {
-                                                const reader = response.body.getReader();
-                                                const decoder = new TextDecoder();
+                            // Function to handle feedback submission
+                            async function submitFeedback(feedback) {
+                                try {
+                                    // Disable buttons while processing
+                                    submitBtn.disabled = true;
+                                    skipBtn.disabled = true;
 
-                                                // Process the stream
-                                                while (true) {
-                                                    try {
-                                                        const { done, value } = await reader.read();
+                                    // Send feedback to the server
+                                    const response = await fetch('http://localhost:8080/generate?language=' + encodeURIComponent(languageSelect.value) +
+                                        '&prompt=' + encodeURIComponent(promptTextarea.value) +
+                                        '&feedback=' + encodeURIComponent(feedback) +
+                                        '&x_shinkai_request_uuid=' + requestUuid, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Accept': 'text/event-stream',
+                                        }
+                                    });
 
-                                                        if (done) {
-                                                            break;
-                                                        }
+                                    if (response.ok) {
+                                        outputDiv.innerHTML += `<div class="progress-item">${feedback ? 'Feedback submitted successfully. Thank you!' : 'Feedback skipped.'}</div>`;
 
-                                                        // Decode the chunk
-                                                        const chunk = decoder.decode(value, { stream: true });
+                                        // Remove the feedback form
+                                        feedbackContainer.remove();
 
-                                                        // Process the SSE events
-                                                        processEvents(chunk);
-                                                    } catch (readError) {
-                                                        console.error('Error reading from stream:', readError);
-                                                        outputDiv.innerHTML += `<div class="error">Stream error: ${readError.message}</div>`;
+                                        // Process the stream response to continue the generation
+                                        if (response.body) {
+                                            const reader = response.body.getReader();
+                                            const decoder = new TextDecoder();
+
+                                            // Process the stream
+                                            while (true) {
+                                                try {
+                                                    const { done, value } = await reader.read();
+
+                                                    if (done) {
                                                         break;
                                                     }
+
+                                                    // Decode the chunk
+                                                    const chunk = decoder.decode(value, { stream: true });
+
+                                                    // Process the SSE events
+                                                    processEvents(chunk);
+                                                } catch (readError) {
+                                                    console.error('Error reading from stream:', readError);
+                                                    outputDiv.innerHTML += `<div class="error">Stream error: ${readError.message}</div>`;
+                                                    break;
                                                 }
                                             }
-                                        } else {
-                                            outputDiv.innerHTML += `<div class="error">Failed to submit feedback: ${response.statusText}</div>`;
                                         }
-                                    } catch (error) {
-                                        outputDiv.innerHTML += `<div class="error">Error submitting feedback: ${error.message}</div>`;
+                                    } else {
+                                        outputDiv.innerHTML += `<div class="error">Failed to ${feedback ? 'submit' : 'skip'} feedback: ${response.statusText}</div>`;
+                                        // Remove the feedback form
+                                        feedbackContainer.remove();
                                     }
-                                } else {
-                                    outputDiv.innerHTML += `<div class="progress-item">No feedback provided.</div>`;
+                                } catch (error) {
+                                    outputDiv.innerHTML += `<div class="error">Error ${feedback ? 'submitting' : 'skipping'} feedback: ${error.message}</div>`;
+                                    // Remove the feedback form
+                                    feedbackContainer.remove();
                                 }
-
-                                // Hide the feedback form
-                                feedbackContainer.style.display = 'none';
-                                feedbackText.value = '';
-                            });
-
-                            newSkipBtn.addEventListener('click', () => {
-                                outputDiv.innerHTML += `<div class="progress-item">Feedback skipped.</div>`;
-                                feedbackContainer.style.display = 'none';
-                                feedbackText.value = '';
-                            });
+                            }
                             break;
 
                         case 'code':
