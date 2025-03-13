@@ -29,10 +29,11 @@ export class TestFileManager {
         }
     }
 
-    async save(step: number, substep: string, text: string, fileName: string) {
+    async save(step: number, substep: string, text: string, fileName: string): Promise<string> {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         await Deno.mkdir(this.toolDir, { recursive: true });
         await Deno.writeTextFile(filePath, text);
+        return filePath;
     }
 
     async saveFinal(tool: string, metadata: string) {

@@ -29,6 +29,9 @@ export class ShinkaiPipeline {
     // Used to pass the prompt history from requirements to feedback
     private promptHistory: Payload | undefined;
 
+    // Feedback analysis result
+    private feedbackAnalysisResult: string = '';
+
     // External libraries docs
     private docs: Record<string, string> = {};
 
@@ -59,14 +62,15 @@ export class ShinkaiPipeline {
         this.shinkaiPrompts = completeShinkaiPrompts[this.language];
         this.availableTools = completeShinkaiPrompts.availableTools;
         // await this.fileManager.log(`=========================================================`, true);
-        // await this.fileManager.log(`🔨 Running test #[${this.test.id}] ${this.test.code} @ ${this.language} w/ ${this.llmModel.name}`, true);
+        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language}`, true);
     }
 
-    private async processRequirementsAndFeedback() {
+    private async generateRequirements() {
         // Check if output file exists
         if (await this.fileManager.exists(this.step, 'c', 'requirements.md') &&
             await this.fileManager.exists(this.step, 'x', 'promptHistory.json')
         ) {
+            // If skipping this was processed before, just adding into the prompt history
             await this.fileManager.log(` Step ${this.step} - Requirements & Feedback `, true);
             const existingFile = await this.fileManager.load(this.step, 'c', 'requirements.md');
             this.feedback = existingFile;
@@ -103,32 +107,36 @@ export class ShinkaiPipeline {
         });
         this.feedback = parsedLLMResponse;
         await this.fileManager.save(this.step, 'c', this.feedback, 'requirements.md');
+
         this.step++;
+
+        // let's terminate the pipeline if the user feedback is not provided
+        console.log(JSON.stringify({ markdown: this.feedback }));
+        throw new Error('REQUEST_FEEDBACK');
+
     }
 
     private async processUserFeedback() {
-        // Check if output file exists
-        if (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
-            await this.fileManager.log(` Step ${this.step} - User Requirements & Feedback `, true);
-            const existingFile = await this.fileManager.load(this.step, 'c', 'feedback.md');
-            this.feedback = existingFile;
-            this.step++;
-            return;
+        const user_feedback = this.test.feedback;
+        if (!user_feedback) {
+            throw new Error('missing feedback');
         }
 
-        let user_feedback = '';
-        if (this.test.feedback) {
-            user_feedback = this.test.feedback;
+        let moreFeedback = true;
+
+        while (moreFeedback) {
+            // Check if output file exists
+            if (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
+                await this.fileManager.log(` Step ${this.step} - User Requirements & Feedback `, true);
+                this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+                this.promptHistory = JSON.parse(await this.fileManager.load(this.step, 'x', 'promptHistory.json'));
+                this.step++;
+                moreFeedback = true
+            } else {
+                moreFeedback = false;
+            }
         }
-        if (this.language === 'typescript' && this.test.feedback_ts) {
-            user_feedback = this.test.feedback_ts;
-        }
-        if (this.language === 'python' && this.test.feedback_python) {
-            user_feedback = this.test.feedback_python;
-        }
-        if (!user_feedback) {
-            throw new Error('REQUEST_FEEBACK');
-        }
+
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
@@ -141,6 +149,10 @@ export class ShinkaiPipeline {
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory);
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-response.md');
+
+            this.promptHistory = llmResponse.metadata;
+            await this.fileManager.save(this.step, 'x', JSON.stringify(this.promptHistory, null, 2), 'promptHistory.json');
+
             return llmResponse.message;
         }, 'markdown', {
             regex: [
@@ -457,12 +469,67 @@ In the next example tag is an example of the commented script block that MUST be
         // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
     }
 
+    private async processFeedbackAnalysis() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'feedback-analysis.json')) {
+            await this.fileManager.log(` Step ${this.step} - Feedback Analysis `, true);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'feedback-analysis.json');
+            this.feedbackAnalysisResult = JSON.parse(existingFile).result;
+            this.step++;
+            return;
+        }
+
+        let user_feedback = '';
+        if (this.test.feedback) {
+            user_feedback = this.test.feedback;
+        }
+
+        if (!user_feedback) {
+            console.log(JSON.stringify({ markdown: this.feedback }));
+            throw new Error('REQUEST_FEEDBACK');
+        }
+
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+            this.fileManager.log(`[Step ${this.step}] Feedback Analysis Prompt`, true);
+
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback_analysis.md')).replace(
+                '<feedback>\n\n</feedback>',
+                `<feedback>\n${user_feedback}\n</feedback>`
+            );
+            await this.fileManager.save(this.step, 'a', prompt, 'feedback-analysis-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-analysis-response.md');
+            return llmResponse.message;
+        }, 'json', {
+            regex: [
+                /"result"/,
+            ]
+        });
+
+        const analysisResult = JSON.parse(parsedLLMResponse);
+        this.feedbackAnalysisResult = analysisResult.result;
+        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'feedback-analysis.json');
+        this.step++;
+    }
+
     public async run() {
         try {
             await this.initialize();
-            await this.processRequirementsAndFeedback();
-            console.log(JSON.stringify({ markdown: this.feedback }));
-            await this.processUserFeedback();
+            await this.generateRequirements();
+
+            if (this.test.feedback) {
+                // TODO this is only used once. We should use it in each feedback step.
+                await this.processFeedbackAnalysis();
+
+                if (this.feedbackAnalysisResult === "changes-requested") {
+                    await this.processUserFeedback();
+                    console.log(JSON.stringify({ markdown: this.feedback }));
+                    throw new Error('REQUEST_FEEDBACK');
+                } else {
+                    console.log(JSON.stringify({ markdown: this.feedback }));
+                }
+            }
+
             await this.processLibrarySearch();
             await this.processInternalTools();
             await this.generateCode();
@@ -485,11 +552,18 @@ In the next example tag is an example of the commented script block that MUST be
                 metadata: this.metadata,
             }
         } catch (e) {
-            if (e instanceof Error && e.message === 'REQUEST_FEEBACK') {
+            if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
                 console.log("EVENT: request-feedback");
                 // console.log(`EVENT: feedback\n${JSON.stringify({ feedback: this.feedback })}`);
                 return {
-                    status: "REQUEST_FEEBACK",
+                    status: "REQUEST_FEEDBACK",
+                    code: '',
+                    metadata: '',
+                }
+            } else {
+                console.log(String(e));
+                return {
+                    status: "ERROR",
                     code: '',
                     metadata: '',
                 }

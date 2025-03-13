@@ -20,9 +20,11 @@ const language = argMap['language'] as Language;
 const requestUUID = argMap['request-uuid'];
 let prompt = argMap['prompt'] || '';
 prompt = prompt.replaceAll(delimiter, '');
+prompt = decodeURIComponent(prompt);
 // prompt = prompt.match(/^#|#(.*)#|#$/)?.[1] || '';
 let feedback = argMap['feedback'] || ''; // Default to empty string if not provided
 feedback = feedback.replaceAll(delimiter, '')
+feedback = decodeURIComponent(feedback);
 // feedback = feedback.match(/^#|#(.*)#|#$/)?.[1] || '';
 
 if (!language || !requestUUID || !prompt) {
