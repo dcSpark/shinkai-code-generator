@@ -199,11 +199,31 @@ interface ScrapeOptions {
 export class DependencyDoc {
     constructor(private llm: BaseEngine, private logger: TestFileManager | undefined) { }
 
+    private async save(name: string, content: string, folders: string[]): Promise<void> {
+        const dir = Deno.cwd() + '/' + folders.join('/');
+        try {
+            await Deno.mkdir(dir, { recursive: true });
+        } catch (error) {
+            if (!(error instanceof Deno.errors.AlreadyExists)) {
+                throw error;
+            }
+        }
+        await Deno.writeTextFile(`${dir}/${name}`, content);
+    }
+
+    private async load(name: string, folders: string[]): Promise<string> {
+        const filePath = `${Deno.cwd()}/${folders.join('/')}/${name}`;
+        if (await exists(filePath)) {
+            return await Deno.readTextFile(filePath);
+        }
+        throw new Error(`File not found: ${filePath}`);
+    }
+
     private async getURLsFromSearch(searchResponse: BraveSearchResponse, finalQuery: string) {
-        const safeFilename = this.toSafeFilename('searchurls_' + finalQuery, 'json');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
+        const { folders, file } = this.toSafeFilename('searchurls_' + finalQuery, 'json', 'search');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
             await this.logger?.log(` getURLsFromScratch for ${finalQuery}`, true);
-            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)).links;
+            return JSON.parse(await this.load(file, folders)).links;
         }
 
         // How to get the best match? trust the first result?
@@ -299,7 +319,7 @@ ${possiblePages.join('\n')}
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
         const urls2: string[] = JSON.parse(urlsString2);
-        await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify({ links: urls2 }, null, 2));
+        await this.save(file, JSON.stringify({ links: urls2 }, null, 2), folders);
         return urls2;
     }
 
@@ -355,12 +375,12 @@ ${possiblePages.join('\n')}
     }
 
     private async postProcessDocumentation(library: string, documentation: string): Promise<string> {
-        const safeFilenameOriginal = this.toSafeFilename('doc_original_' + library, 'md');
-        await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilenameOriginal, documentation);
+        const { folders: foldersOriginal, file: fileOriginal } = this.toSafeFilename('doc_original_' + library, 'md', 'original');
+        await this.save(fileOriginal, documentation, foldersOriginal);
 
-        const safeFilename = this.toSafeFilename('doc_postprocess_' + library, 'md');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            return await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename);
+        const { folders, file } = this.toSafeFilename('doc_postprocess_' + library, 'md', 'processed');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return await this.load(file, folders);
         }
 
         const chunks = this.chunkDocumentation(documentation);
@@ -383,11 +403,12 @@ ${chunk}
                 `, this.logger, undefined);
                 return response.message;
             }, 'none', {});
-            await Deno.writeTextFile(Deno.cwd() + '/cache/query_' + (index + 1) + 'of' + chunks.length + '_' + library + '.md', partialDoc);
+            const { folders: chunkFolders, file: chunkFile } = this.toSafeFilename('query_' + (index + 1) + 'of' + chunks.length + '_' + library, 'md', 'chunks');
+            await this.save(chunkFile, partialDoc, chunkFolders);
             cleanChunks.push(partialDoc);
         }
         const result = cleanChunks.join('\n');
-        await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, result);
+        await this.save(file, result, folders);
         return result;
     }
 
@@ -422,9 +443,9 @@ ${chunk}
             throw new Error('Search query is required');
         }
 
-        const safeFilename = this.toSafeFilename('search_' + query, 'json');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)) as BraveSearchResponse;
+        const { folders, file } = this.toSafeFilename('search_' + query, 'json', 'brave');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.load(file, folders)) as BraveSearchResponse;
         }
 
 
@@ -439,7 +460,7 @@ ${chunk}
                     'X-Subscription-Token': BRAVE_API_KEY
                 }
             });
-            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(response.data, null, 2));
+            await this.save(file, JSON.stringify(response.data, null, 2), folders);
             return response.data;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -477,8 +498,9 @@ ${chunk}
         }
     }
 
-    private toSafeFilename(filename: string, extension: 'json' | 'md'): string {
-        return filename.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase() + '.' + extension;
+    private toSafeFilename(filename: string, extension: 'json' | 'md', folder: string = 'cache'): { folders: string[], file: string } {
+        const file = filename.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase() + '.' + extension;
+        return { folders: ['cache', folder], file };
     }
 
     private async crawlWebsite(options: CrawlOptions): Promise<CrawlResponse> {
@@ -486,9 +508,9 @@ ${chunk}
             throw new Error('URL is required');
         }
 
-        const safeFilename = this.toSafeFilename('crawl_' + options.url, 'json');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)) as CrawlResponse;
+        const { folders, file } = this.toSafeFilename('crawl_' + options.url, 'json', 'crawl');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.load(file, folders)) as CrawlResponse;
         }
 
         try {
@@ -515,7 +537,8 @@ ${chunk}
 
             const initResponse: CrawlInitResponse = response.data;
             const crawlResponse = await this.pollCrawlStatus(initResponse.url.replace('https://', 'http://'));
-            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(crawlResponse, null, 2));
+
+            await this.save(file, JSON.stringify(crawlResponse, null, 2), folders);
             return crawlResponse;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -530,9 +553,9 @@ ${chunk}
             throw new Error('URL is required');
         }
 
-        const safeFilename = this.toSafeFilename('map_' + url, 'json');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)).links;
+        const { folders, file } = this.toSafeFilename('map_' + url, 'json', 'map');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.load(file, folders)).links;
         }
 
         try {
@@ -553,7 +576,7 @@ ${chunk}
             });
 
             const mapResponse: MapResponse = response.data;
-            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(mapResponse, null, 2));
+            await this.save(file, JSON.stringify(mapResponse, null, 2), folders);
             return mapResponse.links;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
@@ -568,9 +591,9 @@ ${chunk}
             throw new Error('URL is required');
         }
 
-        const safeFilename = this.toSafeFilename('scrape_' + options.url, 'json');
-        if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)) as ScrapeResponse;
+        const { folders, file } = this.toSafeFilename('scrape_' + options.url, 'json', 'scrape');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.load(file, folders)) as ScrapeResponse;
         }
 
         try {
@@ -597,7 +620,7 @@ ${chunk}
                 scrapeResponse.data.html = '';
                 await this.logger?.log(`Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`, true);
             }
-            await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(scrapeResponse, null, 2));
+            await this.save(file, JSON.stringify(scrapeResponse, null, 2), folders);
 
             return scrapeResponse;
         } catch (error: unknown) {
