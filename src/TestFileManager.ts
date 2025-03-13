@@ -1,15 +1,15 @@
-import path from "node:path";
 import { exists } from "jsr:@std/fs/exists";
-import { Language } from "./types.ts";
+import path from "node:path";
 import { Test } from "./Test.ts";
 import { BaseEngine } from "./llm-engines.ts";
+import { Language } from "./types.ts";
 
 export class TestFileManager {
 
     public toolDir: string;
     private static basePath = path.join(Deno.cwd(), '.execution');
 
-    constructor(private language: Language, test: Test, model: BaseEngine) {
+    constructor(private language: Language, test: Test, model: BaseEngine, private stream: boolean) {
         this.toolDir = path.join(
             TestFileManager.basePath,
             model.path,
@@ -24,7 +24,7 @@ export class TestFileManager {
         const file = await Deno.open(filePath, { create: true, append: true });
         await file.write(new TextEncoder().encode(message + '\n'));
         file.close();
-        if (stdout) {
+        if (stdout || this.stream) {
             console.log(message);
         }
     }

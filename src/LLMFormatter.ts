@@ -1,7 +1,11 @@
+import { TestFileManager } from "./TestFileManager.ts";
+
 type Extractor = 'markdown' | 'json' | 'typescript' | 'python' | 'none';
 type Rules = { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean };
 
 export class LLMFormatter {
+    constructor(private logger: TestFileManager | undefined) { }
+
     public async retryUntilSuccess(
         fn: () => Promise<string>,
         extractor: Extractor,
@@ -18,27 +22,41 @@ export class LLMFormatter {
                         throw new Error('Failed to extract. Rerun LLM Prompt.');
                     }
                     try {
-                        const finalResult = this.checkExtracted(partialResult, expected);
+                        const finalResult = await this.checkExtracted(partialResult, expected);
                         return finalResult;
                     } catch (e) {
-                        console.log(`Failed extraction ${extractIndex} : ${String(e)}`);
+                        await this.logger?.save(10000 + retries, `extraction_${extractIndex}`,
+                            `Failed extraction ${extractIndex} : ${String(e)}\n\nOriginal Content:\n${lastFile || 'No last file'}\n\nExtracted Content:\n${partialResult}\n\nFunction Code:\n${fn.toString()}`,
+                            'error.txt');
                         extractIndex++;
                     }
                 }
             } catch (e) {
-                console.log(String(e));
-                console.log('File:', lastFile);
-                console.log('Rules', extractor, expected);
-                console.log('Stage failed...', retries);
+                await this.logger?.save(10000 + retries, 'retry',
+                    JSON.stringify({
+                        error: String(e),
+                        file: lastFile || 'No file',
+                        rules: extractor,
+                        expected,
+                        functionCode: fn.toString()
+                    }, null, 2),
+                    'error.json');
                 retries--;
             }
         }
-        console.log('File:', lastFile);
-        console.log('Rules', extractor, expected);
+        await this.logger?.save(10000 + retries, 'final',
+            JSON.stringify({
+                file: lastFile || 'No file',
+                rules: extractor,
+                expected,
+                functionCode: fn.toString(),
+                extractorType: extractor
+            }, null, 2),
+            'failed_after_retries.json');
         throw new Error('Failed to get result after 3 retries')
     }
 
-    private checkExtracted(result: string, expected: Rules) {
+    private async checkExtracted(result: string, expected: Rules) {
         if (!result) {
             throw new Error('Empty result');
         }
@@ -46,7 +64,13 @@ export class LLMFormatter {
         if (expected.regex && !expected.isJSONArray) {
             for (const r of expected.regex) {
                 if (!r.test(result)) {
-                    console.log({ r, result })
+                    await this.logger?.save(10000, 'regex_check',
+                        JSON.stringify({
+                            regex: String(r),
+                            result,
+                            expectedRules: expected
+                        }, null, 2),
+                        'format_mismatch.json');
                     throw new Error('Does not match format:' + String(r));
                 }
             }

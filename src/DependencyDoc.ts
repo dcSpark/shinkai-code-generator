@@ -1,9 +1,9 @@
-import axios, { AxiosError } from 'npm:axios';
-import { TestFileManager } from "./TestFileManager.ts";
 import { exists } from "jsr:@std/fs/exists";
-import { Language } from "./types.ts";
+import axios, { AxiosError } from 'npm:axios';
 import { BaseEngine } from './llm-engines.ts';
 import { LLMFormatter } from './LLMFormatter.ts';
+import { TestFileManager } from "./TestFileManager.ts";
+import { Language } from "./types.ts";
 const BRAVE_API_KEY = Deno.env.get('BRAVE_API_KEY');
 const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');
 const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
@@ -202,7 +202,7 @@ export class DependencyDoc {
     private async getURLsFromSearch(searchResponse: BraveSearchResponse, finalQuery: string) {
         const safeFilename = this.toSafeFilename('searchurls_' + finalQuery, 'json');
         if (await exists(Deno.cwd() + '/cache/' + safeFilename)) {
-            console.log(`<SKIPPING> getURLsFromScratch for ${finalQuery}`)
+            await this.logger?.log(` getURLsFromScratch for ${finalQuery}`, true);
             return JSON.parse(await Deno.readTextFile(Deno.cwd() + '/cache/' + safeFilename)).links;
         }
 
@@ -210,16 +210,13 @@ export class DependencyDoc {
         const url = searchResponse.web.results.find(r => {
             const isCompressedFile = r.url.match(/\.(zip|tar|gz|bz2|rar|7z|iso)$/);
             const isBinaryFile = r.url.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|dmg|pkg|deb|rpm|msi|exe|app|exe|app|pkg|rpm|deb|msi)$/);
-            if (isCompressedFile || isBinaryFile) {
-                console.log('<SKIPPING>', r.url);
-            }
             return !isCompressedFile && !isBinaryFile;
         })?.url;
         if (!url) {
             throw new Error('No URL found');
         }
 
-        const urlsString = await new LLMFormatter().retryUntilSuccess(async () => {
+        const urlsString = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
             const response = await this.llm.run(`
 In the search results tag, there is JSON with a internet serach result for the query: "${finalQuery}"
 <search_results>
@@ -248,30 +245,27 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
 
             `, this.logger, undefined);
             return response.message;
-        }, 'json', { regex: [/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/], isJSONArray: true });
-        // console.log('ALL URLS', searchResponse.web.results.map(r => r.url).length, 'example:', searchResponse.web.results.map(r => r.url).slice(0, 5).join(',') + '...');
+        }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
         const urls: string[] = JSON.parse(urlsString);
-        // console.log(`SEARCH URLS: ${urls.length}`, 'example:', urls.slice(0, 5).join(',') + '...');
 
         // lets scrape these pages for context
         const context: string[] = [];
         for (const url of urls) {
             const scrape = await this.scrapeWebsite({ url, formats: ['markdown'] });
-            context.push(scrape.data.markdown || '');
+            const limit = 30000;
+            context.push((scrape.data.markdown || '').substring(0, limit));
         }
-        // console.log('Context ', `total[${context.length}]\n`, context.map(p => `* size[${p.length}] sample: ${p.slice(0, 40).replace(/\n/g, '')}`).join('\n'));
 
         // We can get this by extracting the links from the scrape as well...
         const possiblePages: string[] = [];
         for (const url of urls) {
             const map = await this.mapWebsite(url);
-            // console.log(`mapped: ${url} into ${map.length} urls`);
-            possiblePages.push(...map);
+            const limit = 250;
+            possiblePages.push(...map.slice(0, limit));
         }
-        // console.log(`ALL MAPPED URLS: ${possiblePages.length}`, 'example:', possiblePages.slice(0, 5).join(',') + '...');
 
-        const urlsString2 = await new LLMFormatter().retryUntilSuccess(async () => {
+        const urlsString2 = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
             const response = await this.llm.run(`
 In the search we have a lot possible pages that contain documentation, there is JSON with a internet serach result for the query: "${finalQuery}"
 We have some general incomplete information about the documentation, that is in the context tag below.
@@ -302,10 +296,9 @@ ${possiblePages.join('\n')}
 
             `, this.logger, undefined);
             return response.message;
-        }, 'json', { regex: [/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/], isJSONArray: true });
+        }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
         const urls2: string[] = JSON.parse(urlsString2);
-        // console.log(`SELECTED URLS: ${urls2}`);
         await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify({ links: urls2 }, null, 2));
         return urls2;
     }
@@ -373,8 +366,7 @@ ${possiblePages.join('\n')}
         const chunks = this.chunkDocumentation(documentation);
         const cleanChunks = [];
         for (const [index, chunk] of chunks.entries()) {
-            // console.log(`Processing chunk ${index + 1} of ${chunks.length} sample: ${chunk.slice(0, 100).replace(/\n/g, '')}...`);
-            const partialDoc = await new LLMFormatter().retryUntilSuccess(async () => {
+            const partialDoc = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
                 const response = await this.llm.run(`
 This next documentation tag contains the partial markdown documentation of "${library}" library.
 <documentation>
@@ -415,11 +407,9 @@ ${chunk}
             const scrape = await this.scrapeWebsite({ url, formats: ['markdown'] });
             pages.push(scrape.data.markdown || '');
         }
-        // console.log('Pages ', `total[${pages.length}]\n`, pages.map(p => `* size[${p.length}] sample: ${p.slice(0, 40).replace(/\n/g, '')}`).join('\n'));
 
         const documentation = await this.postProcessDocumentation(query, pages.join('\n'));
 
-        // console.log('Final doc size', documentation.length, 'original size', pages.map(p => p.length).reduce((a, b) => a + b, 0));
         return documentation;
     }
 
@@ -471,7 +461,7 @@ ${chunk}
                     (retries >= 3 && retries < 24 && (retries % 3 === 0)) ||
                     (retries >= 24 && (retries % 5 === 0))
                 ) {
-                    console.log(`Polling status: ${statusData.status}, retry #${retries}`);
+                    await this.logger?.log(`Polling status: ${statusData.status}, retry #${retries}`, true);
                 }
 
                 if (statusData.status === 'completed') {
@@ -479,7 +469,7 @@ ${chunk}
                 }
 
             } catch (error) {
-                console.log(`Polling error on retry #${retries}, continuing...`);
+                await this.logger?.log(`Polling error on retry #${retries}, continuing...`, true);
             }
 
             retries++;
@@ -508,7 +498,7 @@ ${chunk}
             if (!options.url.match(/https?:\/\//)) {
                 throw new Error(options.url + ' - URL must start with http:// or https://');
             } else {
-                console.log('Crawling ' + options.url);
+                await this.logger?.log('Crawling ' + options.url, true);
             }
             const response = await axios.post(FIRECRAWL_API_URL + '/v1/crawl', {
                 url: options.url,
@@ -605,7 +595,7 @@ ${chunk}
             if (scrapeResponse.data.metadata.statusCode > 399) {
                 scrapeResponse.data.markdown = '';
                 scrapeResponse.data.html = '';
-                console.log('Scrape failed', scrapeResponse.data.metadata, options.url);
+                await this.logger?.log(`Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`, true);
             }
             await Deno.writeTextFile(Deno.cwd() + '/cache/' + safeFilename, JSON.stringify(scrapeResponse, null, 2));
 

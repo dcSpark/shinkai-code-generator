@@ -9,11 +9,11 @@ export type Payload = OllamaPayload | OpenAIPayload;
 export abstract class BaseEngine {
   public readonly path: string;
   public readonly shinkaiName: string;
+
   constructor(public readonly name: string) {
     this.path = name.replaceAll(/[^a-zA-Z0-9]/g, "-");
     // TODO how to generate names correctly for shinkai?
     this.shinkaiName = `o_${name.replaceAll(/[^a-zA-Z0-9]/g, "_")}`;
-    // console.log({ name: this.shinkaiName, path: this.path });
   }
 
   abstract run(
@@ -88,20 +88,23 @@ class OpenAI extends BaseEngine {
     if (!OPEN_AI_KEY) {
       throw new Error("OPEN_AI_KEY is not set");
     }
-
-    const response = await axios<OpenAIResponse>({
+    const tokenCount = JSON.stringify(payload).length;
+    logger?.log(`[Benchmark] AI Starting Processing ${tokenCount}[tokens]`); //  ${prompt_short}`.replace(/\n/g, " "));
+    const data = {
       url: `https://api.openai.com/v1/chat/completions`,
       method: "POST",
       data: payload,
       headers: {
         Authorization: `Bearer ${OPEN_AI_KEY}`,
       }
-    });
+    };
+    logger?.save(1000, `${new Date().toISOString()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
+    const response = await axios<OpenAIResponse>(data);
 
     const end = Date.now();
     const time = end - start;
-    const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Benchmark] OpenAI took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
+    // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
+    logger?.log(`[Benchmark] AI took ${time}[ms] to process`); //  ${prompt_short}`.replace(/\n/g, " "));
     payload = this.addToOpenAIPayload(response.data.choices[0].message.content, 'assistant', payload);
     return {
       message: response.data.choices[0].message.content,
@@ -205,8 +208,7 @@ class OllamaEngine extends BaseEngine {
       const models = await this.fetchModels();
       return models.map((m) => new OllamaEngine(m));
     } catch (e) {
-      console.log("Error:", (e as Error).message);
-      console.log(`Ollama is not running at ${ollamaApiUrl}`);
+      console.error(`Ollama is not running at ${ollamaApiUrl}`);
       return [];
     }
   }
