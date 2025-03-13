@@ -3,7 +3,6 @@ FROM denoland/deno:2.2.3
 WORKDIR /app
 
 # Copy required files and folders
-COPY cache ./cache
 COPY prompts ./prompts
 COPY src ./src
 COPY deno.json .
