@@ -10,6 +10,7 @@ router.get("/generate", async (ctx: Context) => {
     const language = ctx.request.url.searchParams.get('language');
     const prompt = ctx.request.url.searchParams.get('prompt');
     const feedback = ctx.request.url.searchParams.get('feedback') || '';
+    let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
 
     console.log('input', { language, prompt, feedback });
     if (!language || (language !== 'typescript' && language !== 'python')) {
@@ -23,7 +24,6 @@ router.get("/generate", async (ctx: Context) => {
         return;
     }
 
-
     // Set CORS headers first
     ctx.response.headers.set("Access-Control-Allow-Origin", "*");
     ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -33,8 +33,20 @@ router.get("/generate", async (ctx: Context) => {
     ctx.response.headers.set("Content-Type", "text/event-stream");
     ctx.response.headers.set("Cache-Control", "no-cache");
     ctx.response.headers.set("Connection", "keep-alive");
+    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
 
-    const requestUUID = ctx.request.headers.get("X-SHINKAI-REQUEST-UUID") || crypto.randomUUID();
+    if (feedback && !requestUUID) {
+        // error
+        ctx.response.status = 400;
+        ctx.response.body = "X-SHINKAI-REQUEST-UUID is required";
+        return;
+    }
+
+
+    if (!requestUUID) {
+        requestUUID = crypto.randomUUID();
+    }
+
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
 
     // Create a readable stream from the pipeline process

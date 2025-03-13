@@ -268,9 +268,7 @@
                     if (!response.body) {
                         throw new Error('ReadableStream not supported or response body is null');
                     }
-
-                    const uuid = response.headers.get('X-Shinkai-Request-Uuid');
-                    requestUuid = uuid;
+                    requestUuid = response.headers.get('x-shinkai-request-uuid');
                     // Get the reader from the response body
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
@@ -435,12 +433,12 @@
                                         // Send feedback to the server
                                         const response = await fetch('http://localhost:8080/generate?language=' + encodeURIComponent(languageSelect.value) +
                                             '&prompt=' + encodeURIComponent(promptTextarea.value) +
-                                            '&feedback=' + encodeURIComponent(feedback), {
+                                            '&feedback=' + encodeURIComponent(feedback) +
+                                            '&x_shinkai_request_uuid=' + requestUuid, {
                                             method: 'GET',
                                             headers: {
                                                 'Accept': 'text/event-stream',
-                                                // 'X-Shinkai-Request-Uuid': requestUuid
-                                            },
+                                            }
                                         });
 
                                         if (response.ok) {

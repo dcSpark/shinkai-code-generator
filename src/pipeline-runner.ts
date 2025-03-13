@@ -47,7 +47,6 @@ const runPipeline = async () => {
         const llmModel = getOpenAIO4Mini();
 
         console.log('EVENT: start');
-        Deno.env.set('FORCE_DOCS_GENERATION', 'true');
         const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, true);
 
         // Add event listeners to the pipeline if ShinkaiPipeline supports them
