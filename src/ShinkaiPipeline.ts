@@ -81,7 +81,7 @@ export class ShinkaiPipeline {
         }
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Step ${this.step}] System Requirements & Feedback Prompt`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] System Requirements & Feedback Prompt`, true);
             const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_tools'];
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
@@ -140,7 +140,7 @@ export class ShinkaiPipeline {
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
-            this.fileManager.log(`[Step ${this.step}] User Requirements & Feedback Prompt`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] User Requirements & Feedback Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
@@ -179,7 +179,7 @@ export class ShinkaiPipeline {
             // Load existing dependency docs
         } else {
             parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-                this.fileManager.log(`[Step ${this.step}] Library Search Prompt`, true);
+                this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
                 const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/library.md')).replace(
                     '<input_command>\n\n</input_command>',
                     `<input_command>\n${this.feedback}\n\n</input_command>`
@@ -207,7 +207,7 @@ export class ShinkaiPipeline {
                 const existingFile = await this.fileManager.load(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md');
                 this.docs[library] = existingFile;
             } else {
-                this.fileManager.log(`[Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
+                this.fileManager.log(`[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
                 const dependencyDoc = await docManager.getDependencyDocumentation(library, this.language);
                 this.docs[library] = dependencyDoc;
                 await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
@@ -228,7 +228,7 @@ export class ShinkaiPipeline {
         }
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Step ${this.step}] Internal Libraries Prompt`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.feedback}\n\n</input_command>`
@@ -268,7 +268,7 @@ export class ShinkaiPipeline {
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
-            this.fileManager.log(`[Step ${this.step}] Generate the tool code`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Generate the tool code`, true);
             let toolPrompt = '';
             if (this.language === 'typescript') {
                 toolPrompt = (await new ShinkaiAPI().getTypescriptToolImplementationPrompt(this.internalToolsJSON)).codePrompt;
@@ -333,7 +333,7 @@ ${additionalRules}
             checkResult = JSON.parse(existingFile) as CheckCodeResponse;
         } else {
             checkResult = await shinkaiAPI.checkCode(this.language, this.code);
-            this.fileManager.log(`[Step ${this.step}] Code check results ${checkResult.warnings.length} warnings`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Code check results ${checkResult.warnings.length} warnings`, true);
             await this.fileManager.save(this.step, 'a', JSON.stringify(checkResult, null, 2), 'code-check-results.json');
         }
 
@@ -353,7 +353,7 @@ ${additionalRules}
                 this.step++;
                 return { warnings: true };
             }
-            this.fileManager.log(`[Step ${this.step}] Check generated code`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Check generated code`, true);
 
             const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
 
@@ -417,7 +417,7 @@ In the next example tag is an example of the commented script block that MUST be
             return { warnings: true }
         } else {
             // Nothing to fix
-            this.fileManager.log(`[Step ${this.step}] No warnings found`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] No warnings found`, true);
 
             this.step++;
             return { warnings: false }
@@ -435,7 +435,7 @@ In the next example tag is an example of the commented script block that MUST be
         }
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Step ${this.step}] Generate the metadata`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
             let metadataPrompt = '';
             if (this.language === 'typescript') {
@@ -490,7 +490,7 @@ In the next example tag is an example of the commented script block that MUST be
         }
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Step ${this.step}] Feedback Analysis Prompt`, true);
+            this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback_analysis.md')).replace(
                 '<feedback>\n\n</feedback>',

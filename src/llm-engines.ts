@@ -89,7 +89,7 @@ class OpenAI extends BaseEngine {
       throw new Error("OPEN_AI_KEY is not set");
     }
     const tokenCount = JSON.stringify(payload).length;
-    logger?.log(`[Benchmark] AI Starting Processing ${tokenCount}[tokens]`); //  ${prompt_short}`.replace(/\n/g, " "));
+    logger?.log(`[Thinking] AI Starting Processing ${tokenCount}[tokens]`); //  ${prompt_short}`.replace(/\n/g, " "));
     const data = {
       url: `https://api.openai.com/v1/chat/completions`,
       method: "POST",
@@ -104,7 +104,7 @@ class OpenAI extends BaseEngine {
     const end = Date.now();
     const time = end - start;
     // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Benchmark] AI took ${time}[ms] to process`); //  ${prompt_short}`.replace(/\n/g, " "));
+    logger?.log(`[Thinking] AI took ${time}[ms] to process`); //  ${prompt_short}`.replace(/\n/g, " "));
     payload = this.addToOpenAIPayload(response.data.choices[0].message.content, 'assistant', payload);
     return {
       message: response.data.choices[0].message.content,
@@ -185,7 +185,7 @@ class OllamaEngine extends BaseEngine {
 
     const time = end - start;
     const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Benchmark] Ollama took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
+    logger?.log(`[Thinking] Ollama took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
     payload = this.addToOllamaPayload(response.data.message.content, 'assistant', payload);
     return {
       message: response.data.message.content,

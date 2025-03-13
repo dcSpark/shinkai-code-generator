@@ -7,6 +7,7 @@
 * There are some literal external-libaries to be used in the "# External Libraries" section. 
 * Extract the external-libraries used as queries as in a JSON ARRAY format.
 * In the query must only contain the name of the exact external-library name to search.
+* If there are EXACT URLS in the input_command add them as well to the output json array verbatim. Do not make up URLS, only use literal values.
 </rules>
 
 <input_command>
@@ -18,7 +19,7 @@
 * The output should be formatted as follows:
 <output>
 ```json
-    ["library-name-1", "library-name-2", ...]
+    ["library-name-1", "library-name-2", "exact-url-1", "exact-url-2"...]
 ```
 </output>
 

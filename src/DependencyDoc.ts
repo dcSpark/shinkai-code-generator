@@ -268,7 +268,10 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
         const urls: string[] = JSON.parse(urlsString);
+        return this.getURLsFromScrape(urls, finalQuery, file, folders);
+    }
 
+    private async getURLsFromScrape(urls: string[], finalQuery: string, file: string, folders: string[]) {
         // lets scrape these pages for context
         const context: string[] = [];
         for (const url of urls) {
@@ -413,18 +416,29 @@ ${chunk}
     }
 
     public async getDependencyDocumentation(libraryName: string, language: Language): Promise<string> {
-        const query = `${libraryName} - ${language} documentation`;
-        const searchResponse = await this.braveSearch(query);
-        await this.logger?.log(`[Web Search] query: ${query}`);
-        for (const [index, result] of searchResponse.web.results.entries()) {
-            await this.logger?.log(`[Web Search] (#${index + 1}) ${result.title} - ${result.url}`);
+        const isURL = libraryName.match(/https?:\/\//);
+        let urls = [];
+        let query = ''
+        if (isURL) {
+            // const scrape = await this.scrapeWebsite({ url: libraryName, formats: ['markdown'] });
+            const { folders, file } = this.toSafeFilename('exact_url_' + libraryName, 'json', 'exact_url');
+            urls = await this.getURLsFromScrape([libraryName], 'Exact URL: ' + libraryName, file, folders);
+            query = 'Exact URL: ' + libraryName;
+        } else {
+
+            query = `${libraryName} - ${language} documentation`;
+            const searchResponse = await this.braveSearch(query);
+            await this.logger?.log(`[Web Search] query: ${query}`);
+            for (const [index, result] of searchResponse.web.results.entries()) {
+                await this.logger?.log(`[Possible Sites] (#${index + 1}) ${result.title} - ${result.url}`);
+            }
+
+            urls = await this.getURLsFromSearch(searchResponse, query);
         }
 
-
-        const urls = await this.getURLsFromSearch(searchResponse, query);
         const pages: string[] = [];
         for (const url of urls) {
-            await this.logger?.log(`[Scrape] ${url}`, true);
+            await this.logger?.log(`[Reading] ${url}`, true);
             const scrape = await this.scrapeWebsite({ url, formats: ['markdown'] });
             pages.push(scrape.data.markdown || '');
         }
@@ -619,9 +633,9 @@ ${chunk}
                 scrapeResponse.data.markdown = '';
                 scrapeResponse.data.html = '';
                 await this.logger?.log(`Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`, true);
+            } else {
+                await this.save(file, JSON.stringify(scrapeResponse, null, 2), folders);
             }
-            await this.save(file, JSON.stringify(scrapeResponse, null, 2), folders);
-
             return scrapeResponse;
         } catch (error: unknown) {
             if (error instanceof AxiosError) {

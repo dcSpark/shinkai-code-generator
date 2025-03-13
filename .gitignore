@@ -20,3 +20,4 @@ cache/query/*
 cache/search/*
 cache/original/*
 cache/processed/*
+cache/exact_url/*

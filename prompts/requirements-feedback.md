@@ -9,6 +9,8 @@ Given a input_command, First analyze the problem, think about the standard-libra
 If there are multiple libraries that can resolve a part of the problem then priorize in order:
 standard-libraries > internal-libraries > external-libraries.
 
+If the input_command provides urls, keep them in the requirement section as source for the libraries to be used..
+
 Do not write any other outputs or code.
 </rules>
 
