@@ -420,6 +420,13 @@ ${chunk}
         const isURL = libraryName.match(/https?:\/\//);
         let urls = [];
         let query = ''
+
+        const { folders, file } = this.toSafeFilename('doc_postprocess_' + libraryName, 'md', 'processed');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return await this.load(file, folders);
+        }
+
+
         if (isURL) {
             // const scrape = await this.scrapeWebsite({ url: libraryName, formats: ['markdown'] });
             const { folders, file } = this.toSafeFilename('exact_url_' + libraryName, 'json', 'exact_url');

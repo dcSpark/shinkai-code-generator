@@ -454,6 +454,13 @@
         .reset-config:hover {
             background-color: #d32f2f;
         }
+
+        .wrapped-pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
     </style>
 </head>
 
@@ -1186,6 +1193,7 @@
                     resultTitle.textContent = 'Actual Result:';
 
                     const resultContent = document.createElement('pre');
+                    resultContent.className = 'wrapped-pre';
                     resultContent.textContent = JSON.stringify(data, null, 2);
 
                     resultSection.appendChild(resultTitle);
@@ -1201,6 +1209,7 @@
                     resultTitle.textContent = 'Error:';
 
                     const resultContent = document.createElement('pre');
+                    resultContent.className = 'wrapped-pre';
                     resultContent.textContent = error.message;
                     resultContent.style.color = '#f44336';
 
