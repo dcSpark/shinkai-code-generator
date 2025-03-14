@@ -213,11 +213,288 @@
         .language-selector select {
             width: auto;
         }
+
+        /* Test cases styling */
+        .tests-container {
+            margin-top: 20px;
+        }
+
+        .test-case {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #444;
+        }
+
+        .test-title {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .test-run-btn {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .test-run-btn:hover {
+            background-color: #303f9f;
+        }
+
+        .test-run-btn:disabled {
+            background-color: #9fa8da;
+            cursor: not-allowed;
+        }
+
+        .test-section {
+            margin-bottom: 10px;
+        }
+
+        .test-section-title {
+            font-weight: bold;
+            color: #90caf9;
+            margin-bottom: 5px;
+        }
+
+        .test-editor {
+            width: 80%;
+            min-height: 100px;
+            background-color: #2d2d2d;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .test-editor:focus {
+            outline: none;
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.25);
+        }
+
+        .test-result {
+            white-space: pre-wrap;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px dashed #444;
+        }
+
+        .test-loader {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .test-loader:after {
+            content: " ";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 0 10px;
+            border-radius: 50%;
+            border: 2px solid #3f51b5;
+            border-color: #3f51b5 transparent #3f51b5 transparent;
+            animation: test-loader 1.2s linear infinite;
+        }
+
+        @keyframes test-loader {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Config button and modal styles */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .config-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .config-btn:hover {
+            background-color: #1a252f;
+        }
+
+        .config-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #f8f9fa;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #555;
+        }
+
+        .config-form-group {
+            margin-bottom: 15px;
+        }
+
+        .config-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .config-form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .config-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .config-actions button {
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+        }
+
+        .save-config {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .save-config:hover {
+            background-color: #45a049;
+        }
+
+        .reset-config {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .reset-config:hover {
+            background-color: #d32f2f;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Shinkai Code Generator</h1>
+    <div class="header-container">
+        <h1>Shinkai Code Generator</h1>
+        <button id="config-btn" class="config-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+            Config
+        </button>
+    </div>
+
+    <!-- Configuration Modal -->
+    <div id="config-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configuration</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="config-form">
+                <div class="config-form-group">
+                    <label for="code-generator-url">Code Generator URL:</label>
+                    <input type="text" id="code-generator-url" placeholder="http://localhost:8080">
+                </div>
+                <div class="config-form-group">
+                    <label for="node-runner-url">Shinkai Node Runner URL:</label>
+                    <input type="text" id="node-runner-url" placeholder="http://localhost:9950">
+                </div>
+                <div class="config-actions">
+                    <button class="reset-config">Reset to Defaults</button>
+                    <button class="save-config">Save Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="form-container">
         <div class="form-group">
@@ -263,6 +540,11 @@
             <div class="box-header">Metadata</div>
             <pre id="metadata-content"></pre>
         </div>
+
+        <div class="tests-container">
+            <div class="box-header">Test Cases</div>
+            <div id="tests-list"></div>
+        </div>
     </div>
 
     <script>
@@ -276,12 +558,74 @@
             const metadataBox = document.querySelector('.metadata-box');
             const codeContent = document.getElementById('code-content');
             const metadataContent = document.getElementById('metadata-content');
+            const testsContainer = document.querySelector('.tests-container');
+            const testsList = document.getElementById('tests-list');
+
+            // Configuration elements
+            const configBtn = document.getElementById('config-btn');
+            const configModal = document.getElementById('config-modal');
+            const closeModal = document.querySelector('.close-modal');
+            const saveConfigBtn = document.querySelector('.save-config');
+            const resetConfigBtn = document.querySelector('.reset-config');
+            const codeGeneratorUrlInput = document.getElementById('code-generator-url');
+            const nodeRunnerUrlInput = document.getElementById('node-runner-url');
+
+            // Default URLs
+            const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080';
+            const DEFAULT_NODE_RUNNER_URL = 'http://localhost:9950';
+
+            // Initialize URLs from localStorage or defaults
+            let CODE_GENERATOR_URL = localStorage.getItem('CODE_GENERATOR_URL') || DEFAULT_CODE_GENERATOR_URL;
+            let SHINKAI_NODE_RUNNER_URL = localStorage.getItem('SHINKAI_NODE_RUNNER_URL') || DEFAULT_NODE_RUNNER_URL;
+
+            // Set initial values in the config form
+            codeGeneratorUrlInput.value = CODE_GENERATOR_URL;
+            nodeRunnerUrlInput.value = SHINKAI_NODE_RUNNER_URL;
+
+            // Config modal event listeners
+            configBtn.addEventListener('click', () => {
+                configModal.style.display = 'block';
+            });
+
+            closeModal.addEventListener('click', () => {
+                configModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === configModal) {
+                    configModal.style.display = 'none';
+                }
+            });
+
+            saveConfigBtn.addEventListener('click', () => {
+                // Save the new URLs
+                CODE_GENERATOR_URL = codeGeneratorUrlInput.value.trim() || DEFAULT_CODE_GENERATOR_URL;
+                SHINKAI_NODE_RUNNER_URL = nodeRunnerUrlInput.value.trim() || DEFAULT_NODE_RUNNER_URL;
+
+                // Save to localStorage
+                localStorage.setItem('CODE_GENERATOR_URL', CODE_GENERATOR_URL);
+                localStorage.setItem('SHINKAI_NODE_RUNNER_URL', SHINKAI_NODE_RUNNER_URL);
+
+                // Close the modal
+                configModal.style.display = 'none';
+
+                // Show confirmation
+                outputDiv.innerHTML += `<div class="progress-item">Configuration updated successfully.</div>`;
+            });
+
+            resetConfigBtn.addEventListener('click', () => {
+                // Reset to defaults
+                codeGeneratorUrlInput.value = DEFAULT_CODE_GENERATOR_URL;
+                nodeRunnerUrlInput.value = DEFAULT_NODE_RUNNER_URL;
+            });
 
             // Initialize empty state
             codeBox.classList.add('empty');
             metadataBox.classList.add('empty');
+            testsContainer.style.display = 'none';
 
             let requestUuid = '';
+            let generatedCode = '';
 
             generateBtn.addEventListener('click', async () => {
                 const language = languageSelect.value;
@@ -296,16 +640,18 @@
                 outputDiv.innerHTML = '';
                 document.getElementById('code-content').textContent = '';
                 document.getElementById('metadata-content').textContent = '';
+                document.getElementById('tests-list').innerHTML = '';
                 statusSpan.textContent = 'Processing...';
                 generateBtn.disabled = true;
 
                 // Reset to empty state
                 codeBox.classList.add('empty');
                 metadataBox.classList.add('empty');
+                testsContainer.style.display = 'none';
 
                 try {
-                    // Call the API with fetch
-                    const response = await fetch('http://localhost:8080/generate?language=' + encodeURIComponent(language) + '&prompt=' + encodeURIComponent(prompt), {
+                    // Call the API with fetch using the configured URL
+                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}`, {
                         method: 'GET',
                         headers: {
                             'Accept': 'text/event-stream'
@@ -363,6 +709,7 @@
                 // Variables to track if we're expecting code or metadata in the next progress event
                 let expectingCodeInNextProgress = false;
                 let expectingMetadataInNextProgress = false;
+                let expectingTestsInNextProgress = false;
 
                 for (const event of events) {
                     if (!event.trim()) continue;
@@ -434,6 +781,37 @@
                                         }
                                     } catch (e) {
                                         console.warn('Failed to parse metadata from progress message:', e);
+                                        console.log('Raw message:', data.message);
+                                        outputDiv.innerHTML += `<div class="progress-item">${data.message}</div>`;
+                                    }
+                                }
+                            } else if (expectingTestsInNextProgress) {
+                                // This progress event contains the tests
+                                console.log('Processing tests in progress event');
+                                expectingTestsInNextProgress = false;
+                                if (data.message) {
+                                    try {
+                                        const testsObj = JSON.parse(data.message);
+                                        console.log('Parsed tests object:', testsObj);
+                                        if (testsObj.tests) {
+                                            try {
+                                                const testsArray = JSON.parse(testsObj.tests);
+                                                console.log('Parsed tests array:', testsArray);
+
+                                                // Show the tests container
+                                                testsContainer.style.display = 'block';
+
+                                                // Create test case elements
+                                                createTestCases(testsArray);
+
+                                                outputDiv.innerHTML += `<div class="progress-item">Test cases received and displayed</div>`;
+                                            } catch (e) {
+                                                console.warn('Failed to parse tests array:', e);
+                                                document.getElementById('tests-list').textContent = testsObj.tests;
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.warn('Failed to parse tests from progress message:', e);
                                         console.log('Raw message:', data.message);
                                         outputDiv.innerHTML += `<div class="progress-item">${data.message}</div>`;
                                     }
@@ -536,10 +914,7 @@
                                     skipBtn.disabled = true;
 
                                     // Send feedback to the server
-                                    const response = await fetch('http://localhost:8080/generate?language=' + encodeURIComponent(languageSelect.value) +
-                                        '&prompt=' + encodeURIComponent(promptTextarea.value) +
-                                        '&feedback=' + encodeURIComponent(feedback) +
-                                        '&x_shinkai_request_uuid=' + requestUuid, {
+                                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(languageSelect.value)}&prompt=${encodeURIComponent(promptTextarea.value)}&feedback=${encodeURIComponent(feedback)}&x_shinkai_request_uuid=${requestUuid}`, {
                                         method: 'GET',
                                         headers: {
                                             'Accept': 'text/event-stream',
@@ -605,6 +980,13 @@
                             outputDiv.innerHTML += `<div class="progress-item">Receiving metadata...</div>`;
                             break;
 
+                        case 'tests':
+                            console.log('Event: tests', data);
+                            // Mark that we expect tests in the next progress event
+                            expectingTestsInNextProgress = true;
+                            outputDiv.innerHTML += `<div class="progress-item">Receiving test cases...</div>`;
+                            break;
+
                         case 'error':
                             console.log('Event: error', data);
                             outputDiv.innerHTML += `<div class="error">Error: ${data.message || 'Unknown error'}</div>`;
@@ -628,6 +1010,209 @@
                     .replace(/>/g, "&gt;")
                     .replace(/"/g, "&quot;")
                     .replace(/'/g, "&#039;");
+            }
+
+            // Function to create test case elements
+            function createTestCases(testsArray) {
+                const testsList = document.getElementById('tests-list');
+                testsList.innerHTML = ''; // Clear existing tests
+
+                testsArray.forEach((test, index) => {
+                    const testCase = document.createElement('div');
+                    testCase.className = 'test-case';
+                    testCase.id = `test-case-${index}`;
+
+                    // Create test header
+                    const testHeader = document.createElement('div');
+                    testHeader.className = 'test-header';
+
+                    const testTitle = document.createElement('div');
+                    testTitle.className = 'test-title';
+                    testTitle.textContent = `Test Case #${index + 1}`;
+
+                    const runButton = document.createElement('button');
+                    runButton.className = 'test-run-btn';
+                    runButton.textContent = 'RUN';
+                    runButton.dataset.testIndex = index;
+
+                    testHeader.appendChild(testTitle);
+                    testHeader.appendChild(runButton);
+                    testCase.appendChild(testHeader);
+
+                    // Create inputs section
+                    if (test.inputs) {
+                        const inputsSection = document.createElement('div');
+                        inputsSection.className = 'test-section';
+
+                        const inputsTitle = document.createElement('div');
+                        inputsTitle.className = 'test-section-title';
+                        inputsTitle.textContent = 'Inputs:';
+
+                        const inputsContent = document.createElement('textarea');
+                        inputsContent.className = 'test-editor';
+                        inputsContent.id = `test-inputs-${index}`;
+                        inputsContent.value = JSON.stringify(test.inputs, null, 2);
+
+                        inputsSection.appendChild(inputsTitle);
+                        inputsSection.appendChild(inputsContent);
+                        testCase.appendChild(inputsSection);
+                    }
+
+                    // Create config section
+                    if (test.config) {
+                        const configSection = document.createElement('div');
+                        configSection.className = 'test-section';
+
+                        const configTitle = document.createElement('div');
+                        configTitle.className = 'test-section-title';
+                        configTitle.textContent = 'Config:';
+
+                        const configContent = document.createElement('textarea');
+                        configContent.className = 'test-editor';
+                        configContent.id = `test-config-${index}`;
+                        configContent.value = JSON.stringify(test.config, null, 2);
+
+                        configSection.appendChild(configTitle);
+                        configSection.appendChild(configContent);
+                        testCase.appendChild(configSection);
+                    }
+
+                    // Create expected output section
+                    if (test.output) {
+                        const outputSection = document.createElement('div');
+                        outputSection.className = 'test-section';
+
+                        const outputTitle = document.createElement('div');
+                        outputTitle.className = 'test-section-title';
+                        outputTitle.textContent = 'Expected Output:';
+
+                        const outputContent = document.createElement('textarea');
+                        outputContent.className = 'test-editor';
+                        outputContent.id = `test-output-${index}`;
+                        outputContent.value = JSON.stringify(test.output, null, 2);
+
+                        outputSection.appendChild(outputTitle);
+                        outputSection.appendChild(outputContent);
+                        testCase.appendChild(outputSection);
+                    }
+
+                    // Create loader
+                    const loader = document.createElement('div');
+                    loader.className = 'test-loader';
+                    loader.id = `test-loader-${index}`;
+                    testCase.appendChild(loader);
+
+                    // Create result section (initially empty)
+                    const resultSection = document.createElement('div');
+                    resultSection.className = 'test-result';
+                    resultSection.id = `test-result-${index}`;
+                    resultSection.style.display = 'none';
+                    testCase.appendChild(resultSection);
+
+                    testsList.appendChild(testCase);
+
+                    // Add event listener to run button
+                    runButton.addEventListener('click', function () {
+                        executeTest(index, test);
+                    });
+                });
+            }
+
+            // Function to execute a test
+            async function executeTest(index, test) {
+                const runButton = document.querySelector(`button[data-test-index="${index}"]`);
+                const loader = document.getElementById(`test-loader-${index}`);
+                const resultSection = document.getElementById(`test-result-${index}`);
+
+                // Disable button and show loader
+                runButton.disabled = true;
+                loader.style.display = 'block';
+                resultSection.style.display = 'none';
+
+                try {
+                    // Get the current values from the editable textareas
+                    let inputs = {};
+                    let config = {};
+
+                    const inputsTextarea = document.getElementById(`test-inputs-${index}`);
+                    if (inputsTextarea) {
+                        try {
+                            inputs = JSON.parse(inputsTextarea.value);
+                        } catch (e) {
+                            throw new Error(`Invalid JSON in inputs: ${e.message}`);
+                        }
+                    }
+
+                    const configTextarea = document.getElementById(`test-config-${index}`);
+                    if (configTextarea) {
+                        try {
+                            config = JSON.parse(configTextarea.value);
+                        } catch (e) {
+                            throw new Error(`Invalid JSON in config: ${e.message}`);
+                        }
+                    }
+
+                    // Prepare the request payload
+                    const payload = {
+                        code: generatedCode || document.getElementById('code-content').textContent,
+                        tools: ["local:::shinkai_tool_download_pages:::shinkai__download_pages"],
+                        tool_type: "denodynamic",
+                        llm_provider: "GET_FROM_CODE",
+                        extra_config: config,
+                        parameters: inputs
+                    };
+
+                    // Make the API call using the configured URL
+                    const response = await fetch(`${SHINKAI_NODE_RUNNER_URL}/v2/code_execution`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer debug',
+                            'x-shinkai-tool-id': 'no-name',
+                            'x-shinkai-app-id': 'asset-test',
+                            'x-shinkai-llm-provider': 'batata',
+                            'Content-Type': 'application/json; charset=utf-8'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Parse the response
+                    const data = await response.json();
+
+                    // Display the result
+                    resultSection.innerHTML = '';
+
+                    const resultTitle = document.createElement('div');
+                    resultTitle.className = 'test-section-title';
+                    resultTitle.textContent = 'Actual Result:';
+
+                    const resultContent = document.createElement('pre');
+                    resultContent.textContent = JSON.stringify(data, null, 2);
+
+                    resultSection.appendChild(resultTitle);
+                    resultSection.appendChild(resultContent);
+                    resultSection.style.display = 'block';
+
+                } catch (error) {
+                    // Display error
+                    resultSection.innerHTML = '';
+
+                    const resultTitle = document.createElement('div');
+                    resultTitle.className = 'test-section-title';
+                    resultTitle.textContent = 'Error:';
+
+                    const resultContent = document.createElement('pre');
+                    resultContent.textContent = error.message;
+                    resultContent.style.color = '#f44336';
+
+                    resultSection.appendChild(resultTitle);
+                    resultSection.appendChild(resultContent);
+                    resultSection.style.display = 'block';
+
+                } finally {
+                    // Hide loader and re-enable button
+                    loader.style.display = 'none';
+                    runButton.disabled = false;
+                }
             }
         });
     </script>

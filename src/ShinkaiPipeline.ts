@@ -465,6 +465,37 @@ In the next example tag is an example of the commented script block that MUST be
         this.step++;
     }
 
+    private async generateTests() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'tests.json')) {
+            await this.fileManager.log(` Step ${this.step} - Tests `, true);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'tests.json');
+            console.log(`EVENT: tests\n${existingFile}`);
+            this.step++;
+            return;
+        }
+
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+            this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
+
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/test.md'))
+                .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.feedback}\n</requirement>`)
+                .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
+
+            await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const promptResponse = llmResponse.message;
+            await this.fileManager.save(this.step, 'b', promptResponse, 'raw-test-response.md');
+            return promptResponse;
+        }, 'json', {
+            isJSONArray: true
+        });
+
+        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'tests.json');
+        console.log(`EVENT: tests\n${JSON.stringify({ tests: parsedLLMResponse })}`);
+        this.step++;
+    }
+
     private async logCompletion() {
         const end = Date.now();
         const time = end - this.startTime;
@@ -551,6 +582,7 @@ In the next example tag is an example of the commented script block that MUST be
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
 
             await this.generateMetadata();
+            await this.generateTests();
             await this.fileManager.saveFinal(this.code, this.metadata);
             await this.logCompletion();
 
