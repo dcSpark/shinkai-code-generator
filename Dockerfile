@@ -10,7 +10,7 @@ COPY deno.lock .
 COPY test-server.html .
 
 # Expose the port
-EXPOSE 8000
+EXPOSE 8080
 
 # Environment variables - these will be required at runtime
 # Use ARG to declare them without values, then ENV to convert them to environment variables

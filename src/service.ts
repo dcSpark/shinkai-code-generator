@@ -1,6 +1,7 @@
 import { Application } from "jsr:@oak/oak/application";
 import { Context } from "jsr:@oak/oak/context";
 import { Router } from "jsr:@oak/oak/router";
+import { send } from "jsr:@oak/oak/send";
 import { ReadableStream } from "npm:stream/web";
 import { Language } from "./types.ts";
 
@@ -80,6 +81,13 @@ router.get("/generate", async (ctx: Context) => {
 
     // Stream the transformed events to the client
     ctx.response.body = processStream.pipeThrough(sseStream as any);
+});
+
+// Serve the test-server.html file at the root path
+router.get("/", async (ctx: Context) => {
+    await send(ctx, "test-server.html", {
+        root: Deno.cwd(),
+    });
 });
 
 // Function to run pipeline in a separate process and return a readable stream
