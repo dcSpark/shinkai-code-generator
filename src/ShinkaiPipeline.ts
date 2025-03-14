@@ -369,12 +369,15 @@ ${additionalRules}
                     .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
                     .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
                     .replace('{LANG-RULES}', this.language === 'typescript' ? `
-All libraries must be imported at the start of the code with either:
+All libraries must be imported at the start of the code as either:
 \`import { xx } from './shinkai-local-support.ts\`; 
 \`import { xx } from 'npm:yyy'\`;
 \`import { xx } from 'jsr:@std/yyy'\`;
 \`import { xx } from 'node:yyy'\`;
 ` : `
+
+If the warning suggestes to use either JSR or NPM, then first try using NPM with "npm:xxx"
+
 At the start of the file add a commented toml code block with the dependencies used and required to be downloaded by pip.
 Only add the dependencies that are required to be downloaded by pip, do not add the dependencies that are already available in the Python environment.
 

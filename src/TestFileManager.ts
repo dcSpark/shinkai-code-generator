@@ -33,6 +33,9 @@ export class TestFileManager {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         await Deno.mkdir(this.toolDir, { recursive: true });
         await Deno.writeTextFile(filePath, text);
+        if (Deno.env.get('DEBUG') === 'true') {
+            console.log(`[DEBUG] Saved File: ${filePath}`);
+        }
         return filePath;
     }
 
