@@ -94,7 +94,7 @@ export class ShinkaiPipeline {
                 .replace(/\{RUNTIME\}/g, this.language === 'typescript' ? 'Deno' : 'Python')
                 .replace("<internal-libraries>\n\n</internal-libraries>", `<internal-libraries>\n${headers}\n</internal-libraries>`)
             await this.fileManager.save(this.step, 'a', prompt, 'requirements-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing Requirements & Generating Feedback");
             await this.fileManager.save(this.step, 'x', JSON.stringify(llmResponse.metadata), 'promptHistory.json');
             this.promptHistory = llmResponse.metadata;
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-requirements-response.md');
@@ -150,7 +150,7 @@ export class ShinkaiPipeline {
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory, "Processing User Feedback");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-response.md');
 
             this.promptHistory = llmResponse.metadata;
@@ -188,7 +188,7 @@ export class ShinkaiPipeline {
                     `<input_command>\n${this.feedback}\n\n</input_command>`
                 );
                 await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
-                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Searching for Required Libraries");
                 const promptResponse = llmResponse.message;
                 await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
                 return promptResponse;
@@ -237,7 +237,7 @@ export class ShinkaiPipeline {
                 `<input_command>\n${this.feedback}\n\n</input_command>`
             ).replace('<tool_router_key>\n\n</tool_router_key>', `<tool_router_key>\n${this.availableTools.join('\n')}\n</tool_router_key>`)
             await this.fileManager.save(this.step, 'a', prompt, 'internal-tools-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Identifying Required Internal Tools");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-internal-tools-response.md');
             return llmResponse.message;
         }, 'json', {
@@ -285,7 +285,7 @@ ${doc}
 
 
             await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-plan-response.md');
             return llmResponse.message;
         }, 'markdown', {
@@ -358,7 +358,7 @@ ${additionalRules}
     * For missing and additional required libraries, prefer the following order:`
             );
             await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
-            const llmResponse = await this.advancedLlmModel.run(toolCode, this.fileManager, undefined);
+            const llmResponse = await this.advancedLlmModel.run(toolCode, this.fileManager, undefined, "Generating Tool Code");
             const promptResponse = llmResponse.message;
 
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-code-response.md');
@@ -453,7 +453,7 @@ In the next example tag is an example of the commented script block that MUST be
                 await this.fileManager.save(this.step, 'b', fixCodePrompt, 'fix-code-prompt.md');
 
                 // Run the fix prompt
-                const llmResponse = await this.llmModel.run(fixCodePrompt, this.fileManager, undefined);
+                const llmResponse = await this.llmModel.run(fixCodePrompt, this.fileManager, undefined, "Fixing Code Warnings");
                 await this.fileManager.save(this.step, 'c', llmResponse.message, 'raw-fix-code-response.md');
                 return llmResponse.message;
             }, this.language, {
@@ -500,7 +500,7 @@ In the next example tag is an example of the commented script block that MUST be
                 metadataPrompt = (await new ShinkaiAPI().getPythonToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
             }
 
-            const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
             const promptResponse = llmResponse.message;
             await this.fileManager.save(this.step, 'a', metadataPrompt, 'metadata-prompt.md');
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-metadata-response.md');
@@ -536,7 +536,7 @@ In the next example tag is an example of the commented script block that MUST be
                 .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
 
             await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Generating Test Cases");
             const promptResponse = llmResponse.message;
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-test-response.md');
             return promptResponse;
@@ -584,7 +584,7 @@ In the next example tag is an example of the commented script block that MUST be
                 `<feedback>\n${user_feedback}\n</feedback>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-analysis-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing User Feedback");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-analysis-response.md');
             return llmResponse.message;
         }, 'json', {

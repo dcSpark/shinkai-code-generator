@@ -263,7 +263,7 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
 * JSON have valid syntax and only urls.
 </format>
 
-            `, this.logger, undefined);
+            `, this.logger, undefined, `Analyzing search results for "${finalQuery}"`);
             return response.message;
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
@@ -317,7 +317,7 @@ ${possiblePages.join('\n')}
 * JSON have valid syntax and only urls.
 </format>
 
-            `, this.logger, undefined);
+            `, this.logger, undefined, `Finding documentation pages for "${finalQuery}"`);
             return response.message;
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
@@ -404,7 +404,7 @@ ${chunk}
 * If the line has no relation with the documentation, then remove it - for example: changelogs, release notes, ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
 </rules>
 
-                `, this.logger, undefined);
+                `, this.logger, undefined, `Processing documentation chunk ${index + 1}/${chunks.length} for "${library}"`);
                 return response.message;
             }, 'none', {});
             const { folders: chunkFolders, file: chunkFile } = this.toSafeFilename('query_' + (index + 1) + 'of' + chunks.length + '_' + library, 'md', 'chunks');
