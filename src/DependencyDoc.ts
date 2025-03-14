@@ -276,7 +276,7 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
         const context: string[] = [];
         for (const url of urls) {
             const scrape = await this.scrapeWebsite({ url, formats: ['markdown'] });
-            const limit = 30000;
+            const limit = 1000000;
             context.push((scrape.data.markdown || '').substring(0, limit));
         }
 
@@ -327,7 +327,7 @@ ${possiblePages.join('\n')}
     }
 
     private chunkDocumentation(documentation: string): string[] {
-        const chunkSize = 20000;
+        const chunkSize = 40000;
         const overlapSize = 1000;
         const chunks: string[] = [];
 
@@ -399,8 +399,9 @@ ${chunk}
 </documentation>
 
 <rules>
-* Do not rewrite or sythesize, just print the same documentation line by line. 
-* If the line has no relation with the documentation, then remove it - for example: ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
+* You are builing a documentation that will be used by a LLM to understand how to use this library.
+* You can sythesize, but do not lose documentation information as methods, arguments, properties, classes, how to initialize, how install or use the library.
+* If the line has no relation with the documentation, then remove it - for example: changelogs, release notes, ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
 </rules>
 
                 `, this.logger, undefined);

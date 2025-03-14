@@ -519,14 +519,20 @@ In the next example tag is an example of the commented script block that MUST be
 
             if (this.test.feedback) {
                 // TODO this is only used once. We should use it in each feedback step.
-                await this.processFeedbackAnalysis();
+                // await this.processFeedbackAnalysis();
 
-                if (this.feedbackAnalysisResult === "changes-requested") {
-                    await this.processUserFeedback();
-                    console.log(JSON.stringify({ markdown: this.feedback }));
-                    throw new Error('REQUEST_FEEDBACK');
-                } else {
-                    console.log(JSON.stringify({ markdown: this.feedback }));
+                // if (this.feedbackAnalysisResult === "changes-requested") {
+                await this.processUserFeedback();
+                console.log(JSON.stringify({ markdown: this.feedback }));
+                throw new Error('REQUEST_FEEDBACK');
+                // } else {
+                // console.log(JSON.stringify({ markdown: this.feedback }));
+                // }
+            } else {
+                // We have to determine the last step that was executed
+                while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
+                    this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+                    this.step++;
                 }
             }
 
