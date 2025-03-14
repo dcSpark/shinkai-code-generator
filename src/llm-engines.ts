@@ -39,6 +39,10 @@ export function getDeepSeekR132B() {
 export function getOpenAIO4Mini() {
   return new OpenAI('gpt-4o-mini');
 }
+export function getOpenAIO4() {
+  return new OpenAI('gpt-4o');
+}
+
 
 interface OpenAIPayload {
   model: string;

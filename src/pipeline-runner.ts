@@ -1,5 +1,5 @@
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4Mini } from "./llm-engines.ts";
+import { getOpenAIO4, getOpenAIO4Mini } from "./llm-engines.ts";
 import { ShinkaiPipeline } from "./ShinkaiPipeline.ts";
 import { Test } from "./Test.ts";
 import { Language } from "./types.ts";
@@ -47,9 +47,10 @@ const runPipeline = async () => {
         });
 
         const llmModel = getOpenAIO4Mini();
+        const advancedLlmModel = getOpenAIO4();
 
         console.log('EVENT: start');
-        const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, true);
+        const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, advancedLlmModel, true);
 
         // Add event listeners to the pipeline if ShinkaiPipeline supports them
         // If not, you might need to modify ShinkaiPipeline to emit progress events

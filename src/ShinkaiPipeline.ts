@@ -4,7 +4,7 @@ import { DependencyDoc } from "./DependencyDoc.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
-import { getFullHeadersAndTools } from "./support.ts";
+import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
 import { Test } from "./Test.ts";
 import { TestFileManager } from "./TestFileManager.ts";
 import { Language } from "./types.ts";
@@ -38,6 +38,9 @@ export class ShinkaiPipeline {
     // Internal tools
     private internalToolsJSON: string[] = [];
 
+    // Generated plan
+    private plan: string = '';
+
     // Generated code
     private code: string = '';
     private metadata: string = '';
@@ -51,7 +54,7 @@ export class ShinkaiPipeline {
     // Start time
     private startTime: number;
 
-    constructor(private language: Language, private test: Test, private llmModel: BaseEngine, private stream: boolean) {
+    constructor(private language: Language, private test: Test, private llmModel: BaseEngine, private advancedLlmModel: BaseEngine, private stream: boolean) {
         this.fileManager = new TestFileManager(language, test, llmModel, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
@@ -249,6 +252,56 @@ export class ShinkaiPipeline {
         this.step++;
     }
 
+    private async generatePlan() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'plan.md')) {
+            await this.fileManager.log(` Step ${this.step} - Development Plan `, true);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'plan.md');
+            this.plan = existingFile;
+            this.step++;
+            return;
+        }
+        const internalTools = await getInternalTools(this.language, this.internalToolsJSON);
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+            this.fileManager.log(`[Planning Step ${this.step}] Generate Development Plan`, true);
+
+            // Create a documentation string from all the library docs
+            const libraryDocsString = Object.entries(this.docs).map(([library, doc]) => `
+# ${library}
+${doc}
+`).join('\n\n');
+
+            // TODO Refetch only used libaries
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/plan.md')).replace(
+                '<initial_requirements>\n\n</initial_requirements>',
+                `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
+            ).replace(
+                '<libraries_documentation>\n\n</libraries_documentation>',
+                `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
+            ).replace(
+                '<internal_libraries>\n\n</internal_libraries>',
+                `<internal_libraries>\n${internalTools}\n</internal_libraries>`
+            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
+
+
+            await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-plan-response.md');
+            return llmResponse.message;
+        }, 'markdown', {
+            regex: [
+                new RegExp("# Development Plan"),
+                new RegExp("# Example Inputs and Outputs "),
+                new RegExp("# Config"),
+            ]
+        });
+
+        this.plan = parsedLLMResponse;
+        console.log(JSON.stringify({ markdown: this.plan }));
+        await this.fileManager.save(this.step, 'c', this.plan, 'plan.md');
+        this.step++;
+    }
+
     private async generateCode() {
         // Check if output file exists
         if (this.language === 'typescript' && await this.fileManager.exists(this.step, 'c', 'tool.ts')) {
@@ -278,7 +331,7 @@ export class ShinkaiPipeline {
 
             const toolCode_1 = toolPrompt.replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.feedback}\n\n</input_command>`
+                `<input_command>\n${this.plan}\n\n</input_command>`
             );
 
             const additionalRules = this.language === 'typescript' ? `
@@ -305,7 +358,7 @@ ${additionalRules}
     * For missing and additional required libraries, prefer the following order:`
             );
             await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
-            const llmResponse = await this.llmModel.run(toolCode, this.fileManager, undefined);
+            const llmResponse = await this.advancedLlmModel.run(toolCode, this.fileManager, undefined);
             const promptResponse = llmResponse.message;
 
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-code-response.md');
@@ -572,6 +625,7 @@ In the next example tag is an example of the commented script block that MUST be
 
             await this.processLibrarySearch();
             await this.processInternalTools();
+            await this.generatePlan();
             await this.generateCode();
             let retries = 5;
             while (retries > 0) {

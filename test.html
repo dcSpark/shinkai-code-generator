@@ -124,6 +124,28 @@
             display: block;
         }
 
+        .code-editor,
+        .metadata-editor {
+            width: 100%;
+            min-height: 200px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-top: 10px;
+        }
+
+        .code-editor:focus,
+        .metadata-editor:focus {
+            outline: none;
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.25);
+        }
+
         .box-header {
             font-weight: bold;
             margin-bottom: 10px;
@@ -540,12 +562,13 @@
 
         <div class="code-box">
             <div class="box-header">Generated Code</div>
-            <pre id="code-content"></pre>
+            <textarea id="code-content" class="code-editor" placeholder="Code will appear here..."></textarea>
         </div>
 
         <div class="metadata-box">
             <div class="box-header">Metadata</div>
-            <pre id="metadata-content"></pre>
+            <textarea id="metadata-content" class="metadata-editor"
+                placeholder="Metadata will appear here..."></textarea>
         </div>
 
         <div class="tests-container">
@@ -633,6 +656,7 @@
 
             let requestUuid = '';
             let generatedCode = '';
+            let metadataObject = null;
 
             generateBtn.addEventListener('click', async () => {
                 const language = languageSelect.value;
@@ -645,8 +669,8 @@
 
                 // Clear previous output
                 outputDiv.innerHTML = '';
-                document.getElementById('code-content').textContent = '';
-                document.getElementById('metadata-content').textContent = '';
+                document.getElementById('code-content').value = '';
+                document.getElementById('metadata-content').value = '';
                 document.getElementById('tests-list').innerHTML = '';
                 statusSpan.textContent = 'Processing...';
                 generateBtn.disabled = true;
@@ -754,7 +778,8 @@
                                         console.log('Parsed code object:', codeObj);
                                         if (codeObj.code) {
                                             let codeContent = codeObj.code;
-                                            document.getElementById('code-content').textContent = codeObj.code;
+                                            document.getElementById('code-content').value = codeObj.code;
+                                            generatedCode = codeObj.code; // Store the original generated code
                                             outputDiv.innerHTML += `<div class="progress-item">Code received and displayed</div>`;
                                             // Remove empty class when code is received
                                             codeBox.classList.remove('empty');
@@ -777,10 +802,12 @@
                                             let metadataContent = metadataObj.metadata;
                                             try {
                                                 const prettyMetadata = JSON.stringify(JSON.parse(metadataObj.metadata), null, 2);
-                                                document.getElementById('metadata-content').textContent = prettyMetadata;
+                                                document.getElementById('metadata-content').value = prettyMetadata;
+                                                // Store the parsed metadata for later use
+                                                metadataObject = JSON.parse(metadataObj.metadata);
                                             } catch (e) {
                                                 console.warn('Failed to prettify metadata:', e);
-                                                document.getElementById('metadata-content').textContent = metadataObj.metadata;
+                                                document.getElementById('metadata-content').value = metadataObj.metadata;
                                             }
                                             outputDiv.innerHTML += `<div class="progress-item">Metadata received and displayed</div>`;
                                             // Remove empty class when metadata is received
@@ -1159,10 +1186,27 @@
                         }
                     }
 
+                    // Extract tools from metadata if available
+                    let tools = [""]; // Default fallback
+
+                    if (metadataObject && metadataObject.tools) {
+                        // If metadata.tools is an array, use it directly
+                        if (Array.isArray(metadataObject.tools)) {
+                            tools = metadataObject.tools;
+                        }
+                        // If metadata.tools is an object with a list property, use that
+                        else if (metadataObject.tools.list && Array.isArray(metadataObject.tools.list)) {
+                            tools = metadataObject.tools.list;
+                        }
+                        console.log('Using tools from metadata:', tools);
+                    } else {
+                        console.log('No tools found in metadata, using default');
+                    }
+
                     // Prepare the request payload
                     const payload = {
-                        code: generatedCode || document.getElementById('code-content').textContent,
-                        tools: ["local:::shinkai_tool_download_pages:::shinkai__download_pages"],
+                        code: document.getElementById('code-content').value,
+                        tools: tools,
                         tool_type: "denodynamic",
                         llm_provider: "GET_FROM_CODE",
                         extra_config: config,
