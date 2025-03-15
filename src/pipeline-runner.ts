@@ -42,7 +42,7 @@ const runPipeline = async () => {
             feedback: feedback,
             prompt_type: '',
             tools: [],
-            inputs: {},
+            input: {},
             config: {},
         });
 

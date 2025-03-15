@@ -105,7 +105,7 @@ export class ShinkaiPipeline {
                 new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
-                new RegExp("# Example Inputs and Outputs"),
+                new RegExp("# Example Input and Output"),
             ]
         });
         this.feedback = parsedLLMResponse;
@@ -163,7 +163,7 @@ export class ShinkaiPipeline {
                 new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
-                new RegExp("# Example Inputs and Outputs"),
+                new RegExp("# Example Input and Output"),
             ]
         });
 
@@ -291,7 +291,7 @@ ${doc}
         }, 'markdown', {
             regex: [
                 new RegExp("# Development Plan"),
-                new RegExp("# Example Inputs and Outputs "),
+                new RegExp("# Example Input and output "),
                 new RegExp("# Config"),
             ]
         });
@@ -541,7 +541,13 @@ In the next example tag is an example of the commented script block that MUST be
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-test-response.md');
             return promptResponse;
         }, 'json', {
-            isJSONArray: true
+            isJSONArray: true,
+            // Regex asumes its a string...
+            // regex: [
+            //     new RegExp("input"),
+            //     new RegExp("output"),
+            //     new RegExp("config"),
+            // ]
         });
 
         await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'tests.json');

@@ -18,9 +18,9 @@
 <example>
 ```json
 [
-    { "inputs": { "key-1": 1, "key-2": 2 }, "config": {}, "output": { "sum": 3 } },
-    { "inputs": { "key-1": 5, "key-2": 5 }, "config": {}, "output": { "sum": 10 } },
-    { "inputs": { "key-1": 2, "key-2": 2 }, "config": {}, "output": { "sum": 7 } }
+    { "input": { "key-1": 1, "key-2": 2 }, "config": {}, "output": { "sum": 3 } },
+    { "input": { "key-1": 5, "key-2": 5 }, "config": {}, "output": { "sum": 10 } },
+    { "input": { "key-1": 2, "key-2": 2 }, "config": {}, "output": { "sum": 7 } }
 ]
 ```
 </example>

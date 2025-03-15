@@ -13,7 +13,7 @@ export class Test {
     public prompt: string;
     public prompt_type: string;
     public tools: string[] | undefined;
-    public inputs: Record<string, unknown>;
+    public input: Record<string, unknown>;
     public config: Record<string, unknown>;
     public check?: (output: string) => number; // between 0 and 1
     public save?: boolean;
@@ -24,12 +24,12 @@ export class Test {
     public feedback_ts?: string;
     public feedback_python?: string;
     constructor(
-        { code, prompt, prompt_type, tools, inputs, config, check, save, supportFiles, limited_language, skip, feedback, feedback_ts, feedback_python }: {
+        { code, prompt, prompt_type, tools, input, config, check, save, supportFiles, limited_language, skip, feedback, feedback_ts, feedback_python }: {
             code: string,
             prompt: string,
             prompt_type: string,
             tools: string[] | undefined,
-            inputs: Record<string, unknown>,
+            input: Record<string, unknown>,
             config: Record<string, unknown>,
             check?: (output: string) => number, // between 0 and 1
             save?: boolean,
@@ -46,7 +46,7 @@ export class Test {
         this.prompt = prompt;
         this.prompt_type = prompt_type;
         this.tools = tools;
-        this.inputs = inputs;
+        this.input = input;
         this.config = config;
         this.check = check;
         this.save = save;
@@ -66,7 +66,7 @@ const benchmark_download_website = new Test(
         code: `benchmark-download-website`,
         prompt: `Generate a tool that downloads a website, and return the complete HTML as { content: string }.`,
         prompt_type: "type INPUT = { url: string }",
-        inputs: {
+        input: {
             url:
                 "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/test.html",
         },
@@ -86,7 +86,7 @@ const benchmark_download_website = new Test(
 //         prompt:
 //     `Generate a tool that stores or updates a website content in a sqlite database, and returns the entire table`,
 //     prompt_type: "type INPUT = { url: string }",
-//     inputs: {
+//     input: {
 //     url:
 //         "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/test.html",
 //     },

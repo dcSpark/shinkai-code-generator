@@ -286,33 +286,40 @@
         }
 
         .test-section {
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #2a2a2a;
         }
 
         .test-section-title {
             font-weight: bold;
             color: #90caf9;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
         }
 
         .test-editor {
-            width: 80%;
-            min-height: 100px;
-            background-color: #2d2d2d;
+            width: 100%;
+            min-height: 120px;
+            background-color: #1e1e1e;
             color: #d4d4d4;
-            border: 1px solid #444;
+            border: 1px solid #555;
             border-radius: 4px;
-            padding: 8px;
+            padding: 12px;
             font-family: monospace;
             font-size: 14px;
             resize: vertical;
             margin-bottom: 10px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .test-editor:focus {
             outline: none;
-            border-color: #3f51b5;
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.25);
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
         }
 
         .test-result {
@@ -574,6 +581,7 @@
         <div class="tests-container">
             <div class="box-header">Test Cases</div>
             <div id="tests-list"></div>
+            <button id="add-test-btn" style="margin-top: 15px; background-color: #3f51b5;">Add New Test Case</button>
         </div>
     </div>
 
@@ -590,6 +598,7 @@
             const metadataContent = document.getElementById('metadata-content');
             const testsContainer = document.querySelector('.tests-container');
             const testsList = document.getElementById('tests-list');
+            const addTestBtn = document.getElementById('add-test-btn');
 
             // Configuration elements
             const configBtn = document.getElementById('config-btn');
@@ -1051,7 +1060,28 @@
                 const testsList = document.getElementById('tests-list');
                 testsList.innerHTML = ''; // Clear existing tests
 
+                // If no tests are provided or the array is empty, create a default test case
+                if (!testsArray || testsArray.length === 0) {
+                    testsArray = [{
+                        input: {},
+                        config: {},
+                        output: {}
+                    }];
+
+                    // Add a message to inform the user
+                    const noTestsMsg = document.createElement('div');
+                    noTestsMsg.style.padding = '8px';
+                    noTestsMsg.style.marginBottom = '15px';
+                    noTestsMsg.style.backgroundColor = 'rgba(63, 81, 181, 0.1)';
+                    noTestsMsg.style.borderLeft = '3px solid #3f51b5';
+                    noTestsMsg.style.borderRadius = '2px';
+                    noTestsMsg.style.fontSize = '14px';
+                    noTestsMsg.innerHTML = '<strong>Info:</strong> No test cases were provided. A default empty test case has been created for you.';
+                    testsList.appendChild(noTestsMsg);
+                }
+
                 testsArray.forEach((test, index) => {
+                    console.log('Test:', test);
                     const testCase = document.createElement('div');
                     testCase.className = 'test-case';
                     testCase.id = `test-case-${index}`;
@@ -1073,62 +1103,92 @@
                     testHeader.appendChild(runButton);
                     testCase.appendChild(testHeader);
 
-                    // Create inputs section
-                    if (test.inputs) {
-                        const inputsSection = document.createElement('div');
-                        inputsSection.className = 'test-section';
+                    // Add instruction message
+                    const instructionMsg = document.createElement('div');
+                    instructionMsg.style.padding = '8px';
+                    instructionMsg.style.marginTop = '5px';
+                    instructionMsg.style.marginBottom = '10px';
+                    instructionMsg.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                    instructionMsg.style.borderLeft = '3px solid #4CAF50';
+                    instructionMsg.style.borderRadius = '2px';
+                    instructionMsg.style.fontSize = '14px';
+                    instructionMsg.innerHTML = '<strong>Note:</strong> You can edit all sections below (input, config, expected output) before running the test.';
+                    testCase.appendChild(instructionMsg);
 
-                        const inputsTitle = document.createElement('div');
-                        inputsTitle.className = 'test-section-title';
-                        inputsTitle.textContent = 'Inputs:';
-
-                        const inputsContent = document.createElement('textarea');
-                        inputsContent.className = 'test-editor';
-                        inputsContent.id = `test-inputs-${index}`;
-                        inputsContent.value = JSON.stringify(test.inputs, null, 2);
-
-                        inputsSection.appendChild(inputsTitle);
-                        inputsSection.appendChild(inputsContent);
-                        testCase.appendChild(inputsSection);
+                    // Helper function to create an edit icon
+                    function createEditIcon() {
+                        const editIcon = document.createElement('span');
+                        editIcon.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 5px;">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        `;
+                        editIcon.style.color = '#90caf9';
+                        return editIcon;
                     }
 
-                    // Create config section
-                    if (test.config) {
-                        const configSection = document.createElement('div');
-                        configSection.className = 'test-section';
+                    // Create input section - always create this section
+                    const inputSection = document.createElement('div');
+                    inputSection.className = 'test-section';
 
-                        const configTitle = document.createElement('div');
-                        configTitle.className = 'test-section-title';
-                        configTitle.textContent = 'Config:';
+                    const inputTitle = document.createElement('div');
+                    inputTitle.className = 'test-section-title';
+                    inputTitle.textContent = 'Test Input:';
+                    inputTitle.style.color = '#4CAF50'; // Make the title more visible
+                    inputTitle.appendChild(createEditIcon()); // Add edit icon
 
-                        const configContent = document.createElement('textarea');
-                        configContent.className = 'test-editor';
-                        configContent.id = `test-config-${index}`;
-                        configContent.value = JSON.stringify(test.config, null, 2);
+                    const inputContent = document.createElement('textarea');
+                    inputContent.className = 'test-editor';
+                    inputContent.id = `test-input-${index}`;
+                    // Use test.input if available, otherwise use an empty object
+                    inputContent.value = JSON.stringify(test.input || {}, null, 2);
+                    inputContent.style.minHeight = '120px'; // Ensure input are visible
+                    inputContent.placeholder = 'Edit your test input here...';
 
-                        configSection.appendChild(configTitle);
-                        configSection.appendChild(configContent);
-                        testCase.appendChild(configSection);
-                    }
+                    inputSection.appendChild(inputTitle);
+                    inputSection.appendChild(inputContent);
+                    testCase.appendChild(inputSection);
 
-                    // Create expected output section
-                    if (test.output) {
-                        const outputSection = document.createElement('div');
-                        outputSection.className = 'test-section';
+                    // Create config section - always create this section
+                    const configSection = document.createElement('div');
+                    configSection.className = 'test-section';
 
-                        const outputTitle = document.createElement('div');
-                        outputTitle.className = 'test-section-title';
-                        outputTitle.textContent = 'Expected Output:';
+                    const configTitle = document.createElement('div');
+                    configTitle.className = 'test-section-title';
+                    configTitle.textContent = 'Config:';
+                    configTitle.appendChild(createEditIcon()); // Add edit icon
 
-                        const outputContent = document.createElement('textarea');
-                        outputContent.className = 'test-editor';
-                        outputContent.id = `test-output-${index}`;
-                        outputContent.value = JSON.stringify(test.output, null, 2);
+                    const configContent = document.createElement('textarea');
+                    configContent.className = 'test-editor';
+                    configContent.id = `test-config-${index}`;
+                    // Use test.config if available, otherwise use an empty object
+                    configContent.value = JSON.stringify(test.config || {}, null, 2);
+                    configContent.placeholder = 'Edit your test configuration here...';
 
-                        outputSection.appendChild(outputTitle);
-                        outputSection.appendChild(outputContent);
-                        testCase.appendChild(outputSection);
-                    }
+                    configSection.appendChild(configTitle);
+                    configSection.appendChild(configContent);
+                    testCase.appendChild(configSection);
+
+                    // Create expected output section - always create this section
+                    const outputection = document.createElement('div');
+                    outputection.className = 'test-section';
+
+                    const outputTitle = document.createElement('div');
+                    outputTitle.className = 'test-section-title';
+                    outputTitle.textContent = 'Expected Output:';
+                    outputTitle.appendChild(createEditIcon()); // Add edit icon
+
+                    const outputContent = document.createElement('textarea');
+                    outputContent.className = 'test-editor';
+                    outputContent.id = `test-output-${index}`;
+                    // Use test.output if available, otherwise use an empty object
+                    outputContent.value = JSON.stringify(test.output || {}, null, 2);
+                    outputContent.placeholder = 'Edit your expected output here...';
+
+                    outputection.appendChild(outputTitle);
+                    outputection.appendChild(outputContent);
+                    testCase.appendChild(outputection);
 
                     // Create loader
                     const loader = document.createElement('div');
@@ -1165,15 +1225,20 @@
 
                 try {
                     // Get the current values from the editable textareas
-                    let inputs = {};
+                    let input = {};
                     let config = {};
 
-                    const inputsTextarea = document.getElementById(`test-inputs-${index}`);
-                    if (inputsTextarea) {
+                    const inputTextarea = document.getElementById(`test-input-${index}`);
+                    if (inputTextarea) {
                         try {
-                            inputs = JSON.parse(inputsTextarea.value);
+                            input = JSON.parse(inputTextarea.value);
+                            // Highlight the input textarea to show it's being used
+                            inputTextarea.style.borderColor = '#4CAF50';
+                            setTimeout(() => {
+                                inputTextarea.style.borderColor = '#555';
+                            }, 2000);
                         } catch (e) {
-                            throw new Error(`Invalid JSON in inputs: ${e.message}`);
+                            throw new Error(`Invalid JSON in input: ${e.message}`);
                         }
                     }
 
@@ -1181,6 +1246,11 @@
                     if (configTextarea) {
                         try {
                             config = JSON.parse(configTextarea.value);
+                            // Highlight the config textarea to show it's being used
+                            configTextarea.style.borderColor = '#4CAF50';
+                            setTimeout(() => {
+                                configTextarea.style.borderColor = '#555';
+                            }, 2000);
                         } catch (e) {
                             throw new Error(`Invalid JSON in config: ${e.message}`);
                         }
@@ -1203,6 +1273,10 @@
                         console.log('No tools found in metadata, using default');
                     }
 
+                    // Log the input being used
+                    console.log('Running test with input:', input);
+                    console.log('Running test with config:', config);
+
                     // Prepare the request payload
                     const payload = {
                         code: document.getElementById('code-content').value,
@@ -1210,7 +1284,7 @@
                         tool_type: "denodynamic",
                         llm_provider: "GET_FROM_CODE",
                         extra_config: config,
-                        parameters: inputs
+                        parameters: input
                     };
 
                     // Make the API call using the configured URL
@@ -1232,6 +1306,38 @@
                     // Display the result
                     resultSection.innerHTML = '';
 
+                    // Add a section showing what input were used
+                    const inputUsedTitle = document.createElement('div');
+                    inputUsedTitle.className = 'test-section-title';
+                    inputUsedTitle.textContent = 'Input Used:';
+
+                    const inputUsedContent = document.createElement('pre');
+                    inputUsedContent.className = 'wrapped-pre';
+                    inputUsedContent.style.backgroundColor = '#2a2a2a';
+                    inputUsedContent.style.padding = '10px';
+                    inputUsedContent.style.borderRadius = '4px';
+                    inputUsedContent.style.marginBottom = '15px';
+                    inputUsedContent.textContent = JSON.stringify(input, null, 2);
+
+                    resultSection.appendChild(inputUsedTitle);
+                    resultSection.appendChild(inputUsedContent);
+
+                    // Add a section showing what config was used
+                    const configUsedTitle = document.createElement('div');
+                    configUsedTitle.className = 'test-section-title';
+                    configUsedTitle.textContent = 'Config Used:';
+
+                    const configUsedContent = document.createElement('pre');
+                    configUsedContent.className = 'wrapped-pre';
+                    configUsedContent.style.backgroundColor = '#2a2a2a';
+                    configUsedContent.style.padding = '10px';
+                    configUsedContent.style.borderRadius = '4px';
+                    configUsedContent.style.marginBottom = '15px';
+                    configUsedContent.textContent = JSON.stringify(config, null, 2);
+
+                    resultSection.appendChild(configUsedTitle);
+                    resultSection.appendChild(configUsedContent);
+
                     const resultTitle = document.createElement('div');
                     resultTitle.className = 'test-section-title';
                     resultTitle.textContent = 'Actual Result:';
@@ -1243,6 +1349,37 @@
                     resultSection.appendChild(resultTitle);
                     resultSection.appendChild(resultContent);
                     resultSection.style.display = 'block';
+
+                    // Check if there's an expected output to compare with
+                    const outputTextarea = document.getElementById(`test-output-${index}`);
+                    if (outputTextarea && outputTextarea.value.trim() !== '{}') {
+                        try {
+                            const expectedOutput = JSON.parse(outputTextarea.value);
+
+                            // Add a comparison section
+                            const comparisonTitle = document.createElement('div');
+                            comparisonTitle.className = 'test-section-title';
+                            comparisonTitle.textContent = 'Comparison with Expected Output:';
+
+                            const comparisonContent = document.createElement('div');
+                            comparisonContent.style.padding = '10px';
+                            comparisonContent.style.backgroundColor = '#2a2a2a';
+                            comparisonContent.style.borderRadius = '4px';
+
+                            // Simple comparison - just check if the structures look similar
+                            // In a real app, you'd want a more sophisticated comparison
+                            if (JSON.stringify(data) === JSON.stringify(expectedOutput)) {
+                                comparisonContent.innerHTML = '<div style="color: #4CAF50; font-weight: bold;">✓ Output matches expected result</div>';
+                            } else {
+                                comparisonContent.innerHTML = '<div style="color: #f44336; font-weight: bold;">✗ Output differs from expected result</div>';
+                            }
+
+                            resultSection.appendChild(comparisonTitle);
+                            resultSection.appendChild(comparisonContent);
+                        } catch (e) {
+                            console.warn('Failed to parse expected output for comparison:', e);
+                        }
+                    }
 
                 } catch (error) {
                     // Display error
@@ -1267,6 +1404,159 @@
                     runButton.disabled = false;
                 }
             }
+
+            // Add event listener for the add test button
+            addTestBtn.addEventListener('click', function () {
+                // Get the current number of test cases
+                const currentTestCount = document.querySelectorAll('.test-case').length;
+
+                // Create a new empty test case
+                const newTest = {
+                    input: {},
+                    config: {},
+                    output: {}
+                };
+
+                // Create a temporary array with just this test
+                const tempArray = [newTest];
+
+                // Get the current HTML of the tests list
+                const currentHTML = testsList.innerHTML;
+
+                // Create a temporary div to hold the new test case
+                const tempDiv = document.createElement('div');
+
+                // Use the createTestCases function to create the new test case
+                // But we need to modify it slightly to work with a single test
+                const testCase = document.createElement('div');
+                testCase.className = 'test-case';
+                testCase.id = `test-case-${currentTestCount}`;
+
+                // Create test header
+                const testHeader = document.createElement('div');
+                testHeader.className = 'test-header';
+
+                const testTitle = document.createElement('div');
+                testTitle.className = 'test-title';
+                testTitle.textContent = `Test Case #${currentTestCount + 1}`;
+
+                const runButton = document.createElement('button');
+                runButton.className = 'test-run-btn';
+                runButton.textContent = 'RUN';
+                runButton.dataset.testIndex = currentTestCount;
+
+                testHeader.appendChild(testTitle);
+                testHeader.appendChild(runButton);
+                testCase.appendChild(testHeader);
+
+                // Add instruction message
+                const instructionMsg = document.createElement('div');
+                instructionMsg.style.padding = '8px';
+                instructionMsg.style.marginTop = '5px';
+                instructionMsg.style.marginBottom = '10px';
+                instructionMsg.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+                instructionMsg.style.borderLeft = '3px solid #4CAF50';
+                instructionMsg.style.borderRadius = '2px';
+                instructionMsg.style.fontSize = '14px';
+                instructionMsg.innerHTML = '<strong>Note:</strong> You can edit all sections below (input, config, expected output) before running the test.';
+                testCase.appendChild(instructionMsg);
+
+                // Helper function to create an edit icon
+                function createEditIcon() {
+                    const editIcon = document.createElement('span');
+                    editIcon.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-left: 5px;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    `;
+                    editIcon.style.color = '#90caf9';
+                    return editIcon;
+                }
+
+                // Create input section
+                const inputSection = document.createElement('div');
+                inputSection.className = 'test-section';
+
+                const inputTitle = document.createElement('div');
+                inputTitle.className = 'test-section-title';
+                inputTitle.textContent = 'Test Input:';
+                inputTitle.style.color = '#4CAF50';
+                inputTitle.appendChild(createEditIcon());
+
+                const inputContent = document.createElement('textarea');
+                inputContent.className = 'test-editor';
+                inputContent.id = `test-input-${currentTestCount}`;
+                inputContent.value = '{}';
+                inputContent.style.minHeight = '120px';
+                inputContent.placeholder = 'Edit your test input here...';
+
+                inputSection.appendChild(inputTitle);
+                inputSection.appendChild(inputContent);
+                testCase.appendChild(inputSection);
+
+                // Create config section
+                const configSection = document.createElement('div');
+                configSection.className = 'test-section';
+
+                const configTitle = document.createElement('div');
+                configTitle.className = 'test-section-title';
+                configTitle.textContent = 'Config:';
+                configTitle.appendChild(createEditIcon());
+
+                const configContent = document.createElement('textarea');
+                configContent.className = 'test-editor';
+                configContent.id = `test-config-${currentTestCount}`;
+                configContent.value = '{}';
+                configContent.placeholder = 'Edit your test configuration here...';
+
+                configSection.appendChild(configTitle);
+                configSection.appendChild(configContent);
+                testCase.appendChild(configSection);
+
+                // Create expected output section
+                const outputection = document.createElement('div');
+                outputection.className = 'test-section';
+
+                const outputTitle = document.createElement('div');
+                outputTitle.className = 'test-section-title';
+                outputTitle.textContent = 'Expected Output:';
+                outputTitle.appendChild(createEditIcon());
+
+                const outputContent = document.createElement('textarea');
+                outputContent.className = 'test-editor';
+                outputContent.id = `test-output-${currentTestCount}`;
+                outputContent.value = '{}';
+                outputContent.placeholder = 'Edit your expected output here...';
+
+                outputection.appendChild(outputTitle);
+                outputection.appendChild(outputContent);
+                testCase.appendChild(outputection);
+
+                // Create loader
+                const loader = document.createElement('div');
+                loader.className = 'test-loader';
+                loader.id = `test-loader-${currentTestCount}`;
+                testCase.appendChild(loader);
+
+                // Create result section
+                const resultSection = document.createElement('div');
+                resultSection.className = 'test-result';
+                resultSection.id = `test-result-${currentTestCount}`;
+                resultSection.style.display = 'none';
+                testCase.appendChild(resultSection);
+
+                // Append the new test case to the tests list
+                testsList.appendChild(testCase);
+
+                // Add event listener to run button
+                runButton.addEventListener('click', function () {
+                    executeTest(currentTestCount, newTest);
+                });
+
+                // Scroll to the new test case
+                testCase.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
         });
     </script>
 </body>

@@ -17,7 +17,7 @@ async function start() {
         await TestFileManager.clearFolder();
     }
     const llm = [
-        // getDeepSeekR132B(), // Good results (for testing outputs)
+        // getDeepSeekR132B(), // Good results (for testing output)
         // getLlama318bInstruct() // Fast results (for testing engine)
         getOpenAIO4Mini() // Fast + Good
     ];
