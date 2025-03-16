@@ -1223,6 +1223,49 @@
                 loader.style.display = 'block';
                 resultSection.style.display = 'none';
 
+                // Function to check if data is contained in expectedOutput
+                function isContained(data, expectedOutput) {
+                    // Handle null and undefined
+                    if (data === expectedOutput) {
+                        return true;
+                    }
+
+                    // Handle null or undefined in one but not the other
+                    if (data === null || data === undefined || expectedOutput === null || expectedOutput === undefined) {
+                        return false;
+                    }
+
+                    // Handle primitive types (string, number, boolean)
+                    if (typeof data !== 'object' && typeof expectedOutput !== 'object') {
+                        return data === expectedOutput;
+                    }
+
+                    // Handle arrays
+                    if (Array.isArray(data) && Array.isArray(expectedOutput)) {
+                        // Check if every item in data is contained in expectedOutput
+                        return data.every(dataItem => {
+                            // Find at least one matching item in expectedOutput
+                            return expectedOutput.some(expectedItem => isContained(dataItem, expectedItem));
+                        });
+                    }
+
+                    // Handle objects
+                    if (typeof data === 'object' && typeof expectedOutput === 'object') {
+                        // Check if every key-value pair in data is contained in expectedOutput
+                        return Object.keys(data).every(key => {
+                            // If the key doesn't exist in expectedOutput, it's not contained
+                            if (!(key in expectedOutput)) {
+                                return false;
+                            }
+                            // Recursively check if the value is contained
+                            return isContained(data[key], expectedOutput[key]);
+                        });
+                    }
+
+                    // Default case: not contained
+                    return false;
+                }
+
                 try {
                     // Get the current values from the editable textareas
                     let input = {};
@@ -1366,12 +1409,15 @@
                             comparisonContent.style.backgroundColor = '#2a2a2a';
                             comparisonContent.style.borderRadius = '4px';
 
-                            // Simple comparison - just check if the structures look similar
-                            // In a real app, you'd want a more sophisticated comparison
-                            if (JSON.stringify(data) === JSON.stringify(expectedOutput)) {
-                                comparisonContent.innerHTML = '<div style="color: #4CAF50; font-weight: bold;">✓ Output matches expected result</div>';
+                            // Check if data is contained in expectedOutput
+                            if (isContained(data, expectedOutput)) {
+                                comparisonContent.innerHTML = '<div style="color: #4CAF50; font-weight: bold;">✓ Output contains all expected values</div>' +
+                                    '<div style="margin-top: 10px;">The actual output contains all the key-value pairs specified in the expected output. ' +
+                                    'Note that the actual output may contain additional properties not specified in the expected output.</div>';
                             } else {
-                                comparisonContent.innerHTML = '<div style="color: #f44336; font-weight: bold;">✗ Output differs from expected result</div>';
+                                comparisonContent.innerHTML = '<div style="color: #f44336; font-weight: bold;">✗ Output does not contain all expected values</div>' +
+                                    '<div style="margin-top: 10px;">The actual output is missing some key-value pairs specified in the expected output, ' +
+                                    'or some values do not match the expected values.</div>';
                             }
 
                             resultSection.appendChild(comparisonTitle);
