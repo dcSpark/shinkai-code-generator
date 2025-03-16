@@ -97,10 +97,30 @@ export class ShinkaiPipeline {
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] System Requirements & Feedback Prompt`, true);
-            const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_tools'];
+            let headers: string = '';
+            if (this.toolType === 'shinkai') {
+                if (this.language === 'typescript') {
+                    headers = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] +
+                        "\n" +
+                        (this.shinkaiPrompts.headers as any)['shinkai-local-support'];
+                } else {
+                    headers = (this.shinkaiPrompts.headers as any)['shinkai_local_tools'] +
+                        "\n" +
+                        (this.shinkaiPrompts.headers as any)['shinkai_local_support'];
+                }
+
+            } else {
+                headers = "NONE"
+            }
+
+            let user_prompt = this.test.prompt;
+            if (this.toolType === 'mcp') {
+                user_prompt += "\n\nNo matter what was said before, the \"Internal Libraries\" section is always NONE."
+            }
+
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.test.prompt}\n\n</input_command>`
+                `<input_command>\n${user_prompt}\n\n</input_command>`
             )
                 .replace(/\{LANGUAGE\}/g, this.language)
                 .replace(/\{RUNTIME\}/g, this.language === 'typescript' ? 'Deno' : 'Python')
@@ -574,25 +594,10 @@ In the next example tag is an example of the commented script block that MUST be
         // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
     }
 
-    private async processFeedbackAnalysis() {
-        // Check if output file exists
-        if (await this.fileManager.exists(this.step, 'c', 'feedback-analysis.json')) {
-            await this.fileManager.log(` Step ${this.step} - Feedback Analysis `, true);
-            const existingFile = await this.fileManager.load(this.step, 'c', 'feedback-analysis.json');
-            this.feedbackAnalysisResult = JSON.parse(existingFile).result;
-            this.step++;
-            return;
-        }
-
-        let user_feedback = '';
-        if (this.test.feedback) {
-            user_feedback = this.test.feedback;
-        }
-
-        if (!user_feedback) {
-            console.log(JSON.stringify({ markdown: this.feedback }));
-            throw new Error('REQUEST_FEEDBACK');
-        }
+    private async processFeedbackAnalysis(): Promise<'no-feedback' | 'changes-requested' | 'no-changes'> {
+        if (this.feedback === "") return 'no-changes';
+        if (!this.feedback) return 'no-feedback';
+        const user_feedback = this.feedback;
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
@@ -610,11 +615,12 @@ In the next example tag is an example of the commented script block that MUST be
                 /"result"/,
             ]
         });
-
         const analysisResult = JSON.parse(parsedLLMResponse);
-        this.feedbackAnalysisResult = analysisResult.result;
-        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'feedback-analysis.json');
-        this.step++;
+        if (analysisResult.result === 'changes-requested') {
+            return 'changes-requested';
+        } else {
+            return 'no-changes';
+        }
     }
 
     public async generateMCP() {
@@ -653,22 +659,16 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
     public async run() {
         try {
+            // const feedbackAnalysis = await this.processFeedbackAnalysis();
+
             await this.initialize();
             await this.generateRequirements();
 
             if (this.test.feedback) {
-                // TODO this is only used once. We should use it in each feedback step.
-                // await this.processFeedbackAnalysis();
-
-                // if (this.feedbackAnalysisResult === "changes-requested") {
                 await this.processUserFeedback();
                 console.log(JSON.stringify({ markdown: this.feedback }));
                 throw new Error('REQUEST_FEEDBACK');
-                // } else {
-                // console.log(JSON.stringify({ markdown: this.feedback }));
-                // }
             } else {
-                // We have to determine the last step that was executed
                 while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
                     this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
                     this.step++;
