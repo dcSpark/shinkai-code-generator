@@ -11,9 +11,10 @@ router.get("/generate", async (ctx: Context) => {
     const language = ctx.request.url.searchParams.get('language');
     const prompt = ctx.request.url.searchParams.get('prompt');
     const feedback = ctx.request.url.searchParams.get('feedback') || '';
+    const toolType = ctx.request.url.searchParams.get('tool_type') || 'shinkai'; // Default to 'shinkai' if not provided
     let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
 
-    console.log('input', { language, prompt, feedback });
+    console.log('input', { language, prompt, feedback, toolType });
     if (!language || (language !== 'typescript' && language !== 'python')) {
         ctx.response.status = 400;
         ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
@@ -51,7 +52,7 @@ router.get("/generate", async (ctx: Context) => {
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
 
     // Create a readable stream from the pipeline process
-    const processStream = await runPipelineInProcess(language, requestUUID, prompt, feedback);
+    const processStream = await runPipelineInProcess(language, requestUUID, prompt, feedback, toolType);
 
 
     // Transform the raw stdout stream into properly formatted SSE events
@@ -91,7 +92,7 @@ router.get("/", async (ctx: Context) => {
 });
 
 // Function to run pipeline in a separate process and return a readable stream
-const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string): Promise<ReadableStream<Uint8Array>> => {
+const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string, toolType: string = 'shinkai'): Promise<ReadableStream<Uint8Array>> => {
     // Create a new process to run the pipeline
     try {
         const delimiter = `"#|#"`
@@ -102,7 +103,8 @@ const runPipelineInProcess = async (language: Language, requestUUID: string, pro
             'language=' + language,
             'request-uuid=' + requestUUID,
             'prompt=' + delimiter + encodeURIComponent(prompt || '') + delimiter,
-            'feedback=' + delimiter + encodeURIComponent(feedback || '') + delimiter
+            'feedback=' + delimiter + encodeURIComponent(feedback || '') + delimiter,
+            'tool_type=' + toolType
         ];
         console.log(`Calling Deno with args: ${args.join(' ')}`);
         const command = new Deno.Command(Deno.execPath(), {

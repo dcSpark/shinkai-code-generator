@@ -38,7 +38,7 @@ Do not write any other output or source code.
 # Development Plan
 {initial_requirements}
 
-# Example Input and output 
+# Example Input and Output 
 Input: {json}
 Output: {json}
 

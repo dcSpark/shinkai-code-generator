@@ -236,6 +236,28 @@
             width: auto;
         }
 
+        /* Tool type selector styling */
+        .tool-type-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+
+        .tool-type-selector label {
+            margin-bottom: 0;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 4px;
+        }
+
         /* Test cases styling */
         .tests-container {
             margin-top: 20px;
@@ -547,6 +569,15 @@
                     <option value="python">Python</option>
                 </select>
             </div>
+            <div class="tool-type-selector">
+                <label>Tool Type:</label>
+                <div class="radio-group">
+                    <input type="radio" id="shinkai-tool" name="tool-type" value="shinkai" checked>
+                    <label for="shinkai-tool">Shinkai Tool</label>
+                    <input type="radio" id="mcp-tool" name="tool-type" value="mcp">
+                    <label for="mcp-tool">MCP Tool</label>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -670,6 +701,7 @@
             generateBtn.addEventListener('click', async () => {
                 const language = languageSelect.value;
                 const prompt = promptTextarea.value.trim();
+                const toolType = document.querySelector('input[name="tool-type"]:checked').value;
 
                 if (!prompt) {
                     alert('Please enter a prompt');
@@ -691,7 +723,7 @@
 
                 try {
                     // Call the API with fetch using the configured URL
-                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}`, {
+                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&tool_type=${encodeURIComponent(toolType)}`, {
                         method: 'GET',
                         headers: {
                             'Accept': 'text/event-stream'
@@ -956,8 +988,11 @@
                                     submitBtn.disabled = true;
                                     skipBtn.disabled = true;
 
+                                    // Get the current tool type
+                                    const toolType = document.querySelector('input[name="tool-type"]:checked').value;
+
                                     // Send feedback to the server
-                                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(languageSelect.value)}&prompt=${encodeURIComponent(promptTextarea.value)}&feedback=${encodeURIComponent(feedback)}&x_shinkai_request_uuid=${requestUuid}`, {
+                                    const response = await fetch(`${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(languageSelect.value)}&prompt=${encodeURIComponent(promptTextarea.value)}&feedback=${encodeURIComponent(feedback)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`, {
                                         method: 'GET',
                                         headers: {
                                             'Accept': 'text/event-stream',

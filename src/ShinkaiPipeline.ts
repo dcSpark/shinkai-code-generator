@@ -55,10 +55,21 @@ export class ShinkaiPipeline {
     // Start time
     private startTime: number;
 
-    constructor(private language: Language, private test: Test, private llmModel: BaseEngine, private advancedLlmModel: BaseEngine, private stream: boolean) {
+    // Tool type
+    private toolType: 'shinkai' | 'mcp';
+
+    constructor(
+        private language: Language,
+        private test: Test,
+        private llmModel: BaseEngine,
+        private advancedLlmModel: BaseEngine,
+        private stream: boolean,
+        toolType: 'shinkai' | 'mcp' = 'shinkai'
+    ) {
         this.fileManager = new TestFileManager(language, test, llmModel, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
+        this.toolType = toolType;
     }
 
     private async initialize() {
@@ -66,7 +77,7 @@ export class ShinkaiPipeline {
         this.shinkaiPrompts = completeShinkaiPrompts[this.language];
         this.availableTools = completeShinkaiPrompts.availableTools;
         // await this.fileManager.log(`=========================================================`, true);
-        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language}`, true);
+        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language} (Tool Type: ${this.toolType})`, true);
     }
 
     private async generateRequirements() {
@@ -559,7 +570,7 @@ In the next example tag is an example of the commented script block that MUST be
     private async logCompletion() {
         const end = Date.now();
         const time = end - this.startTime;
-        await this.fileManager.log(`[Done] took ${time}ms`, true);
+        await this.fileManager.log(`[Done] took ${time}ms (Tool Type: ${this.toolType})`, true);
         // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
     }
 
@@ -607,6 +618,11 @@ In the next example tag is an example of the commented script block that MUST be
     }
 
     public async generateMCP() {
+        // Only generate MCP config if toolType is 'mcp'
+        if (this.toolType !== 'mcp') {
+            console.log('Skipping MCP generation as tool type is not MCP');
+            return;
+        }
 
         const srcPath = path.join(this.fileManager.toolDir, `src`);
         const mcp = await Deno.readTextFile(Deno.cwd() + '/templates/mcp.ts');
@@ -615,7 +631,24 @@ In the next example tag is an example of the commented script block that MUST be
         Deno.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
         Deno.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
         Deno.writeTextFileSync(path.join(srcPath, 'deno.lock'), metadata);
-        console.log(`deno -A ${path.normalize(srcPath)}/src/mcp.ts`);
+        const mcp_name = JSON.parse(this.metadata).name.toLocaleLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const markdown = `
+# MCP Config
+## CURSOR
+deno -A ${path.normalize(srcPath)}/src/mcp.ts
+
+## CLAUDE
+"mcpServers": {
+    "${mcp_name}": {
+        "args": [
+            "-A",
+            "${path.normalize(srcPath)}/src/mcp.ts"
+        ],
+        "command": "deno"
+    }
+}
+        `;
+        console.log(JSON.stringify({ markdown }));
     }
 
     public async run() {
@@ -669,7 +702,7 @@ In the next example tag is an example of the commented script block that MUST be
         } catch (e) {
             if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
                 console.log("EVENT: request-feedback");
-                // console.log(`EVENT: feedback\n${JSON.stringify({ feedback: this.feedback })}`);
+                // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
                 return {
                     status: "REQUEST_FEEDBACK",
                     code: '',
