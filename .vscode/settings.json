@@ -2,7 +2,8 @@
     "deno.enable": true,
     "deno.lint": true,
     "deno.enablePaths": [
-        "./src"
+        "./src",
+        "./mcp"
     ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {

@@ -1,4 +1,5 @@
 results/
+mcp/
 .DS_Store
 .env
 .execution

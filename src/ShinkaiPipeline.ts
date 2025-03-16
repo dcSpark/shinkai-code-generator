@@ -1,5 +1,6 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
+import path from "node:path";
 import { DependencyDoc } from "./DependencyDoc.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
@@ -291,7 +292,7 @@ ${doc}
         }, 'markdown', {
             regex: [
                 new RegExp("# Development Plan"),
-                new RegExp("# Example Input and output "),
+                new RegExp("# Example Input and Output "),
                 new RegExp("# Config"),
             ]
         });
@@ -605,6 +606,18 @@ In the next example tag is an example of the commented script block that MUST be
         this.step++;
     }
 
+    public async generateMCP() {
+
+        const srcPath = path.join(this.fileManager.toolDir, `src`);
+        const mcp = await Deno.readTextFile(Deno.cwd() + '/templates/mcp.ts');
+        const denojson = await Deno.readTextFile(Deno.cwd() + '/templates/deno.json');
+        const metadata = await Deno.readTextFile(Deno.cwd() + '/templates/deno.lock');
+        Deno.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
+        Deno.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
+        Deno.writeTextFileSync(path.join(srcPath, 'deno.lock'), metadata);
+        console.log(`deno -A ${path.normalize(srcPath)}/src/mcp.ts`);
+    }
+
     public async run() {
         try {
             await this.initialize();
@@ -644,6 +657,7 @@ In the next example tag is an example of the commented script block that MUST be
             await this.generateMetadata();
             await this.generateTests();
             await this.fileManager.saveFinal(this.code, this.metadata);
+            await this.generateMCP();
             await this.logCompletion();
 
             console.log(`EVENT: metadata\n${JSON.stringify({ metadata: this.metadata })}`);
