@@ -7,7 +7,7 @@ COPY prompts ./prompts
 COPY src ./src
 COPY deno.json .
 COPY deno.lock .
-COPY test-server.html .
+COPY public ./public
 
 # Expose the port
 EXPOSE 8080

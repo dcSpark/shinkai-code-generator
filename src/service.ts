@@ -84,11 +84,26 @@ router.get("/generate", async (ctx: Context) => {
     ctx.response.body = processStream.pipeThrough(sseStream as any);
 });
 
-// Serve the test-server.html file at the root path
-router.get("/", async (ctx: Context) => {
-    await send(ctx, "test-server.html", {
-        root: Deno.cwd(),
-    });
+// Serve the static files from public folder
+router.get("/(.*)", async (ctx: Context) => {
+    // Get the path from the URL
+    const pathname = ctx.request.url.pathname;
+    const path = pathname === "/" ? "index.html" : pathname.substring(1);
+
+    try {
+        await send(ctx, path, {
+            root: Deno.cwd() + '/public',
+        });
+    } catch (error) {
+        // If file not found, serve index.html (for SPA routing)
+        if (error instanceof Deno.errors.NotFound) {
+            await send(ctx, "index.html", {
+                root: Deno.cwd() + '/public',
+            });
+        } else {
+            throw error;
+        }
+    }
 });
 
 // Function to run pipeline in a separate process and return a readable stream
