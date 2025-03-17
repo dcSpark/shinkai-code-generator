@@ -583,7 +583,7 @@ In the next example tag is an example of the commented script block that MUST be
         });
 
         await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'tests.json');
-        console.log(`EVENT: tests\n${JSON.stringify({ tests: parsedLLMResponse })}`);
+        console.log(`EVENT: tests\n${JSON.stringify({ tests: JSON.parse(parsedLLMResponse) })}`);
         this.step++;
     }
 
