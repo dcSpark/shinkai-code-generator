@@ -93,8 +93,8 @@ ${chunk}
 
 <rules>
 * You are builing a documentation that will be used by a LLM to understand how to use this library.
-* You can sythesize, but do not lose documentation information as methods, arguments, properties, classes, how to initialize, how install or use the library.
-* If the line has no relation with the documentation, then remove it - for example: changelogs, release notes, ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
+* You can sythesize, but do not lose documentation, descriptions, information, methods, function, arguments, properties, classes, how to initialize, how install, use the library and any other information related to the library use.
+* If a section has no relation with the documentation, then remove it - for example: changelogs, release notes, ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
 </rules>
 
                 `, this.logger, undefined, `Processing documentation chunk ${index + 1}/${chunks.length} for "${library}"`);

@@ -36,6 +36,13 @@ export class FileManager {
         if (Deno.env.get('DEBUG') === 'true') {
             console.log(`[DEBUG] Saved File: ${filePath}`);
         }
+        const state = await this.loadState();
+        if (!state.exists) {
+            await this.writeState({
+                completed: false,
+                date: new Date().toISOString(),
+            });
+        }
         return filePath;
     }
 
@@ -54,11 +61,28 @@ export class FileManager {
             await Deno.writeTextFile(filePath, tool);
             await Deno.writeTextFile(filePath2, metadata);
         }
+        await this.writeState({
+            completed: true,
+            date: new Date().toISOString(),
+        });
     }
 
     async exists(step: number, substep: string, fileName: string) {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         return await exists(filePath);
+    }
+
+    async writeState(config: { completed: boolean, date: string }) {
+        const filePath = path.join(this.toolDir, `state.json`);
+        await Deno.writeTextFile(filePath, JSON.stringify(config));
+    }
+
+    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string }> {
+        const filePath = path.join(this.toolDir, `state.json`);
+        if (!await exists(filePath)) {
+            return { exists: false, completed: false, date: new Date().toISOString() };
+        }
+        return { exists: true, ...JSON.parse(await Deno.readTextFile(filePath)) };
     }
 
     async load(step: number, substep: string, fileName: string) {

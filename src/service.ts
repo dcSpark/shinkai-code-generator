@@ -6,6 +6,9 @@ import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
 import { ReadableStream } from "npm:stream/web";
 import { IPLimits } from "./IPLimits.ts";
+import { FileManager } from "./ShinkaiPipeline/FileManager.ts";
+import { getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
+import { emptyRequirement } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiAPI } from "./ShinkaiPipeline/ShinkaiAPI.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";
 
@@ -33,9 +36,36 @@ const setCorsHeadersMiddleware = async (ctx: Context, next: Next) => {
     // Set streaming response headers
     ctx.response.headers.set("Cache-Control", "no-cache");
     ctx.response.headers.set("Connection", "keep-alive");
-    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID, Retry-After");
+    ctx.response.headers.set("access-control-expose-headers", "Content-Type, X-SHINKAI-REQUEST-UUID, Retry-After");
     await next();
 }
+
+router.get("/state", setCorsHeadersMiddleware, async (ctx: Context) => {
+    const requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
+    if (!requestUUID) {
+        ctx.response.status = 400;
+        ctx.response.body = "X-SHINKAI-REQUEST-UUID is required";
+        return;
+    }
+    const language = ctx.request.url.searchParams.get('language');
+    if (!language || (language !== 'typescript' && language !== 'python')) {
+        ctx.response.status = 400;
+        ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
+        return;
+
+    }
+    const requirement = emptyRequirement();
+    requirement.code = requestUUID;
+    const state = await (new FileManager(
+        language,
+        requirement,
+        getOpenAIO4Mini(),
+        true
+    )).loadState();
+    ctx.response.headers.set("Content-Type", "application/json");
+    ctx.response.body = JSON.stringify(state);
+});
+
 
 router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => {
     const payload = ctx.request.url.searchParams.get('payload');
@@ -101,21 +131,36 @@ router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async 
             const text = new TextDecoder().decode(chunk);
             const lines = text.split('\n');
 
-            for (const line of lines) {
-                if (line.startsWith('EVENT: ')) {
-                    const [eventType, ...eventData] = line.substring(7).split('\n');
-                    const data = eventData.join('\n');
+            let currentEvent: string | null = null;
+            let currentData: string[] = [];
 
-                    // Format as Server-Sent Event
-                    if (data) {
-                        controller.enqueue(`event: ${eventType}\ndata: ${data}\n\n`);
-                    } else {
-                        controller.enqueue(`event: ${eventType}\ndata: {}\n\n`);
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (line.startsWith('EVENT: ')) {
+                    // If we have a previous event stored, send it
+                    if (currentEvent !== null) {
+                        const data = currentData.length > 0 ? currentData.join('\n') : '{}';
+                        controller.enqueue(`event: ${currentEvent}\ndata: ${data}\n\n`);
+                        currentData = [];
                     }
+
+                    // Start a new event
+                    currentEvent = line.substring(7).trim();
+                    // console.log('event', { line, currentEvent });
+                } else if (line.trim() && currentEvent !== null) {
+                    // This is data for the current event
+                    currentData.push(line);
                 } else if (line.trim()) {
-                    // Send other output as progress events
+                    // This is a standalone line, not part of an event
                     controller.enqueue(`event: progress\ndata: ${JSON.stringify({ message: line })}\n\n`);
                 }
+            }
+
+            // Send the last event if any
+            if (currentEvent !== null) {
+                const data = currentData.length > 0 ? currentData.join('\n') : '{}';
+                controller.enqueue(`event: ${currentEvent}\ndata: ${data}\n\n`);
             }
         }
     });

@@ -2,8 +2,8 @@
 // Max LIMIT requests per WINDOW per IP
 import { exists } from "jsr:@std/fs/exists";
 export class IPLimits {
-    private static window = 1 * 60 * 1000; // 1 minute(s)
-    private static limit = 2;
+    private static window = 60 * 60 * 1000; // 60 minute(s)
+    private static limit = 200;
     static async init() {
         await Deno.mkdir(Deno.cwd() + '/cache/ips', { recursive: true });
     }

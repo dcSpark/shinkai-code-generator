@@ -555,7 +555,7 @@ In the next example tag is an example of the commented script block that MUST be
         if (await this.fileManager.exists(this.step, 'c', 'tests.json')) {
             await this.fileManager.log(` Step ${this.step} - Tests `, true);
             const existingFile = await this.fileManager.load(this.step, 'c', 'tests.json');
-            console.log(`EVENT: tests\n${existingFile}`);
+            console.log(`EVENT: tests\n${JSON.stringify(JSON.parse(existingFile))}`);
             this.step++;
             return;
         }
@@ -659,6 +659,15 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
     public async run() {
         try {
+            const state = await this.fileManager.loadState();
+            if (state.exists && state.completed) {
+                console.log('EVENT: progress\n', JSON.stringify({ message: 'Already completed' }));
+                return {
+                    status: "COMPLETED",
+                    code: '',
+                    metadata: '',
+                }
+            }
             // const feedbackAnalysis = await this.processFeedbackAnalysis();
 
             await this.initialize();
@@ -671,6 +680,8 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             } else {
                 while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
                     this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+
+                    console.log('EVENT: feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing feedback' }));
                     this.step++;
                 }
             }

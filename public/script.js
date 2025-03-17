@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const skipBtn = document.createElement('button');
                     skipBtn.id = 'skip-feedback';
                     skipBtn.className = 'secondary';
-                    skipBtn.textContent = 'Skip';
+                    skipBtn.textContent = 'Continue';
 
                     // Add buttons to container
                     buttonsDiv.appendChild(submitBtn);

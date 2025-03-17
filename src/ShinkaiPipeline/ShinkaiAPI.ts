@@ -89,20 +89,26 @@ export class ShinkaiAPI {
             parameters
         };
 
-        const response = await axios<CodeExecutionResponse>({
-            method: "POST",
-            url: `${this.shinkaiApiUrl}/v2/code_execution`,
-            data: payload,
-            headers: {
-                Authorization: `Bearer ${this.bearerToken}`,
-                'x-shinkai-tool-id': 'no-name',
-                'x-shinkai-app-id': 'asset-test',
-                'x-shinkai-llm-provider': llmProvider,
-                'Content-Type': 'application/json; charset=utf-8',
-            },
-        });
+        try {
+            const response = await axios<CodeExecutionResponse>({
+                method: "POST",
+                url: `${this.shinkaiApiUrl}/v2/code_execution`,
+                data: payload,
+                headers: {
+                    Authorization: `Bearer ${this.bearerToken}`,
+                    'x-shinkai-tool-id': 'no-name',
+                    'x-shinkai-app-id': 'asset-test',
+                    'x-shinkai-llm-provider': llmProvider,
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+            });
 
-        return response.data;
+            return response.data;
+        } catch (error: any) {
+            console.error('Error executing code:', error);
+            const e = error?.response?.data?.message || error?.message || error;
+            return { success: false, error: String(JSON.stringify(e)) };
+        }
     }
 
     public async checkCode(language: Language, code: string): Promise<CheckCodeResponse> {

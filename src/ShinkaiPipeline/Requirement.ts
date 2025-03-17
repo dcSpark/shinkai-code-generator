@@ -61,6 +61,15 @@ export class Requirement {
 };
 
 
+export const emptyRequirement = () => new Requirement({
+    code: '',
+    prompt: '',
+    prompt_type: '',
+    tools: [],
+    input: {},
+    config: {},
+});
+
 const benchmark_download_website = new Requirement(
     {
         code: `benchmark-download-website`,
