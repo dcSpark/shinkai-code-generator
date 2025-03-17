@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nodeRunnerUrlInput = document.getElementById('node-runner-url');
 
     // Default URLs
-    const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080';
+    const DEFAULT_CODE_GENERATOR_URL = 'https://api.shinaki.com/prompt-service';
 
     // Initialize URLs from localStorage or defaults
     let CODE_GENERATOR_URL = localStorage.getItem('CODE_GENERATOR_URL') || DEFAULT_CODE_GENERATOR_URL;

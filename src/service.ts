@@ -1,5 +1,6 @@
 import { Application } from "jsr:@oak/oak/application";
 import { Context } from "jsr:@oak/oak/context";
+import { Next } from "jsr:@oak/oak/middleware";
 import { Router } from "jsr:@oak/oak/router";
 import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
@@ -8,30 +9,30 @@ import { ShinkaiAPI } from "./ShinkaiPipeline/ShinkaiAPI.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";
 
 const router = new Router();
-router.get("/code_execution", async (ctx: Context) => {
-    console.log('>>>code_execution');
 
-
+const setCorsHeadersMiddleware = async (ctx: Context, next: Next) => {
     // Set CORS headers first
     ctx.response.headers.set("Access-Control-Allow-Origin", "*");
     ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID");
 
     // Set streaming response headers
-    ctx.response.headers.set("Content-Type", "text/event-stream");
     ctx.response.headers.set("Cache-Control", "no-cache");
     ctx.response.headers.set("Connection", "keep-alive");
     ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
+    await next();
+}
 
+
+router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => {
     const payload = ctx.request.url.searchParams.get('payload');
-    console.log('payload', payload);
     if (!payload) {
         ctx.response.status = 400;
         ctx.response.body = "Payload is required";
         return;
     }
     const payloadObject = JSON.parse(payload);
-    console.log('payloadObject', payloadObject);
+
     const response = await (new ShinkaiAPI()).executeCode(
         payloadObject.code,
         payloadObject.tools,
@@ -39,12 +40,11 @@ router.get("/code_execution", async (ctx: Context) => {
         payloadObject.extra_config,
         Deno.env.get('LLM_PROVIDER') || ''
     );
-    console.log('response', response);
+    ctx.response.headers.set("Content-Type", "application/json");
     ctx.response.body = JSON.stringify(response);
 });
 
-router.get("/generate", async (ctx: Context) => {
-    console.log('>>>generate');
+router.get("/generate", setCorsHeadersMiddleware, async (ctx: Context) => {
     const language = ctx.request.url.searchParams.get('language');
     const prompt = ctx.request.url.searchParams.get('prompt');
     const feedback = ctx.request.url.searchParams.get('feedback') || '';
@@ -63,17 +63,6 @@ router.get("/generate", async (ctx: Context) => {
         return;
     }
 
-    // Set CORS headers first
-    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID");
-
-    // Set streaming response headers
-    ctx.response.headers.set("Content-Type", "text/event-stream");
-    ctx.response.headers.set("Cache-Control", "no-cache");
-    ctx.response.headers.set("Connection", "keep-alive");
-    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
-
     if (feedback && !requestUUID) {
         // error
         ctx.response.status = 400;
@@ -81,6 +70,7 @@ router.get("/generate", async (ctx: Context) => {
         return;
     }
 
+    ctx.response.headers.set("Content-Type", "text/event-stream");
 
     if (!requestUUID) {
         requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
