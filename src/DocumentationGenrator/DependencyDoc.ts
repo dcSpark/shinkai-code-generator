@@ -1,7 +1,7 @@
 import { exists } from "jsr:@std/fs/exists";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
-import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
 import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";
 import { Scrape } from "./Scrape.ts";
@@ -13,7 +13,7 @@ export class DependencyDoc {
     cache: Cache;
     scrape: Scrape;
     search: Search;
-    constructor(private llm: BaseEngine, private logger: TestFileManager | undefined) {
+    constructor(private llm: BaseEngine, private logger: FileManager | undefined) {
         this.cache = new Cache();
         this.scrape = new Scrape(this.llm, this.logger, this.cache);
         this.search = new Search(this.llm, this.logger, this.cache);

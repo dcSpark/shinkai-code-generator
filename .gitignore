@@ -2,7 +2,6 @@ results/
 mcp/
 .DS_Store
 .env
-.execution
 
 cache/map_*
 cache/scrape_*
@@ -12,6 +11,8 @@ cache/searchurls_*
 cache/doc_*
 cache/query_*
 
+cache/ips/*
+cache/.execution/*
 cache/chunks/*
 cache/brave/*
 cache/crawl/*

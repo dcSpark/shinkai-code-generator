@@ -1,9 +1,9 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
+import { FileManager } from "./ShinkaiPipeline/FileManager.ts";
 import { getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
 import { getTests } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiPipeline } from "./ShinkaiPipeline/ShinkaiPipeline.ts";
-import { TestFileManager } from "./ShinkaiPipeline/TestFileManager.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";
 
 const flags = parseArgs(Deno.args, {
@@ -14,7 +14,7 @@ const FORCE_DOCS_GENERATION = flags["force-docs"];
 
 async function start() {
     if (!KEEP_CACHE) {
-        await TestFileManager.clearFolder();
+        await FileManager.clearFolder();
     }
     const llm = [
         // getDeepSeekR132B(), // Good results (for testing output)

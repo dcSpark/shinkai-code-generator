@@ -5,24 +5,37 @@ import { Router } from "jsr:@oak/oak/router";
 import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
 import { ReadableStream } from "npm:stream/web";
+import { IPLimits } from "./IPLimits.ts";
 import { ShinkaiAPI } from "./ShinkaiPipeline/ShinkaiAPI.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";
 
 const router = new Router();
 
+const limitRequestMiddleware = async (ctx: Context, next: Next) => {
+    const ip = ctx.request.ip;
+    const hasSlot = await IPLimits.requestSlot(ip);
+    if (!hasSlot.allowed) {
+        console.log('[ERROR] ip limit', ip, hasSlot.remaining, hasSlot.nextAllowed);
+        ctx.response.headers.set("Retry-After", hasSlot.nextAllowed.toString());
+        ctx.response.status = 429;
+        ctx.response.body = "Too many requests";
+        return;
+    }
+    await next();
+}
+
 const setCorsHeadersMiddleware = async (ctx: Context, next: Next) => {
     // Set CORS headers first
     ctx.response.headers.set("Access-Control-Allow-Origin", "*");
     ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID");
+    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID, Retry-After");
 
     // Set streaming response headers
     ctx.response.headers.set("Cache-Control", "no-cache");
     ctx.response.headers.set("Connection", "keep-alive");
-    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
+    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID, Retry-After");
     await next();
 }
-
 
 router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => {
     const payload = ctx.request.url.searchParams.get('payload');
@@ -44,7 +57,7 @@ router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => 
     ctx.response.body = JSON.stringify(response);
 });
 
-router.get("/generate", setCorsHeadersMiddleware, async (ctx: Context) => {
+router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async (ctx: Context) => {
     const language = ctx.request.url.searchParams.get('language');
     const prompt = ctx.request.url.searchParams.get('prompt');
     const feedback = ctx.request.url.searchParams.get('feedback') || '';

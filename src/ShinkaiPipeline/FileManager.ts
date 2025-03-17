@@ -4,14 +4,14 @@ import { Requirement } from "./Requirement.ts";
 import { BaseEngine } from "./llm-engines.ts";
 import { Language } from "./types.ts";
 
-export class TestFileManager {
+export class FileManager {
 
     public toolDir: string;
-    private static basePath = path.join(Deno.cwd(), '.execution');
+    private static basePath = path.join(Deno.cwd(), 'cache', '.execution');
 
     constructor(private language: Language, test: Requirement, model: BaseEngine, private stream: boolean) {
         this.toolDir = path.join(
-            TestFileManager.basePath,
+            FileManager.basePath,
             model.path,
             test.code,
             language,
@@ -67,9 +67,9 @@ export class TestFileManager {
     }
 
     public static async clearFolder() {
-        if (await exists(TestFileManager.basePath)) {
-            await Deno.remove(TestFileManager.basePath, { recursive: true });
+        if (await exists(FileManager.basePath)) {
+            await Deno.remove(FileManager.basePath, { recursive: true });
         }
-        await Deno.mkdir(TestFileManager.basePath, { recursive: true });
+        await Deno.mkdir(FileManager.basePath, { recursive: true });
     }
 }

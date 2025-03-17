@@ -107,6 +107,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            if (response.status === 429) {
+                // Handle rate limiting (Too Many Requests)
+                const retryAfter = response.headers.get('Retry-After') || '60'; // Default to 60 seconds if header not present
+                const retrySeconds = parseInt(retryAfter, 10);
+
+                statusSpan.textContent = 'Rate Limited';
+                statusSpan.className = 'status error';
+
+                // Create a countdown message
+                const countdownDiv = document.createElement('div');
+                countdownDiv.className = 'error';
+                countdownDiv.innerHTML = `<strong>Rate limit exceeded.</strong> Too many requests. Please wait <span id="retry-countdown">${retrySeconds}</span> seconds before trying again.`;
+                outputDiv.appendChild(countdownDiv);
+
+                // Start countdown timer
+                const countdownSpan = document.getElementById('retry-countdown');
+                let secondsLeft = retrySeconds;
+
+                const countdownInterval = setInterval(() => {
+                    secondsLeft--;
+                    countdownSpan.textContent = secondsLeft;
+
+                    if (secondsLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownDiv.innerHTML = '<strong>You can try again now.</strong>';
+                        generateBtn.disabled = false;
+                    }
+                }, 1000);
+
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -375,6 +407,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                     'Accept': 'text/event-stream',
                                 }
                             });
+
+                            // Handle rate limiting for feedback submission
+                            if (response.status === 429) {
+                                const retryAfter = response.headers.get('Retry-After') || '60'; // Default to 60 seconds if header not present
+                                const retrySeconds = parseInt(retryAfter, 10);
+
+                                outputDiv.innerHTML += `<div class="error"><strong>Rate limit exceeded.</strong> Too many requests. Please wait ${retrySeconds} seconds before trying again.</div>`;
+
+                                // Remove the feedback form
+                                feedbackContainer.remove();
+                                return;
+                            }
 
                             if (response.ok) {
                                 outputDiv.innerHTML += `<div class="progress-item">${feedback ? 'Feedback submitted successfully. Thank you!' : 'Feedback skipped.'}</div>`;
@@ -745,6 +789,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${CODE_GENERATOR_URL}/code_execution?payload=${encodeURIComponent(JSON.stringify(payload))}`, {
                 method: 'GET'
             });
+
+            // Handle rate limiting for test execution
+            if (response.status === 429) {
+                const retryAfter = response.headers.get('Retry-After') || '60'; // Default to 60 seconds if header not present
+                const retrySeconds = parseInt(retryAfter, 10);
+
+                // Display rate limit error in the result section
+                resultSection.innerHTML = '';
+
+                const resultTitle = document.createElement('div');
+                resultTitle.className = 'test-section-title';
+                resultTitle.textContent = 'Rate Limited:';
+
+                const resultContent = document.createElement('div');
+                resultContent.style.padding = '10px';
+                resultContent.style.backgroundColor = '#2a2a2a';
+                resultContent.style.borderRadius = '4px';
+                resultContent.style.color = '#f44336';
+                resultContent.innerHTML = `<strong>Rate limit exceeded.</strong> Too many requests. Please wait <span id="test-retry-countdown-${index}">${retrySeconds}</span> seconds before trying again.`;
+
+                resultSection.appendChild(resultTitle);
+                resultSection.appendChild(resultContent);
+                resultSection.style.display = 'block';
+
+                // Start countdown timer
+                const countdownSpan = document.getElementById(`test-retry-countdown-${index}`);
+                let secondsLeft = retrySeconds;
+
+                const countdownInterval = setInterval(() => {
+                    secondsLeft--;
+                    if (countdownSpan) {
+                        countdownSpan.textContent = secondsLeft;
+                    }
+
+                    if (secondsLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        if (resultContent) {
+                            resultContent.innerHTML = '<strong>You can try again now.</strong>';
+                        }
+                        runButton.disabled = false;
+                    }
+                }, 1000);
+
+                return;
+            }
 
             // Parse the response
             const data = await response.json();

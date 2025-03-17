@@ -1,7 +1,7 @@
 import { exists } from "jsr:@std/fs/exists";
 import axios, { AxiosError } from 'npm:axios';
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
-import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
 import { Cache } from "./Cache.ts";
 const BRAVE_API_KEY = Deno.env.get('BRAVE_API_KEY');
 
@@ -109,7 +109,7 @@ export interface SearchResponse {
 
 
 export class Search {
-    constructor(private llm: BaseEngine, private logger: TestFileManager | undefined, private cache: Cache) {
+    constructor(private llm: BaseEngine, private logger: FileManager | undefined, private cache: Cache) {
 
     }
 

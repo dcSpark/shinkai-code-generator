@@ -1,5 +1,5 @@
 import axios from "npm:axios";
-import { TestFileManager } from "./TestFileManager.ts";
+import { FileManager } from "./FileManager.ts";
 
 const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");
 const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");
@@ -21,7 +21,7 @@ export abstract class BaseEngine {
 
   abstract run(
     prompt: string,
-    logger: TestFileManager | undefined,
+    logger: FileManager | undefined,
     payloadHistory: Payload | undefined,
     thinkingAbout?: string
   ): Promise<{ message: string, metadata: Payload }>;
@@ -92,7 +92,7 @@ class OpenAI extends BaseEngine {
 
   override async run(
     prompt: string,
-    logger: TestFileManager | undefined,
+    logger: FileManager | undefined,
     payloadHistory: OpenAIPayload | undefined,
     thinkingAbout?: string
   ): Promise<{ message: string, metadata: OpenAIPayload }> {
@@ -181,7 +181,7 @@ export interface OllamaMessage {
 class OllamaEngine extends BaseEngine {
   override async run(
     prompt: string,
-    logger: TestFileManager | undefined = undefined,
+    logger: FileManager | undefined = undefined,
     payloadHistory: OllamaPayload | undefined = undefined,
     thinkingAbout?: string
   ): Promise<{ message: string, metadata: OllamaPayload }> {

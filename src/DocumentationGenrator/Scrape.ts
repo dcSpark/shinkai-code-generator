@@ -1,8 +1,8 @@
 import { exists } from "jsr:@std/fs/exists";
 import axios, { AxiosError } from 'npm:axios';
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
-import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
 import { Cache } from "./Cache.ts";
 import { SearchResponse } from "./Search.ts";
 const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');
@@ -100,7 +100,7 @@ interface ScrapeOptions {
 }
 
 export class Scrape {
-    constructor(private llm: BaseEngine, private logger: TestFileManager | undefined, private cache: Cache) {
+    constructor(private llm: BaseEngine, private logger: FileManager | undefined, private cache: Cache) {
     }
 
     public async getURLsFromSearch(searchResponse: SearchResponse, finalQuery: string) {

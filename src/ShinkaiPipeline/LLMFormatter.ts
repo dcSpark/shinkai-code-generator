@@ -1,10 +1,10 @@
-import { TestFileManager } from "./TestFileManager.ts";
+import { FileManager } from "./FileManager.ts";
 
 type Extractor = 'markdown' | 'json' | 'typescript' | 'python' | 'none';
 type Rules = { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean };
 
 export class LLMFormatter {
-    constructor(private logger: TestFileManager | undefined) { }
+    constructor(private logger: FileManager | undefined) { }
 
     public async retryUntilSuccess(
         fn: () => Promise<string>,

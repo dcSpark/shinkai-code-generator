@@ -2,12 +2,12 @@ import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import path from "node:path";
 import { DependencyDoc } from "../DocumentationGenrator/DependencyDoc.ts";
+import { FileManager } from "./FileManager.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
-import { TestFileManager } from "./TestFileManager.ts";
 import { Language } from "./types.ts";
 
 const flags = parseArgs(Deno.args, {
@@ -18,7 +18,7 @@ const FORCE_DOCS_GENERATION = flags["force-docs"];
 
 export class ShinkaiPipeline {
     // Setup in constructor
-    private fileManager: TestFileManager;
+    private fileManager: FileManager;
     private llmFormatter: LLMFormatter;
 
     // State machine step
@@ -66,7 +66,7 @@ export class ShinkaiPipeline {
         private stream: boolean,
         toolType: 'shinkai' | 'mcp' = 'shinkai'
     ) {
-        this.fileManager = new TestFileManager(language, test, llmModel, stream);
+        this.fileManager = new FileManager(language, test, llmModel, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
         this.toolType = toolType;
