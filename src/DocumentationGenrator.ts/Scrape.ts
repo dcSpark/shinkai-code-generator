@@ -1,0 +1,368 @@
+import { exists } from "jsr:@std/fs/exists";
+import axios, { AxiosError } from 'npm:axios';
+import { BaseEngine } from '../llm-engines.ts';
+import { LLMFormatter } from '../LLMFormatter.ts';
+import { TestFileManager } from "../TestFileManager.ts";
+import { Cache } from "./Cache.ts";
+import { SearchResponse } from "./Search.ts";
+const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');
+const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+
+
+interface CrawlResponse {
+    success: boolean;
+    status: string;
+    completed: number;
+    total: number;
+    creditsUsed: number;
+    expiresAt: Date;
+    data: Datum[];
+}
+
+interface Datum {
+    markdown: string;
+    metadata: Metadata;
+}
+
+interface Metadata {
+    description: string;
+    "theme-color": string;
+    "og:image:width": string;
+    ogImage: string;
+    viewport: string[];
+    "og:image:height": string;
+    title: string;
+    favicon: string;
+    ogUrl: string;
+    "og:site_name": string;
+    ogSiteName: string;
+    "og:type": string;
+    "og:title": string;
+    "og:url": string;
+    ogDescription: string;
+    "readthedocs-addons-api-version": string;
+    ogTitle: string;
+    "og:image": string;
+    language: string;
+    "og:description": string;
+    "og:image:alt": string;
+    scrapeId: string;
+    sourceURL: string;
+    url: string;
+    statusCode: number;
+}
+
+interface CrawlOptions {
+    url: string;
+    limit?: number;
+    scrapeOptions?: {
+        formats?: string[];
+    };
+}
+
+interface CrawlInitResponse {
+    success: boolean;
+    id: string;
+    url: string;
+}
+
+interface MapResponse {
+    status: string;
+    links: string[];
+}
+
+interface ScrapeResponse {
+    success: boolean;
+    data: {
+        markdown?: string;
+        html?: string;
+        metadata: {
+            title?: string;
+            description?: string;
+            language?: string;
+            keywords?: string;
+            robots?: string;
+            ogTitle?: string;
+            ogDescription?: string;
+            ogUrl?: string;
+            ogImage?: string;
+            ogLocaleAlternate?: string[];
+            ogSiteName?: string;
+            sourceURL: string;
+            statusCode: number;
+        }
+    }
+}
+
+interface ScrapeOptions {
+    url: string;
+    formats?: ('markdown' | 'html')[];
+}
+
+export class Scrape {
+    constructor(private llm: BaseEngine, private logger: TestFileManager | undefined, private cache: Cache) {
+    }
+
+    public async getURLsFromSearch(searchResponse: SearchResponse, finalQuery: string) {
+        const { folders, file } = this.cache.toSafeFilename('searchurls_' + finalQuery, 'json', 'search');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            await this.logger?.log(` getURLsFromScratch for ${finalQuery}`, true);
+            return JSON.parse(await this.cache.load(file, folders)).links;
+        }
+
+        // How to get the best match? trust the first result?
+        const url = searchResponse.web.results.find(r => {
+            const isCompressedFile = r.url.match(/\.(zip|tar|gz|bz2|rar|7z|iso)$/);
+            const isBinaryFile = r.url.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|dmg|pkg|deb|rpm|msi|exe|app|exe|app|pkg|rpm|deb|msi)$/);
+            return !isCompressedFile && !isBinaryFile;
+        })?.url;
+        if (!url) {
+            throw new Error('No URL found');
+        }
+
+        const urlsString = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
+            const response = await this.llm.run(`
+In the search results tag, there is JSON with a internet serach result for the query: "${finalQuery}"
+<search_results>
+${JSON.stringify(searchResponse.web.results.map(r => ({
+                title: r.title,
+                url: r.url,
+                description: r.description,
+            })))}
+</search_results>
+
+<rules>
+* We want to get the links that may contain the official programming documentation. Ideally the complete documentation.
+* Keep only those that might have the documentation. 
+* Return the links as a JSON array.
+</rules>
+
+<format>
+* Output only the JSON array as in the output tag below
+<output>
+\`\`\`json
+["https://URL1", "https://URL2", "https://URL3"]
+\`\`\`
+</output>
+* JSON have valid syntax and only urls.
+</format>
+
+            `, this.logger, undefined, `Analyzing search results for "${finalQuery}"`);
+            return response.message;
+        }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
+
+        const urls: string[] = JSON.parse(urlsString);
+        return this.getURLsFromScrape(urls, finalQuery, file, folders);
+    }
+
+    public async getURLsFromScrape(urls: string[], finalQuery: string, file: string, folders: string[]) {
+        // lets scrape these pages for context
+        const context: string[] = [];
+        for (const url of urls) {
+            const scrape = await this.scrapeWebsite({ url, formats: ['markdown'] });
+            const limit = 1000000;
+            context.push((scrape.data.markdown || '').substring(0, limit));
+        }
+
+        // We can get this by extracting the links from the scrape as well...
+        const possiblePages: string[] = [];
+        for (const url of urls) {
+            const map = await this.mapWebsite(url);
+            const limit = 250;
+            possiblePages.push(...map.slice(0, limit));
+        }
+
+        const urlsString2 = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
+            const response = await this.llm.run(`
+In the search we have a lot possible pages that contain documentation, there is JSON with a internet serach result for the query: "${finalQuery}"
+We have some general incomplete information about the documentation, that is in the context tag below.
+<context>
+${context.join('\n')}   
+</context>
+
+<search_results>
+${possiblePages.join('\n')}   
+</search_results>
+
+<rules>
+* Use the context to get an idea of what possible pages might be important to the documentation, but also asume the context is incomplete.
+* We want to get the links that may contain the official programming documentation. Ideally the complete documentation.
+* Keep only those that might have the documentation. 
+* Return the links as a JSON array.
+</rules>
+
+<format>
+* Output only the JSON array as in the output tag below
+<output>
+\`\`\`json
+["https://URL1", "https://URL2", "https://URL3"]
+\`\`\`
+</output>
+* JSON have valid syntax and only urls.
+</format>
+
+            `, this.logger, undefined, `Finding documentation pages for "${finalQuery}"`);
+            return response.message;
+        }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
+
+        const urls2: string[] = JSON.parse(urlsString2);
+        await this.cache.save(file, JSON.stringify({ links: urls2 }, null, 2), folders);
+        return urls2;
+    }
+
+    private async pollCrawlStatus(statusUrl: string): Promise<CrawlResponse> {
+        let retries = 0;
+
+        while (true) {
+            try {
+                const response = await axios.get(statusUrl);
+                const statusData: CrawlResponse = response.data;
+
+                if (retries < 3 ||
+                    (retries >= 3 && retries < 24 && (retries % 3 === 0)) ||
+                    (retries >= 24 && (retries % 5 === 0))
+                ) {
+                    await this.logger?.log(`Polling status: ${statusData.status}, retry #${retries}`, true);
+                }
+
+                if (statusData.status === 'completed') {
+                    return statusData;
+                }
+
+            } catch (error) {
+                await this.logger?.log(`Polling error on retry #${retries}, continuing...`, true);
+            }
+
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+
+    public async crawlWebsite(options: CrawlOptions): Promise<CrawlResponse> {
+        if (!options.url) {
+            throw new Error('URL is required');
+        }
+
+        const { folders, file } = this.cache.toSafeFilename('crawl_' + options.url, 'json', 'crawl');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.cache.load(file, folders)) as CrawlResponse;
+        }
+
+        try {
+            if (!FIRECRAWL_API_URL) {
+                throw new Error('FIRECRAWL_API_URL is not set');
+            }
+            if (!options.url.match(/https?:\/\//)) {
+                throw new Error(options.url + ' - URL must start with http:// or https://');
+            } else {
+                await this.logger?.log('Crawling ' + options.url, true);
+            }
+            const response = await axios.post(FIRECRAWL_API_URL + '/v1/crawl', {
+                url: options.url,
+                limit: options.limit || 100,
+                scrapeOptions: {
+                    formats: options.scrapeOptions?.formats || ['markdown']
+                }
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + FIRECRAWL_API_KEY
+                }
+            });
+
+            const initResponse: CrawlInitResponse = response.data;
+            const crawlResponse = await this.pollCrawlStatus(initResponse.url.replace('https://', 'http://'));
+
+            await this.cache.save(file, JSON.stringify(crawlResponse, null, 2), folders);
+            return crawlResponse;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(`Crawl API error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    public async mapWebsite(url: string): Promise<string[]> {
+        if (!url) {
+            throw new Error('URL is required');
+        }
+
+        const { folders, file } = this.cache.toSafeFilename('map_' + url, 'json', 'map');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.cache.load(file, folders)).links;
+        }
+
+        try {
+            if (!FIRECRAWL_API_URL) {
+                throw new Error('FIRECRAWL_API_URL is not set');
+            }
+            if (!url.match(/https?:\/\//)) {
+                throw new Error(url + ' - URL must start with http:// or https://');
+            }
+
+            const response = await axios.post(FIRECRAWL_API_URL + '/v1/map', {
+                url: url
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + FIRECRAWL_API_KEY
+                }
+            });
+
+            const mapResponse: MapResponse = response.data;
+            await this.cache.save(file, JSON.stringify(mapResponse, null, 2), folders);
+            return mapResponse.links;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(`Map API error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    public async scrapeWebsite(options: ScrapeOptions): Promise<ScrapeResponse> {
+        if (!options.url) {
+            throw new Error('URL is required');
+        }
+
+        const { folders, file } = this.cache.toSafeFilename('scrape_' + options.url, 'json', 'scrape');
+        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+            return JSON.parse(await this.cache.load(file, folders)) as ScrapeResponse;
+        }
+
+        try {
+            if (!FIRECRAWL_API_URL) {
+                throw new Error('FIRECRAWL_API_URL is not set');
+            }
+            if (!options.url.match(/https?:\/\//)) {
+                throw new Error(options.url + ' - URL must start with http:// or https://');
+            }
+
+            const response = await axios.post(FIRECRAWL_API_URL + '/v1/scrape', {
+                url: options.url,
+                formats: options.formats || ['markdown']
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + FIRECRAWL_API_KEY
+                }
+            });
+
+            const scrapeResponse: ScrapeResponse = response.data;
+            if (scrapeResponse.data.metadata.statusCode > 399) {
+                scrapeResponse.data.markdown = '';
+                scrapeResponse.data.html = '';
+                await this.logger?.log(`Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`, true);
+            } else {
+                await this.cache.save(file, JSON.stringify(scrapeResponse, null, 2), folders);
+            }
+            return scrapeResponse;
+        } catch (error: unknown) {
+            if (error instanceof AxiosError) {
+                throw new Error(`Scrape API error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+}

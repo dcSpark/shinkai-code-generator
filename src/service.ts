@@ -46,7 +46,7 @@ router.get("/generate", async (ctx: Context) => {
 
 
     if (!requestUUID) {
-        requestUUID = crypto.randomUUID();
+        requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
     }
 
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);

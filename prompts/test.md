@@ -1,7 +1,7 @@
 <rules>
 * Given the program description in the requierement tag.
 * And Given the program code in the code tag.
-* A example is given to showcase the output format.
+* A example is given to showcase the run(...) output.
 * Extract the input and output example.
 * And generate exactly 2 additional possible test cases.
 * We will run these examples in the with the code provided to check if they will work.

@@ -1,7 +1,7 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import path from "node:path";
-import { DependencyDoc } from "./DependencyDoc.ts";
+import { DependencyDoc } from "./DocumentationGenrator.ts/DependencyDoc.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
