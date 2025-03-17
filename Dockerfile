@@ -7,9 +7,10 @@ COPY prompts ./prompts
 COPY src ./src
 COPY deno.json .
 COPY deno.lock .
+COPY public ./public
 
 # Expose the port
-EXPOSE 8000
+EXPOSE 8080
 
 # Environment variables - these will be required at runtime
 # Use ARG to declare them without values, then ENV to convert them to environment variables

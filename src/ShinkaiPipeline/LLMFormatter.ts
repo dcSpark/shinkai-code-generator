@@ -1,10 +1,10 @@
-import { TestFileManager } from "./TestFileManager.ts";
+import { FileManager } from "./FileManager.ts";
 
 type Extractor = 'markdown' | 'json' | 'typescript' | 'python' | 'none';
 type Rules = { regex?: RegExp[], isJSONArray?: boolean, isJSONObject?: boolean };
 
 export class LLMFormatter {
-    constructor(private logger: TestFileManager | undefined) { }
+    constructor(private logger: FileManager | undefined) { }
 
     public async retryUntilSuccess(
         fn: () => Promise<string>,
@@ -117,6 +117,94 @@ export class LLMFormatter {
         }
     }
 
+    private extractStateMachine(text: string): { type: 'markdown' | 'json' | 'typescript' | 'python', content: string }[] {
+        const result: { type: 'markdown' | 'json' | 'typescript' | 'python', content: string }[] = [];
+        const lines = text.split('\n');
+
+        let currentBlock: { type: 'markdown' | 'json' | 'typescript' | 'python', content: string[], startLine: number } | null = null;
+        let nestedLevel = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            // Check for opening fence with language specification
+            const openMatch = line.match(/^```(markdown|json|typescript|python|javascript|html)?$/);
+
+            // Check for closing fence
+            const closeMatch = line.match(/^```$/);
+
+            if (openMatch && currentBlock === null) {
+                // Start a new block
+                let type: 'markdown' | 'json' | 'typescript' | 'python';
+
+                switch (openMatch[1]) {
+                    case 'markdown':
+                        type = 'markdown';
+                        break;
+                    case 'json':
+                        type = 'json';
+                        break;
+                    case 'typescript':
+                        type = 'typescript';
+                        break;
+                    case 'python':
+                        type = 'python';
+                        break;
+                    case 'javascript':
+                    case 'html':
+                        // These are handled as nested blocks
+                        type = 'markdown';
+                        break;
+                    default:
+                        // Default to markdown if no type specified
+                        type = 'markdown';
+                }
+
+                currentBlock = {
+                    type,
+                    content: [],
+                    startLine: i
+                };
+            } else if (currentBlock !== null && line.includes('```') && !closeMatch) {
+                // Line contains backticks but is not a closing fence - could be nested or inline
+                currentBlock.content.push(line);
+
+                // Check if this is a nested opening fence
+                if (line.trim().startsWith('```') && !line.trim().endsWith('```')) {
+                    nestedLevel++;
+                }
+                // Check if this is both opening and closing on same line (inline code)
+                else if (line.trim().startsWith('```') && line.trim().endsWith('```') && line.trim().length > 6) {
+                    // This is an inline code block, don't change nesting level
+                }
+            } else if (closeMatch && currentBlock !== null && nestedLevel > 0) {
+                // Closing a nested fence
+                nestedLevel--;
+                currentBlock.content.push(line);
+            } else if (closeMatch && currentBlock !== null && nestedLevel === 0) {
+                // Closing the main fence - finalize the block
+                result.push({
+                    type: currentBlock.type,
+                    content: currentBlock.content.join('\n')
+                });
+                currentBlock = null;
+            } else if (currentBlock !== null) {
+                // Inside a block - add to content
+                currentBlock.content.push(line);
+            }
+        }
+
+        // Handle unclosed blocks (if any)
+        if (currentBlock !== null) {
+            result.push({
+                type: currentBlock.type,
+                content: currentBlock.content.join('\n')
+            });
+        }
+
+        return result;
+    }
+
     private tryToExtractTS(text: string, index: number): string | undefined {
         // Capture outer block
         const regex = text.match(/```typescript/) ?
@@ -172,7 +260,10 @@ export class LLMFormatter {
                 /```(?:markdown)?\n([\s\S]+?)\n```/;
             return match[index]?.match(regex2)?.[1];
         }
-        return;
+        const r = this.extractStateMachine(text);
+        const x = r.filter(x => x.type === 'markdown');
+        return x[index - (match?.length || 0)]?.content;
+
     }
 }
 

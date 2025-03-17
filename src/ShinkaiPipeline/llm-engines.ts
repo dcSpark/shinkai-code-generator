@@ -1,5 +1,5 @@
 import axios from "npm:axios";
-import { TestFileManager } from "./TestFileManager.ts";
+import { FileManager } from "./FileManager.ts";
 
 const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");
 const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");
@@ -10,7 +10,10 @@ export abstract class BaseEngine {
   public readonly path: string;
   public readonly shinkaiName: string;
 
-  constructor(public readonly name: string) {
+  constructor(
+    public readonly name: string,
+    public readonly thinkingAbout: string = ""
+  ) {
     this.path = name.replaceAll(/[^a-zA-Z0-9]/g, "-");
     // TODO how to generate names correctly for shinkai?
     this.shinkaiName = `o_${name.replaceAll(/[^a-zA-Z0-9]/g, "_")}`;
@@ -18,8 +21,9 @@ export abstract class BaseEngine {
 
   abstract run(
     prompt: string,
-    logger: TestFileManager | undefined,
-    payloadHistory: Payload | undefined
+    logger: FileManager | undefined,
+    payloadHistory: Payload | undefined,
+    thinkingAbout?: string
   ): Promise<{ message: string, metadata: Payload }>;
 
   // This should return an array of subclasses of BaseEngine instances, one per model.
@@ -28,17 +32,21 @@ export abstract class BaseEngine {
   }
 }
 
-export function getLlama318bInstruct() {
-  return new OllamaEngine('llama3.1:8b-instruct-q4_1');
+export function getLlama318bInstruct(thinkingAbout: string = "") {
+  return new OllamaEngine('llama3.1:8b-instruct-q4_1', thinkingAbout);
 }
 
-export function getDeepSeekR132B() {
-  return new OllamaEngine('deepseek-r1:32b');
+export function getDeepSeekR132B(thinkingAbout: string = "") {
+  return new OllamaEngine('deepseek-r1:32b', thinkingAbout);
 }
 
-export function getOpenAIO4Mini() {
-  return new OpenAI('gpt-4o-mini');
+export function getOpenAIO4Mini(thinkingAbout: string = "") {
+  return new OpenAI('gpt-4o-mini', thinkingAbout);
 }
+export function getOpenAIO4(thinkingAbout: string = "") {
+  return new OpenAI('gpt-4o', thinkingAbout);
+}
+
 
 interface OpenAIPayload {
   model: string;
@@ -121,14 +129,21 @@ function countTokensFromMessageLlama3(message: string): number {
 
 class OpenAI extends BaseEngine {
 
-  override async run(prompt: string, logger: TestFileManager | undefined, payloadHistory: OpenAIPayload | undefined): Promise<{ message: string, metadata: OpenAIPayload }> {
+  override async run(
+    prompt: string,
+    logger: FileManager | undefined,
+    payloadHistory: OpenAIPayload | undefined,
+    thinkingAbout?: string
+  ): Promise<{ message: string, metadata: OpenAIPayload }> {
     const start = Date.now();
     let payload = payloadHistory ? this.addToOpenAIPayload(prompt, 'user', payloadHistory) : this.newOpenAIPayload(prompt);
     if (!OPEN_AI_KEY) {
       throw new Error("OPEN_AI_KEY is not set");
     }
+
     const tokenCount = countTokensFromMessageLlama3(JSON.stringify(payload));
-    logger?.log(`[Thinking] AI Starting Processing ${tokenCount}[tokens]`);
+    const contextMessage = thinkingAbout || this.thinkingAbout || "Processing";
+    logger?.log(`[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`);
     const data = {
       url: `https://api.openai.com/v1/chat/completions`,
       method: "POST",
@@ -143,13 +158,12 @@ class OpenAI extends BaseEngine {
     const end = Date.now();
     const time = end - start;
     // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Thinking] AI took ${time}[ms] to process`); //  ${prompt_short}`.replace(/\n/g, " "));
+    logger?.log(`[Thinking] AI took ${time}[ms] to process ${contextMessage}`);
     payload = this.addToOpenAIPayload(response.data.choices[0].message.content, 'assistant', payload);
     return {
       message: response.data.choices[0].message.content,
       metadata: payload
     };
-
   }
 
 
@@ -207,14 +221,19 @@ export interface OllamaMessage {
 class OllamaEngine extends BaseEngine {
   override async run(
     prompt: string,
-    logger: TestFileManager | undefined = undefined,
+    logger: FileManager | undefined = undefined,
     payloadHistory: OllamaPayload | undefined = undefined,
+    thinkingAbout?: string
   ): Promise<{ message: string, metadata: OllamaPayload }> {
     const start = Date.now();
     let payload = payloadHistory ? this.addToOllamaPayload(prompt, 'user', payloadHistory) : this.newOllamaPayload(prompt);
     if (!ollamaApiUrl) {
       throw new Error("OLLAMA_API_URL is not set");
     }
+
+    const contextMessage = thinkingAbout || this.thinkingAbout || "Processing";
+    logger?.log(`[Thinking] AI Thinking About ${contextMessage}`);
+
     const response = await axios({
       url: `${ollamaApiUrl}/api/chat`,
       method: "POST",
@@ -223,8 +242,7 @@ class OllamaEngine extends BaseEngine {
     const end = Date.now();
 
     const time = end - start;
-    const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Thinking] Ollama took ${time}ms for ${prompt_short}`.replace(/\n/g, " "));
+    logger?.log(`[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(/\n/g, " "));
     payload = this.addToOllamaPayload(response.data.message.content, 'assistant', payload);
     return {
       message: response.data.message.content,

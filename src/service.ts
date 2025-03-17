@@ -1,18 +1,100 @@
 import { Application } from "jsr:@oak/oak/application";
 import { Context } from "jsr:@oak/oak/context";
+import { Next } from "jsr:@oak/oak/middleware";
 import { Router } from "jsr:@oak/oak/router";
+import { send } from "jsr:@oak/oak/send";
+import "jsr:@std/dotenv/load";
 import { ReadableStream } from "npm:stream/web";
-import { Language } from "./types.ts";
+import { IPLimits } from "./IPLimits.ts";
+import { FileManager } from "./ShinkaiPipeline/FileManager.ts";
+import { getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
+import { emptyRequirement } from "./ShinkaiPipeline/Requirement.ts";
+import { ShinkaiAPI } from "./ShinkaiPipeline/ShinkaiAPI.ts";
+import { Language } from "./ShinkaiPipeline/types.ts";
 
 const router = new Router();
-router.get("/generate", async (ctx: Context) => {
-    console.log('>>>generate');
+
+const limitRequestMiddleware = async (ctx: Context, next: Next) => {
+    const ip = ctx.request.ip;
+    const hasSlot = await IPLimits.requestSlot(ip);
+    if (!hasSlot.allowed) {
+        console.log('[ERROR] ip limit', ip, hasSlot.remaining, hasSlot.nextAllowed);
+        ctx.response.headers.set("Retry-After", hasSlot.nextAllowed.toString());
+        ctx.response.status = 429;
+        ctx.response.body = "Too many requests";
+        return;
+    }
+    await next();
+}
+
+const setCorsHeadersMiddleware = async (ctx: Context, next: Next) => {
+    // Set CORS headers first
+    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID, Retry-After");
+
+    // Set streaming response headers
+    ctx.response.headers.set("Cache-Control", "no-cache");
+    ctx.response.headers.set("Connection", "keep-alive");
+    ctx.response.headers.set("access-control-expose-headers", "Content-Type, X-SHINKAI-REQUEST-UUID, Retry-After");
+    await next();
+}
+
+router.get("/state", setCorsHeadersMiddleware, async (ctx: Context) => {
+    const requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
+    if (!requestUUID) {
+        ctx.response.status = 400;
+        ctx.response.body = "X-SHINKAI-REQUEST-UUID is required";
+        return;
+    }
+    const language = ctx.request.url.searchParams.get('language');
+    if (!language || (language !== 'typescript' && language !== 'python')) {
+        ctx.response.status = 400;
+        ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
+        return;
+
+    }
+    const requirement = emptyRequirement();
+    requirement.code = requestUUID;
+    const state = await (new FileManager(
+        language,
+        requirement,
+        getOpenAIO4Mini(),
+        true
+    )).loadState();
+    ctx.response.headers.set("Content-Type", "application/json");
+    ctx.response.body = JSON.stringify(state);
+});
+
+
+router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => {
+    const payload = ctx.request.url.searchParams.get('payload');
+    if (!payload) {
+        ctx.response.status = 400;
+        ctx.response.body = "Payload is required";
+        return;
+    }
+    const payloadObject = JSON.parse(payload);
+
+    const response = await (new ShinkaiAPI()).executeCode(
+        payloadObject.code,
+        payloadObject.tools,
+        payloadObject.parameters,
+        payloadObject.extra_config,
+        Deno.env.get('LLM_PROVIDER') || ''
+    );
+    ctx.response.headers.set("Content-Type", "application/json");
+    ctx.response.body = JSON.stringify(response);
+});
+
+router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async (ctx: Context) => {
     const language = ctx.request.url.searchParams.get('language');
     const prompt = ctx.request.url.searchParams.get('prompt');
     const feedback = ctx.request.url.searchParams.get('feedback') || '';
+    const toolType = ctx.request.url.searchParams.get('tool_type') || 'shinkai'; // Default to 'shinkai' if not provided
     let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
 
-    console.log('input', { language, prompt, feedback });
+    console.log('input', { language, prompt, feedback, toolType });
     if (!language || (language !== 'typescript' && language !== 'python')) {
         ctx.response.status = 400;
         ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
@@ -24,17 +106,6 @@ router.get("/generate", async (ctx: Context) => {
         return;
     }
 
-    // Set CORS headers first
-    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
-    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID");
-
-    // Set streaming response headers
-    ctx.response.headers.set("Content-Type", "text/event-stream");
-    ctx.response.headers.set("Cache-Control", "no-cache");
-    ctx.response.headers.set("Connection", "keep-alive");
-    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
-
     if (feedback && !requestUUID) {
         // error
         ctx.response.status = 400;
@@ -42,15 +113,16 @@ router.get("/generate", async (ctx: Context) => {
         return;
     }
 
+    ctx.response.headers.set("Content-Type", "text/event-stream");
 
     if (!requestUUID) {
-        requestUUID = crypto.randomUUID();
+        requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
     }
 
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
 
     // Create a readable stream from the pipeline process
-    const processStream = await runPipelineInProcess(language, requestUUID, prompt, feedback);
+    const processStream = await runPipelineInProcess(language, requestUUID, prompt, feedback, toolType);
 
 
     // Transform the raw stdout stream into properly formatted SSE events
@@ -59,21 +131,36 @@ router.get("/generate", async (ctx: Context) => {
             const text = new TextDecoder().decode(chunk);
             const lines = text.split('\n');
 
-            for (const line of lines) {
-                if (line.startsWith('EVENT: ')) {
-                    const [eventType, ...eventData] = line.substring(7).split('\n');
-                    const data = eventData.join('\n');
+            let currentEvent: string | null = null;
+            let currentData: string[] = [];
 
-                    // Format as Server-Sent Event
-                    if (data) {
-                        controller.enqueue(`event: ${eventType}\ndata: ${data}\n\n`);
-                    } else {
-                        controller.enqueue(`event: ${eventType}\ndata: {}\n\n`);
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (line.startsWith('EVENT: ')) {
+                    // If we have a previous event stored, send it
+                    if (currentEvent !== null) {
+                        const data = currentData.length > 0 ? currentData.join('\n') : '{}';
+                        controller.enqueue(`event: ${currentEvent}\ndata: ${data}\n\n`);
+                        currentData = [];
                     }
+
+                    // Start a new event
+                    currentEvent = line.substring(7).trim();
+                    // console.log('event', { line, currentEvent });
+                } else if (line.trim() && currentEvent !== null) {
+                    // This is data for the current event
+                    currentData.push(line);
                 } else if (line.trim()) {
-                    // Send other output as progress events
+                    // This is a standalone line, not part of an event
                     controller.enqueue(`event: progress\ndata: ${JSON.stringify({ message: line })}\n\n`);
                 }
+            }
+
+            // Send the last event if any
+            if (currentEvent !== null) {
+                const data = currentData.length > 0 ? currentData.join('\n') : '{}';
+                controller.enqueue(`event: ${currentEvent}\ndata: ${data}\n\n`);
             }
         }
     });
@@ -82,8 +169,30 @@ router.get("/generate", async (ctx: Context) => {
     ctx.response.body = processStream.pipeThrough(sseStream as any);
 });
 
+// Serve the static files from public folder
+router.get("/(.*)", async (ctx: Context) => {
+    // Get the path from the URL
+    const pathname = ctx.request.url.pathname;
+    const path = pathname === "/" ? "index.html" : pathname.substring(1);
+
+    try {
+        await send(ctx, path, {
+            root: Deno.cwd() + '/public',
+        });
+    } catch (error) {
+        // If file not found, serve index.html (for SPA routing)
+        if (error instanceof Deno.errors.NotFound) {
+            await send(ctx, "index.html", {
+                root: Deno.cwd() + '/public',
+            });
+        } else {
+            throw error;
+        }
+    }
+});
+
 // Function to run pipeline in a separate process and return a readable stream
-const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string): Promise<ReadableStream<Uint8Array>> => {
+const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string, toolType: string = 'shinkai'): Promise<ReadableStream<Uint8Array>> => {
     // Create a new process to run the pipeline
     try {
         const delimiter = `"#|#"`
@@ -94,7 +203,8 @@ const runPipelineInProcess = async (language: Language, requestUUID: string, pro
             'language=' + language,
             'request-uuid=' + requestUUID,
             'prompt=' + delimiter + encodeURIComponent(prompt || '') + delimiter,
-            'feedback=' + delimiter + encodeURIComponent(feedback || '') + delimiter
+            'feedback=' + delimiter + encodeURIComponent(feedback || '') + delimiter,
+            'tool_type=' + toolType
         ];
         console.log(`Calling Deno with args: ${args.join(' ')}`);
         const command = new Deno.Command(Deno.execPath(), {

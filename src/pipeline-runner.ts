@@ -1,8 +1,8 @@
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4Mini } from "./llm-engines.ts";
-import { ShinkaiPipeline } from "./ShinkaiPipeline.ts";
-import { Test } from "./Test.ts";
-import { Language } from "./types.ts";
+import { getOpenAIO4, getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
+import { Requirement } from "./ShinkaiPipeline/Requirement.ts";
+import { ShinkaiPipeline } from "./ShinkaiPipeline/ShinkaiPipeline.ts";
+import { Language } from "./ShinkaiPipeline/types.ts";
 
 // Parse command line arguments in the format key=value
 const args = Deno.args;
@@ -26,30 +26,32 @@ let feedback = argMap['feedback'] || ''; // Default to empty string if not provi
 feedback = feedback.replaceAll(delimiter, '')
 feedback = decodeURIComponent(feedback);
 // feedback = feedback.match(/^#|#(.*)#|#$/)?.[1] || '';
+const toolType = (argMap['tool_type'] as 'shinkai' | 'mcp') || 'shinkai'; // Default to 'shinkai' if not provided
 
 if (!language || !requestUUID || !prompt) {
-    console.log(JSON.stringify({ language, requestUUID, prompt, feedback }));
-    console.log("Usage: deno run pipeline-runner.ts language=<language> request-uuid=<request-uuid> prompt=<prompt> feedback=<feedback>");
+    console.log(JSON.stringify({ language, requestUUID, prompt, feedback, toolType }));
+    console.log("Usage: deno run pipeline-runner.ts language=<language> request-uuid=<request-uuid> prompt=<prompt> feedback=<feedback> tool_type=<tool_type>");
     Deno.exit(1);
 }
 
 // Run the pipeline and stream output
 const runPipeline = async () => {
     try {
-        const codeTest: Test = new Test({
+        const codeTest: Requirement = new Requirement({
             code: requestUUID,
             prompt: prompt,
             feedback: feedback,
             prompt_type: '',
             tools: [],
-            inputs: {},
+            input: {},
             config: {},
         });
 
         const llmModel = getOpenAIO4Mini();
+        const advancedLlmModel = getOpenAIO4();
 
         console.log('EVENT: start');
-        const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, true);
+        const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, advancedLlmModel, true, toolType);
 
         // Add event listeners to the pipeline if ShinkaiPipeline supports them
         // If not, you might need to modify ShinkaiPipeline to emit progress events

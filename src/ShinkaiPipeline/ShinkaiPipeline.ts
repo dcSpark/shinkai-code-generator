@@ -1,12 +1,13 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
-import { DependencyDoc } from "./DependencyDoc.ts";
+import path from "node:path";
+import { DependencyDoc } from "../DocumentationGenrator/DependencyDoc.ts";
+import { FileManager } from "./FileManager.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
+import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
-import { getFullHeadersAndTools } from "./support.ts";
-import { Test } from "./Test.ts";
-import { TestFileManager } from "./TestFileManager.ts";
+import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
 import { Language } from "./types.ts";
 
 const flags = parseArgs(Deno.args, {
@@ -17,7 +18,7 @@ const FORCE_DOCS_GENERATION = flags["force-docs"];
 
 export class ShinkaiPipeline {
     // Setup in constructor
-    private fileManager: TestFileManager;
+    private fileManager: FileManager;
     private llmFormatter: LLMFormatter;
 
     // State machine step
@@ -38,6 +39,9 @@ export class ShinkaiPipeline {
     // Internal tools
     private internalToolsJSON: string[] = [];
 
+    // Generated plan
+    private plan: string = '';
+
     // Generated code
     private code: string = '';
     private metadata: string = '';
@@ -51,10 +55,21 @@ export class ShinkaiPipeline {
     // Start time
     private startTime: number;
 
-    constructor(private language: Language, private test: Test, private llmModel: BaseEngine, private stream: boolean) {
-        this.fileManager = new TestFileManager(language, test, llmModel, stream);
+    // Tool type
+    private toolType: 'shinkai' | 'mcp';
+
+    constructor(
+        private language: Language,
+        private test: Requirement,
+        private llmModel: BaseEngine,
+        private advancedLlmModel: BaseEngine,
+        private stream: boolean,
+        toolType: 'shinkai' | 'mcp' = 'shinkai'
+    ) {
+        this.fileManager = new FileManager(language, test, llmModel, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
+        this.toolType = toolType;
     }
 
     private async initialize() {
@@ -62,7 +77,7 @@ export class ShinkaiPipeline {
         this.shinkaiPrompts = completeShinkaiPrompts[this.language];
         this.availableTools = completeShinkaiPrompts.availableTools;
         // await this.fileManager.log(`=========================================================`, true);
-        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language}`, true);
+        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language} (Tool Type: ${this.toolType})`, true);
     }
 
     private async generateRequirements() {
@@ -82,16 +97,36 @@ export class ShinkaiPipeline {
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] System Requirements & Feedback Prompt`, true);
-            const headers: string = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] || (this.shinkaiPrompts.headers as any)['shinkai_local_tools'];
+            let headers: string = '';
+            if (this.toolType === 'shinkai') {
+                if (this.language === 'typescript') {
+                    headers = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] +
+                        "\n" +
+                        (this.shinkaiPrompts.headers as any)['shinkai-local-support'];
+                } else {
+                    headers = (this.shinkaiPrompts.headers as any)['shinkai_local_tools'] +
+                        "\n" +
+                        (this.shinkaiPrompts.headers as any)['shinkai_local_support'];
+                }
+
+            } else {
+                headers = "NONE"
+            }
+
+            let user_prompt = this.test.prompt;
+            if (this.toolType === 'mcp') {
+                user_prompt += "\n\nNo matter what was said before, the \"Internal Libraries\" section is always NONE."
+            }
+
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.test.prompt}\n\n</input_command>`
+                `<input_command>\n${user_prompt}\n\n</input_command>`
             )
                 .replace(/\{LANGUAGE\}/g, this.language)
                 .replace(/\{RUNTIME\}/g, this.language === 'typescript' ? 'Deno' : 'Python')
                 .replace("<internal-libraries>\n\n</internal-libraries>", `<internal-libraries>\n${headers}\n</internal-libraries>`)
             await this.fileManager.save(this.step, 'a', prompt, 'requirements-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing Requirements & Generating Feedback");
             await this.fileManager.save(this.step, 'x', JSON.stringify(llmResponse.metadata), 'promptHistory.json');
             this.promptHistory = llmResponse.metadata;
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-requirements-response.md');
@@ -102,7 +137,7 @@ export class ShinkaiPipeline {
                 new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
-                new RegExp("# Example Inputs and Outputs"),
+                new RegExp("# Example Input and Output"),
             ]
         });
         this.feedback = parsedLLMResponse;
@@ -147,7 +182,7 @@ export class ShinkaiPipeline {
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory, "Processing User Feedback");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-response.md');
 
             this.promptHistory = llmResponse.metadata;
@@ -160,7 +195,7 @@ export class ShinkaiPipeline {
                 new RegExp("# Standard Libraries"),
                 new RegExp("# Internal Libraries"),
                 new RegExp("# External Libraries"),
-                new RegExp("# Example Inputs and Outputs"),
+                new RegExp("# Example Input and Output"),
             ]
         });
 
@@ -185,7 +220,7 @@ export class ShinkaiPipeline {
                     `<input_command>\n${this.feedback}\n\n</input_command>`
                 );
                 await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
-                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Searching for Required Libraries");
                 const promptResponse = llmResponse.message;
                 await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
                 return promptResponse;
@@ -234,7 +269,7 @@ export class ShinkaiPipeline {
                 `<input_command>\n${this.feedback}\n\n</input_command>`
             ).replace('<tool_router_key>\n\n</tool_router_key>', `<tool_router_key>\n${this.availableTools.join('\n')}\n</tool_router_key>`)
             await this.fileManager.save(this.step, 'a', prompt, 'internal-tools-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Identifying Required Internal Tools");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-internal-tools-response.md');
             return llmResponse.message;
         }, 'json', {
@@ -246,6 +281,56 @@ export class ShinkaiPipeline {
 
         await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'internal-tools.json');
         this.internalToolsJSON = JSON.parse(parsedLLMResponse) as string[];
+        this.step++;
+    }
+
+    private async generatePlan() {
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'plan.md')) {
+            await this.fileManager.log(` Step ${this.step} - Development Plan `, true);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'plan.md');
+            this.plan = existingFile;
+            this.step++;
+            return;
+        }
+        const internalTools = await getInternalTools(this.language, this.internalToolsJSON);
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+            this.fileManager.log(`[Planning Step ${this.step}] Generate Development Plan`, true);
+
+            // Create a documentation string from all the library docs
+            const libraryDocsString = Object.entries(this.docs).map(([library, doc]) => `
+# ${library}
+${doc}
+`).join('\n\n');
+
+            // TODO Refetch only used libaries
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/plan.md')).replace(
+                '<initial_requirements>\n\n</initial_requirements>',
+                `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
+            ).replace(
+                '<libraries_documentation>\n\n</libraries_documentation>',
+                `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
+            ).replace(
+                '<internal_libraries>\n\n</internal_libraries>',
+                `<internal_libraries>\n${internalTools}\n</internal_libraries>`
+            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
+
+
+            await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
+            await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-plan-response.md');
+            return llmResponse.message;
+        }, 'markdown', {
+            regex: [
+                new RegExp("# Development Plan"),
+                new RegExp("# Example Input and Output "),
+                new RegExp("# Config"),
+            ]
+        });
+
+        this.plan = parsedLLMResponse;
+        console.log(JSON.stringify({ markdown: this.plan }));
+        await this.fileManager.save(this.step, 'c', this.plan, 'plan.md');
         this.step++;
     }
 
@@ -278,7 +363,7 @@ export class ShinkaiPipeline {
 
             const toolCode_1 = toolPrompt.replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.feedback}\n\n</input_command>`
+                `<input_command>\n${this.plan}\n\n</input_command>`
             );
 
             const additionalRules = this.language === 'typescript' ? `
@@ -305,7 +390,7 @@ ${additionalRules}
     * For missing and additional required libraries, prefer the following order:`
             );
             await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
-            const llmResponse = await this.llmModel.run(toolCode, this.fileManager, undefined);
+            const llmResponse = await this.advancedLlmModel.run(toolCode, this.fileManager, undefined, "Generating Tool Code");
             const promptResponse = llmResponse.message;
 
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-code-response.md');
@@ -369,12 +454,15 @@ ${additionalRules}
                     .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
                     .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
                     .replace('{LANG-RULES}', this.language === 'typescript' ? `
-All libraries must be imported at the start of the code with either:
+All libraries must be imported at the start of the code as either:
 \`import { xx } from './shinkai-local-support.ts\`; 
 \`import { xx } from 'npm:yyy'\`;
 \`import { xx } from 'jsr:@std/yyy'\`;
 \`import { xx } from 'node:yyy'\`;
 ` : `
+
+If the warning suggestes to use either JSR or NPM, then first try using NPM with "npm:xxx"
+
 At the start of the file add a commented toml code block with the dependencies used and required to be downloaded by pip.
 Only add the dependencies that are required to be downloaded by pip, do not add the dependencies that are already available in the Python environment.
 
@@ -397,7 +485,7 @@ In the next example tag is an example of the commented script block that MUST be
                 await this.fileManager.save(this.step, 'b', fixCodePrompt, 'fix-code-prompt.md');
 
                 // Run the fix prompt
-                const llmResponse = await this.llmModel.run(fixCodePrompt, this.fileManager, undefined);
+                const llmResponse = await this.llmModel.run(fixCodePrompt, this.fileManager, undefined, "Fixing Code Warnings");
                 await this.fileManager.save(this.step, 'c', llmResponse.message, 'raw-fix-code-response.md');
                 return llmResponse.message;
             }, this.language, {
@@ -444,7 +532,7 @@ In the next example tag is an example of the commented script block that MUST be
                 metadataPrompt = (await new ShinkaiAPI().getPythonToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
             }
 
-            const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
             const promptResponse = llmResponse.message;
             await this.fileManager.save(this.step, 'a', metadataPrompt, 'metadata-prompt.md');
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-metadata-response.md');
@@ -462,32 +550,54 @@ In the next example tag is an example of the commented script block that MUST be
         this.step++;
     }
 
-    private async logCompletion() {
-        const end = Date.now();
-        const time = end - this.startTime;
-        await this.fileManager.log(`[Done] took ${time}ms`, true);
-        // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
-    }
-
-    private async processFeedbackAnalysis() {
+    private async generateTests() {
         // Check if output file exists
-        if (await this.fileManager.exists(this.step, 'c', 'feedback-analysis.json')) {
-            await this.fileManager.log(` Step ${this.step} - Feedback Analysis `, true);
-            const existingFile = await this.fileManager.load(this.step, 'c', 'feedback-analysis.json');
-            this.feedbackAnalysisResult = JSON.parse(existingFile).result;
+        if (await this.fileManager.exists(this.step, 'c', 'tests.json')) {
+            await this.fileManager.log(` Step ${this.step} - Tests `, true);
+            const existingFile = await this.fileManager.load(this.step, 'c', 'tests.json');
+            console.log(`EVENT: tests\n${JSON.stringify(JSON.parse(existingFile))}`);
             this.step++;
             return;
         }
 
-        let user_feedback = '';
-        if (this.test.feedback) {
-            user_feedback = this.test.feedback;
-        }
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+            this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
 
-        if (!user_feedback) {
-            console.log(JSON.stringify({ markdown: this.feedback }));
-            throw new Error('REQUEST_FEEDBACK');
-        }
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/test.md'))
+                .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.feedback}\n</requirement>`)
+                .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
+
+            await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Generating Test Cases");
+            const promptResponse = llmResponse.message;
+            await this.fileManager.save(this.step, 'b', promptResponse, 'raw-test-response.md');
+            return promptResponse;
+        }, 'json', {
+            isJSONArray: true,
+            // Regex asumes its a string...
+            // regex: [
+            //     new RegExp("input"),
+            //     new RegExp("output"),
+            //     new RegExp("config"),
+            // ]
+        });
+
+        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'tests.json');
+        console.log(`EVENT: tests\n${JSON.stringify({ tests: JSON.parse(parsedLLMResponse) })}`);
+        this.step++;
+    }
+
+    private async logCompletion() {
+        const end = Date.now();
+        const time = end - this.startTime;
+        await this.fileManager.log(`[Done] took ${time}ms (Tool Type: ${this.toolType})`, true);
+        // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
+    }
+
+    private async processFeedbackAnalysis(): Promise<'no-feedback' | 'changes-requested' | 'no-changes'> {
+        if (this.feedback === "") return 'no-changes';
+        if (!this.feedback) return 'no-feedback';
+        const user_feedback = this.feedback;
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
@@ -497,7 +607,7 @@ In the next example tag is an example of the commented script block that MUST be
                 `<feedback>\n${user_feedback}\n</feedback>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-analysis-prompt.md');
-            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined);
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing User Feedback");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-feedback-analysis-response.md');
             return llmResponse.message;
         }, 'json', {
@@ -505,33 +615,80 @@ In the next example tag is an example of the commented script block that MUST be
                 /"result"/,
             ]
         });
-
         const analysisResult = JSON.parse(parsedLLMResponse);
-        this.feedbackAnalysisResult = analysisResult.result;
-        await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'feedback-analysis.json');
-        this.step++;
+        if (analysisResult.result === 'changes-requested') {
+            return 'changes-requested';
+        } else {
+            return 'no-changes';
+        }
+    }
+
+    public async generateMCP() {
+        // Only generate MCP config if toolType is 'mcp'
+        if (this.toolType !== 'mcp') {
+            console.log('Skipping MCP generation as tool type is not MCP');
+            return;
+        }
+
+        const srcPath = path.join(this.fileManager.toolDir, `src`);
+        const mcp = await Deno.readTextFile(Deno.cwd() + '/templates/mcp.ts');
+        const denojson = await Deno.readTextFile(Deno.cwd() + '/templates/deno.json');
+        const metadata = await Deno.readTextFile(Deno.cwd() + '/templates/deno.lock');
+        Deno.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
+        Deno.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
+        Deno.writeTextFileSync(path.join(srcPath, 'deno.lock'), metadata);
+        const mcp_name = JSON.parse(this.metadata).name.toLocaleLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const markdown = `
+# MCP Config
+## CURSOR
+deno -A ${path.normalize(srcPath)}/src/mcp.ts
+
+## CLAUDE
+"mcpServers": {
+    "${mcp_name}": {
+        "args": [
+            "-A",
+            "${path.normalize(srcPath)}/src/mcp.ts"
+        ],
+        "command": "deno"
+    }
+}
+        `;
+        console.log(JSON.stringify({ markdown }));
     }
 
     public async run() {
         try {
+            const state = await this.fileManager.loadState();
+            if (state.exists && state.completed) {
+                console.log('EVENT: progress\n', JSON.stringify({ message: 'Already completed' }));
+                return {
+                    status: "COMPLETED",
+                    code: '',
+                    metadata: '',
+                }
+            }
+            // const feedbackAnalysis = await this.processFeedbackAnalysis();
+
             await this.initialize();
             await this.generateRequirements();
 
             if (this.test.feedback) {
-                // TODO this is only used once. We should use it in each feedback step.
-                await this.processFeedbackAnalysis();
+                await this.processUserFeedback();
+                console.log(JSON.stringify({ markdown: this.feedback }));
+                throw new Error('REQUEST_FEEDBACK');
+            } else {
+                while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
+                    this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
 
-                if (this.feedbackAnalysisResult === "changes-requested") {
-                    await this.processUserFeedback();
-                    console.log(JSON.stringify({ markdown: this.feedback }));
-                    throw new Error('REQUEST_FEEDBACK');
-                } else {
-                    console.log(JSON.stringify({ markdown: this.feedback }));
+                    console.log('EVENT: feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing feedback' }));
+                    this.step++;
                 }
             }
 
             await this.processLibrarySearch();
             await this.processInternalTools();
+            await this.generatePlan();
             await this.generateCode();
             let retries = 5;
             while (retries > 0) {
@@ -542,7 +699,9 @@ In the next example tag is an example of the commented script block that MUST be
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
 
             await this.generateMetadata();
+            await this.generateTests();
             await this.fileManager.saveFinal(this.code, this.metadata);
+            await this.generateMCP();
             await this.logCompletion();
 
             console.log(`EVENT: metadata\n${JSON.stringify({ metadata: this.metadata })}`);
@@ -554,7 +713,7 @@ In the next example tag is an example of the commented script block that MUST be
         } catch (e) {
             if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
                 console.log("EVENT: request-feedback");
-                // console.log(`EVENT: feedback\n${JSON.stringify({ feedback: this.feedback })}`);
+                // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
                 return {
                     status: "REQUEST_FEEDBACK",
                     code: '',

@@ -1,17 +1,17 @@
 import { exists } from "jsr:@std/fs/exists";
 import path from "node:path";
-import { Test } from "./Test.ts";
+import { Requirement } from "./Requirement.ts";
 import { BaseEngine } from "./llm-engines.ts";
 import { Language } from "./types.ts";
 
-export class TestFileManager {
+export class FileManager {
 
     public toolDir: string;
-    private static basePath = path.join(Deno.cwd(), '.execution');
+    private static basePath = path.join(Deno.cwd(), 'cache', '.execution');
 
-    constructor(private language: Language, test: Test, model: BaseEngine, private stream: boolean) {
+    constructor(private language: Language, test: Requirement, model: BaseEngine, private stream: boolean) {
         this.toolDir = path.join(
-            TestFileManager.basePath,
+            FileManager.basePath,
             model.path,
             test.code,
             language,
@@ -33,6 +33,16 @@ export class TestFileManager {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         await Deno.mkdir(this.toolDir, { recursive: true });
         await Deno.writeTextFile(filePath, text);
+        if (Deno.env.get('DEBUG') === 'true') {
+            console.log(`[DEBUG] Saved File: ${filePath}`);
+        }
+        const state = await this.loadState();
+        if (!state.exists) {
+            await this.writeState({
+                completed: false,
+                date: new Date().toISOString(),
+            });
+        }
         return filePath;
     }
 
@@ -51,11 +61,28 @@ export class TestFileManager {
             await Deno.writeTextFile(filePath, tool);
             await Deno.writeTextFile(filePath2, metadata);
         }
+        await this.writeState({
+            completed: true,
+            date: new Date().toISOString(),
+        });
     }
 
     async exists(step: number, substep: string, fileName: string) {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         return await exists(filePath);
+    }
+
+    async writeState(config: { completed: boolean, date: string }) {
+        const filePath = path.join(this.toolDir, `state.json`);
+        await Deno.writeTextFile(filePath, JSON.stringify(config));
+    }
+
+    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string }> {
+        const filePath = path.join(this.toolDir, `state.json`);
+        if (!await exists(filePath)) {
+            return { exists: false, completed: false, date: new Date().toISOString() };
+        }
+        return { exists: true, ...JSON.parse(await Deno.readTextFile(filePath)) };
     }
 
     async load(step: number, substep: string, fileName: string) {
@@ -64,9 +91,9 @@ export class TestFileManager {
     }
 
     public static async clearFolder() {
-        if (await exists(TestFileManager.basePath)) {
-            await Deno.remove(TestFileManager.basePath, { recursive: true });
+        if (await exists(FileManager.basePath)) {
+            await Deno.remove(FileManager.basePath, { recursive: true });
         }
-        await Deno.mkdir(TestFileManager.basePath, { recursive: true });
+        await Deno.mkdir(FileManager.basePath, { recursive: true });
     }
 }

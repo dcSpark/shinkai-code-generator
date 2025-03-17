@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run --watch mcp.ts"
+  },
+  "imports": {
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.7.0",
+    "@std/assert": "jsr:@std/assert@1",
+    "zod": "npm:zod@^3.24.2"
+  }
+}

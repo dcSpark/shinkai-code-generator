@@ -1,7 +1,7 @@
 import { Language } from "./types.ts";
 // Keeping old format to keep old tests working.
 // TODO Update this to only keep important tests and fields.
-export class Test {
+export class Requirement {
     static id = 0;
     private generate_tool_router_key(test: string) {
         const code = test.replace(/[^a-zA-Z0-9]/g, "_");
@@ -13,7 +13,7 @@ export class Test {
     public prompt: string;
     public prompt_type: string;
     public tools: string[] | undefined;
-    public inputs: Record<string, unknown>;
+    public input: Record<string, unknown>;
     public config: Record<string, unknown>;
     public check?: (output: string) => number; // between 0 and 1
     public save?: boolean;
@@ -24,12 +24,12 @@ export class Test {
     public feedback_ts?: string;
     public feedback_python?: string;
     constructor(
-        { code, prompt, prompt_type, tools, inputs, config, check, save, supportFiles, limited_language, skip, feedback, feedback_ts, feedback_python }: {
+        { code, prompt, prompt_type, tools, input, config, check, save, supportFiles, limited_language, skip, feedback, feedback_ts, feedback_python }: {
             code: string,
             prompt: string,
             prompt_type: string,
             tools: string[] | undefined,
-            inputs: Record<string, unknown>,
+            input: Record<string, unknown>,
             config: Record<string, unknown>,
             check?: (output: string) => number, // between 0 and 1
             save?: boolean,
@@ -41,12 +41,12 @@ export class Test {
             feedback_python?: string
         }
     ) {
-        this.id = Test.id++;
+        this.id = Requirement.id++;
         this.code = code;
         this.prompt = prompt;
         this.prompt_type = prompt_type;
         this.tools = tools;
-        this.inputs = inputs;
+        this.input = input;
         this.config = config;
         this.check = check;
         this.save = save;
@@ -61,12 +61,21 @@ export class Test {
 };
 
 
-const benchmark_download_website = new Test(
+export const emptyRequirement = () => new Requirement({
+    code: '',
+    prompt: '',
+    prompt_type: '',
+    tools: [],
+    input: {},
+    config: {},
+});
+
+const benchmark_download_website = new Requirement(
     {
         code: `benchmark-download-website`,
         prompt: `Generate a tool that downloads a website, and return the complete HTML as { content: string }.`,
         prompt_type: "type INPUT = { url: string }",
-        inputs: {
+        input: {
             url:
                 "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/test.html",
         },
@@ -86,7 +95,7 @@ const benchmark_download_website = new Test(
 //         prompt:
 //     `Generate a tool that stores or updates a website content in a sqlite database, and returns the entire table`,
 //     prompt_type: "type INPUT = { url: string }",
-//     inputs: {
+//     input: {
 //     url:
 //         "https://raw.githubusercontent.com/acedward/expert-octo-computing-machine/main/test.html",
 //     },
@@ -101,7 +110,7 @@ const benchmark_download_website = new Test(
 //     save: true,
 // });
 
-export const getTests = (): Test[] => [
+export const getTests = (): Requirement[] => [
     benchmark_download_website
     // , benchmark_store_website
 ];
