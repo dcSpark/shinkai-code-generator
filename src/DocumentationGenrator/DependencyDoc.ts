@@ -1,8 +1,8 @@
 import { exists } from "jsr:@std/fs/exists";
-import { BaseEngine } from '../llm-engines.ts';
-import { LLMFormatter } from '../LLMFormatter.ts';
-import { TestFileManager } from "../TestFileManager.ts";
-import { Language } from "../types.ts";
+import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
+import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
+import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
+import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";
 import { Scrape } from "./Scrape.ts";
 import { Search } from "./Search.ts";

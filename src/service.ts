@@ -2,10 +2,47 @@ import { Application } from "jsr:@oak/oak/application";
 import { Context } from "jsr:@oak/oak/context";
 import { Router } from "jsr:@oak/oak/router";
 import { send } from "jsr:@oak/oak/send";
+import "jsr:@std/dotenv/load";
 import { ReadableStream } from "npm:stream/web";
-import { Language } from "./types.ts";
+import { ShinkaiAPI } from "./ShinkaiPipeline/ShinkaiAPI.ts";
+import { Language } from "./ShinkaiPipeline/types.ts";
 
 const router = new Router();
+router.get("/code_execution", async (ctx: Context) => {
+    console.log('>>>code_execution');
+
+
+    // Set CORS headers first
+    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, X-SHINKAI-REQUEST-UUID");
+
+    // Set streaming response headers
+    ctx.response.headers.set("Content-Type", "text/event-stream");
+    ctx.response.headers.set("Cache-Control", "no-cache");
+    ctx.response.headers.set("Connection", "keep-alive");
+    ctx.response.headers.set("access-control-expose-headers", "X-SHINKAI-REQUEST-UUID");
+
+    const payload = ctx.request.url.searchParams.get('payload');
+    console.log('payload', payload);
+    if (!payload) {
+        ctx.response.status = 400;
+        ctx.response.body = "Payload is required";
+        return;
+    }
+    const payloadObject = JSON.parse(payload);
+    console.log('payloadObject', payloadObject);
+    const response = await (new ShinkaiAPI()).executeCode(
+        payloadObject.code,
+        payloadObject.tools,
+        payloadObject.parameters,
+        payloadObject.extra_config,
+        Deno.env.get('LLM_PROVIDER') || ''
+    );
+    console.log('response', response);
+    ctx.response.body = JSON.stringify(response);
+});
+
 router.get("/generate", async (ctx: Context) => {
     console.log('>>>generate');
     const language = ctx.request.url.searchParams.get('language');

@@ -1,12 +1,12 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import path from "node:path";
-import { DependencyDoc } from "./DocumentationGenrator.ts/DependencyDoc.ts";
+import { DependencyDoc } from "../DocumentationGenrator/DependencyDoc.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
+import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
-import { Test } from "./Test.ts";
 import { TestFileManager } from "./TestFileManager.ts";
 import { Language } from "./types.ts";
 
@@ -60,7 +60,7 @@ export class ShinkaiPipeline {
 
     constructor(
         private language: Language,
-        private test: Test,
+        private test: Requirement,
         private llmModel: BaseEngine,
         private advancedLlmModel: BaseEngine,
         private stream: boolean,

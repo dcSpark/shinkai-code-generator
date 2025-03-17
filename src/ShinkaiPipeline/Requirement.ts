@@ -1,7 +1,7 @@
 import { Language } from "./types.ts";
 // Keeping old format to keep old tests working.
 // TODO Update this to only keep important tests and fields.
-export class Test {
+export class Requirement {
     static id = 0;
     private generate_tool_router_key(test: string) {
         const code = test.replace(/[^a-zA-Z0-9]/g, "_");
@@ -41,7 +41,7 @@ export class Test {
             feedback_python?: string
         }
     ) {
-        this.id = Test.id++;
+        this.id = Requirement.id++;
         this.code = code;
         this.prompt = prompt;
         this.prompt_type = prompt_type;
@@ -61,7 +61,7 @@ export class Test {
 };
 
 
-const benchmark_download_website = new Test(
+const benchmark_download_website = new Requirement(
     {
         code: `benchmark-download-website`,
         prompt: `Generate a tool that downloads a website, and return the complete HTML as { content: string }.`,
@@ -101,7 +101,7 @@ const benchmark_download_website = new Test(
 //     save: true,
 // });
 
-export const getTests = (): Test[] => [
+export const getTests = (): Requirement[] => [
     benchmark_download_website
     // , benchmark_store_website
 ];

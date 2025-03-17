@@ -1,8 +1,8 @@
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4, getOpenAIO4Mini } from "./llm-engines.ts";
-import { ShinkaiPipeline } from "./ShinkaiPipeline.ts";
-import { Test } from "./Test.ts";
-import { Language } from "./types.ts";
+import { getOpenAIO4, getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
+import { Requirement } from "./ShinkaiPipeline/Requirement.ts";
+import { ShinkaiPipeline } from "./ShinkaiPipeline/ShinkaiPipeline.ts";
+import { Language } from "./ShinkaiPipeline/types.ts";
 
 // Parse command line arguments in the format key=value
 const args = Deno.args;
@@ -37,7 +37,7 @@ if (!language || !requestUUID || !prompt) {
 // Run the pipeline and stream output
 const runPipeline = async () => {
     try {
-        const codeTest: Test = new Test({
+        const codeTest: Requirement = new Requirement({
             code: requestUUID,
             prompt: prompt,
             feedback: feedback,

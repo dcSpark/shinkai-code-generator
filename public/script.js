@@ -23,15 +23,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Default URLs
     const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080';
-    const DEFAULT_NODE_RUNNER_URL = 'http://localhost:9950';
 
     // Initialize URLs from localStorage or defaults
     let CODE_GENERATOR_URL = localStorage.getItem('CODE_GENERATOR_URL') || DEFAULT_CODE_GENERATOR_URL;
-    let SHINKAI_NODE_RUNNER_URL = localStorage.getItem('SHINKAI_NODE_RUNNER_URL') || DEFAULT_NODE_RUNNER_URL;
 
     // Set initial values in the config form
     codeGeneratorUrlInput.value = CODE_GENERATOR_URL;
-    nodeRunnerUrlInput.value = SHINKAI_NODE_RUNNER_URL;
+    // nodeRunnerUrlInput.value = SHINKAI_NODE_RUNNER_URL;
 
     // Config modal event listeners
     configBtn.addEventListener('click', () => {
@@ -51,11 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     saveConfigBtn.addEventListener('click', () => {
         // Save the new URLs
         CODE_GENERATOR_URL = codeGeneratorUrlInput.value.trim() || DEFAULT_CODE_GENERATOR_URL;
-        SHINKAI_NODE_RUNNER_URL = nodeRunnerUrlInput.value.trim() || DEFAULT_NODE_RUNNER_URL;
 
         // Save to localStorage
         localStorage.setItem('CODE_GENERATOR_URL', CODE_GENERATOR_URL);
-        localStorage.setItem('SHINKAI_NODE_RUNNER_URL', SHINKAI_NODE_RUNNER_URL);
 
         // Close the modal
         configModal.style.display = 'none';
@@ -628,6 +624,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Function to check if data is contained in expectedOutput
+    function isContained(expectedOutput, data) {
+        // Handle null and undefined
+        if (data === expectedOutput) {
+            return true;
+        }
+
+        // Handle null or undefined in one but not the other
+        if (data === null || data === undefined || expectedOutput === null || expectedOutput === undefined) {
+            return false;
+        }
+
+        // Handle primitive types (string, number, boolean)
+        if (typeof data !== 'object' && typeof expectedOutput !== 'object') {
+            return data === expectedOutput;
+        }
+
+        // Handle arrays
+        if (Array.isArray(data) && Array.isArray(expectedOutput)) {
+            // Check if every item in data is contained in expectedOutput
+            return data.every(dataItem => {
+                // Find at least one matching item in expectedOutput
+                return expectedOutput.some(expectedItem => isContained(dataItem, expectedItem));
+            });
+        }
+
+        // Handle objects
+        if (typeof data === 'object' && typeof expectedOutput === 'object') {
+            // Check if every key-value pair in data is contained in expectedOutput
+            return Object.keys(data).every(key => {
+                // If the key doesn't exist in expectedOutput, it's not contained
+                if (!(key in expectedOutput)) {
+                    return false;
+                }
+                // Recursively check if the value is contained
+                return isContained(data[key], expectedOutput[key]);
+            });
+        }
+
+        // Default case: not contained
+        return false;
+    }
+
     // Function to execute a test
     async function executeTest(index, test) {
         const runButton = document.querySelector(`button[data-test-index="${index}"]`);
@@ -638,49 +677,6 @@ document.addEventListener('DOMContentLoaded', () => {
         runButton.disabled = true;
         loader.style.display = 'block';
         resultSection.style.display = 'none';
-
-        // Function to check if data is contained in expectedOutput
-        function isContained(data, expectedOutput) {
-            // Handle null and undefined
-            if (data === expectedOutput) {
-                return true;
-            }
-
-            // Handle null or undefined in one but not the other
-            if (data === null || data === undefined || expectedOutput === null || expectedOutput === undefined) {
-                return false;
-            }
-
-            // Handle primitive types (string, number, boolean)
-            if (typeof data !== 'object' && typeof expectedOutput !== 'object') {
-                return data === expectedOutput;
-            }
-
-            // Handle arrays
-            if (Array.isArray(data) && Array.isArray(expectedOutput)) {
-                // Check if every item in data is contained in expectedOutput
-                return data.every(dataItem => {
-                    // Find at least one matching item in expectedOutput
-                    return expectedOutput.some(expectedItem => isContained(dataItem, expectedItem));
-                });
-            }
-
-            // Handle objects
-            if (typeof data === 'object' && typeof expectedOutput === 'object') {
-                // Check if every key-value pair in data is contained in expectedOutput
-                return Object.keys(data).every(key => {
-                    // If the key doesn't exist in expectedOutput, it's not contained
-                    if (!(key in expectedOutput)) {
-                        return false;
-                    }
-                    // Recursively check if the value is contained
-                    return isContained(data[key], expectedOutput[key]);
-                });
-            }
-
-            // Default case: not contained
-            return false;
-        }
 
         try {
             // Get the current values from the editable textareas
@@ -740,23 +736,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 code: document.getElementById('code-content').value,
                 tools: tools,
-                tool_type: "denodynamic",
-                llm_provider: "GET_FROM_CODE",
+                tool_type: "denodynamic", // Depends on language - can by pythondynamic
                 extra_config: config,
                 parameters: input
             };
 
             // Make the API call using the configured URL
-            const response = await fetch(`${SHINKAI_NODE_RUNNER_URL}/v2/code_execution`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer debug',
-                    'x-shinkai-tool-id': 'no-name',
-                    'x-shinkai-app-id': 'asset-test',
-                    'x-shinkai-llm-provider': 'batata',
-                    'Content-Type': 'application/json; charset=utf-8'
-                },
-                body: JSON.stringify(payload)
+            const response = await fetch(`${CODE_GENERATOR_URL}/code_execution?payload=${encodeURIComponent(JSON.stringify(payload))}`, {
+                method: 'GET'
             });
 
             // Parse the response

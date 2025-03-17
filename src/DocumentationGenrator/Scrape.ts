@@ -1,8 +1,8 @@
 import { exists } from "jsr:@std/fs/exists";
 import axios, { AxiosError } from 'npm:axios';
-import { BaseEngine } from '../llm-engines.ts';
-import { LLMFormatter } from '../LLMFormatter.ts';
-import { TestFileManager } from "../TestFileManager.ts";
+import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
+import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
+import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
 import { Cache } from "./Cache.ts";
 import { SearchResponse } from "./Search.ts";
 const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');

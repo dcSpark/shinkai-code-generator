@@ -1,7 +1,7 @@
 import { exists } from "jsr:@std/fs/exists";
 import axios, { AxiosError } from 'npm:axios';
-import { BaseEngine } from '../llm-engines.ts';
-import { TestFileManager } from "../TestFileManager.ts";
+import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
+import { TestFileManager } from "../ShinkaiPipeline/TestFileManager.ts";
 import { Cache } from "./Cache.ts";
 const BRAVE_API_KEY = Deno.env.get('BRAVE_API_KEY');
 
