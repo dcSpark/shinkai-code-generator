@@ -258,50 +258,9 @@ router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => 
     ctx.response.body = JSON.stringify(response);
 });
 
-// Execute the pipeline
-// query params: language, prompt, feedback, tool_type, x_shinkai_request_uuid
-router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async (ctx: Context) => {
-    const language = ctx.request.url.searchParams.get('language');
-    const prompt = ctx.request.url.searchParams.get('prompt');
-    const feedback = ctx.request.url.searchParams.get('feedback') || '';
-    const toolType = ctx.request.url.searchParams.get('tool_type') || 'shinkai'; // Default to 'shinkai' if not provided
-    const skipfeedback = ctx.request.url.searchParams.get('skipfeedback');
 
-    let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
-
-    console.log('input', { language, prompt, feedback, toolType, skipfeedback });
-    if (!language || (language !== 'typescript' && language !== 'python')) {
-        ctx.response.status = 400;
-        ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
-        return;
-    }
-    if (!prompt) {
-        ctx.response.status = 400;
-        ctx.response.body = "Prompt is required";
-        return;
-    }
-
-    if (feedback && !requestUUID) {
-        // error
-        ctx.response.status = 400;
-        ctx.response.body = "X-SHINKAI-REQUEST-UUID is required";
-        return;
-    }
-
-    ctx.response.headers.set("Content-Type", "text/event-stream");
-
-    if (!requestUUID) {
-        requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
-    }
-
-    if (!skipfeedback || (skipfeedback !== 'true' && skipfeedback !== 'false')) {
-        ctx.response.status = 400;
-        ctx.response.body = "skipfeedback must be either 'true' or 'false'";
-        return;
-    }
-
+async function runGenerate(ctx: Context, language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: 'shinkai' | 'mcp') {
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
-
 
     // Function to run pipeline in a separate process and return a readable stream
     const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: string = 'shinkai'): Promise<ReadableStream<Uint8Array>> => {
@@ -374,6 +333,95 @@ router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async 
 
     // Stream the transformed events to the client
     ctx.response.body = processStream.pipeThrough((sseStream()) as any);
+}
+
+router.post('/generate', setCorsHeadersMiddleware, limitRequestMiddleware, async (ctx: Context) => {
+    const payload = await ctx.request.body.json();
+    console.log('<payload>', payload);
+    if (!payload.language || (payload.language !== 'typescript' && payload.language !== 'python')) {
+        ctx.response.status = 400;
+        ctx.response.body = "language is required and must be either 'typescript' or 'python'";
+        console.log('<error>', ctx.response.body);
+        return;
+    }
+    if (!payload.prompt) {
+        ctx.response.status = 400;
+        ctx.response.body = "prompt is required";
+        console.log('<error>', ctx.response.body);
+        return;
+    }
+    if (!payload.tool_type || (payload.tool_type !== 'shinkai' && payload.tool_type !== 'mcp')) {
+        ctx.response.status = 400;
+        ctx.response.body = "toolType is required";
+        console.log('<error>', ctx.response.body);
+        return;
+    }
+    if (!payload.skipfeedback || (payload.skipfeedback !== 'true' && payload.skipfeedback !== 'false')) {
+        ctx.response.status = 400;
+        ctx.response.body = "skipfeedback is required and must be either 'true' or 'false'";
+        console.log('<error>', ctx.response.body);
+        return;
+    }
+    if (!payload.requestUUID) {
+        payload.requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    }
+    if (!payload.feedback) {
+        payload.feedback = '';
+    }
+
+    console.log('<runGenerate>');
+    await runGenerate(ctx, payload.language, payload.requestUUID, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);
+});
+
+// Execute the pipeline
+// query params: language, prompt, feedback, tool_type, x_shinkai_request_uuid
+router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async (ctx: Context) => {
+    const language = ctx.request.url.searchParams.get('language');
+    const prompt = ctx.request.url.searchParams.get('prompt');
+    const feedback = ctx.request.url.searchParams.get('feedback') || '';
+    const toolType = ctx.request.url.searchParams.get('tool_type') || 'shinkai'; // Default to 'shinkai' if not provided
+    const skipfeedback = ctx.request.url.searchParams.get('skipfeedback');
+
+    let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
+
+    console.log('input', { language, prompt, feedback, toolType, skipfeedback });
+    if (!language || (language !== 'typescript' && language !== 'python')) {
+        ctx.response.status = 400;
+        ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
+        return;
+    }
+    if (!prompt) {
+        ctx.response.status = 400;
+        ctx.response.body = "Prompt is required";
+        return;
+    }
+
+    if (feedback && !requestUUID) {
+        // error
+        ctx.response.status = 400;
+        ctx.response.body = "X-SHINKAI-REQUEST-UUID is required";
+        return;
+    }
+
+    if (!toolType || (toolType !== 'shinkai' && toolType !== 'mcp')) {
+        ctx.response.status = 400;
+        ctx.response.body = "tool_type must be either 'shinkai' or 'mcp'";
+        return;
+    }
+
+    ctx.response.headers.set("Content-Type", "text/event-stream");
+
+    if (!requestUUID) {
+        requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    }
+
+    if (!skipfeedback || (skipfeedback !== 'true' && skipfeedback !== 'false')) {
+        ctx.response.status = 400;
+        ctx.response.body = "skipfeedback must be either 'true' or 'false'";
+        return;
+    }
+
+    return await runGenerate(ctx, language, requestUUID, prompt, feedback, skipfeedback, toolType);
 });
 
 // Serve the static files from public folder
