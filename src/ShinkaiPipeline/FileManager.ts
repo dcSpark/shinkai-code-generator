@@ -1,7 +1,5 @@
 import { exists } from "jsr:@std/fs/exists";
 import path from "node:path";
-import { Requirement } from "./Requirement.ts";
-import { BaseEngine } from "./llm-engines.ts";
 import { Language } from "./types.ts";
 
 export class FileManager {
@@ -9,12 +7,10 @@ export class FileManager {
     public toolDir: string;
     private static basePath = path.join(Deno.cwd(), 'cache', '.execution');
 
-    constructor(private language: Language, test: Requirement, model: BaseEngine, private stream: boolean) {
+    constructor(private language: Language, runCode: string, private stream: boolean) {
         this.toolDir = path.join(
             FileManager.basePath,
-            model.path,
-            test.code,
-            language,
+            runCode,
         );
     }
 

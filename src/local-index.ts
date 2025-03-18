@@ -28,7 +28,7 @@ async function start() {
     for (const llmModel of llm) {
         for (const language of languages) {
             for (const test of getTests()) {
-                const pipeline = new ShinkaiPipeline(language, test, llmModel, llmModel, true, 'shinkai');
+                const pipeline = new ShinkaiPipeline(true, language, test, llmModel, llmModel, true, 'shinkai');
                 await pipeline.run();
             }
         }

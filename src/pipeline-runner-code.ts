@@ -16,6 +16,7 @@ args.forEach(arg => {
 });
 const delimiter = `"#|#"`
 
+const skipFeedback = argMap['skipfeedback'] === 'true';
 const language = argMap['language'] as Language;
 const requestUUID = argMap['request-uuid'];
 let prompt = argMap['prompt'] || '';
@@ -30,7 +31,7 @@ const toolType = (argMap['tool_type'] as 'shinkai' | 'mcp') || 'shinkai'; // Def
 
 if (!language || !requestUUID || !prompt) {
     console.log(JSON.stringify({ language, requestUUID, prompt, feedback, toolType }));
-    console.log("Usage: deno run pipeline-runner.ts language=<language> request-uuid=<request-uuid> prompt=<prompt> feedback=<feedback> tool_type=<tool_type>");
+    console.log("Usage: deno run pipeline-runner-metadata.ts language=<language> request-uuid=<request-uuid> prompt=<prompt> feedback=<feedback> tool_type=<tool_type>");
     Deno.exit(1);
 }
 
@@ -51,7 +52,7 @@ const runPipeline = async () => {
         const advancedLlmModel = getOpenAIO4();
 
         console.log('EVENT: start');
-        const pipeline = new ShinkaiPipeline(language, codeTest, llmModel, advancedLlmModel, true, toolType);
+        const pipeline = new ShinkaiPipeline(skipFeedback, language, codeTest, llmModel, advancedLlmModel, true, toolType);
 
         // Add event listeners to the pipeline if ShinkaiPipeline supports them
         // If not, you might need to modify ShinkaiPipeline to emit progress events

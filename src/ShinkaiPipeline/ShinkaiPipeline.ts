@@ -7,6 +7,7 @@ import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
+import { ShinkaiPipelineMetadata } from "./ShinkaiPipelineMeta.ts";
 import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
 import { Language } from "./types.ts";
 
@@ -59,6 +60,7 @@ export class ShinkaiPipeline {
     private toolType: 'shinkai' | 'mcp';
 
     constructor(
+        private skipFeedback: boolean,
         private language: Language,
         private test: Requirement,
         private llmModel: BaseEngine,
@@ -66,7 +68,7 @@ export class ShinkaiPipeline {
         private stream: boolean,
         toolType: 'shinkai' | 'mcp' = 'shinkai'
     ) {
-        this.fileManager = new FileManager(language, test, llmModel, stream);
+        this.fileManager = new FileManager(language, test.code, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
         this.toolType = toolType;
@@ -145,9 +147,11 @@ export class ShinkaiPipeline {
 
         this.step++;
 
-        // let's terminate the pipeline if the user feedback is not provided
-        console.log(JSON.stringify({ markdown: this.feedback }));
-        throw new Error('REQUEST_FEEDBACK');
+        if (!this.skipFeedback) {
+            // let's terminate the pipeline if the user feedback is not provided
+            console.log(JSON.stringify({ markdown: this.feedback }));
+            throw new Error('REQUEST_FEEDBACK');
+        }
 
     }
 
@@ -512,43 +516,6 @@ In the next example tag is an example of the commented script block that MUST be
         }
     }
 
-    private async generateMetadata() {
-        // Check if output file exists
-        if (await this.fileManager.exists(this.step, 'c', 'metadata.json')) {
-            await this.fileManager.log(` Step ${this.step} - Metadata `, true);
-            const m = await this.fileManager.load(this.step, 'c', 'metadata.json');
-            this.metadata = m;
-            this.step++;
-            return;
-        }
-
-        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
-
-            let metadataPrompt = '';
-            if (this.language === 'typescript') {
-                metadataPrompt = (await new ShinkaiAPI().getTypescriptToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
-            } else {
-                metadataPrompt = (await new ShinkaiAPI().getPythonToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
-            }
-
-            const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
-            const promptResponse = llmResponse.message;
-            await this.fileManager.save(this.step, 'a', metadataPrompt, 'metadata-prompt.md');
-            await this.fileManager.save(this.step, 'b', promptResponse, 'raw-metadata-response.md');
-            return promptResponse;
-        }, 'json', {
-            regex: [
-                new RegExp("name"),
-                new RegExp("configurations"),
-                new RegExp("parameters"),
-                new RegExp("result"),
-            ]
-        });
-        this.metadata = parsedLLMResponse;
-        await this.fileManager.save(this.step, 'c', this.metadata, 'metadata.json');
-        this.step++;
-    }
 
     private async generateTests() {
         // Check if output file exists
@@ -675,8 +642,10 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
             if (this.test.feedback) {
                 await this.processUserFeedback();
-                console.log(JSON.stringify({ markdown: this.feedback }));
-                throw new Error('REQUEST_FEEDBACK');
+                if (!this.skipFeedback) {
+                    console.log(JSON.stringify({ markdown: this.feedback }));
+                    throw new Error('REQUEST_FEEDBACK');
+                }
             } else {
                 while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
                     this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
@@ -698,7 +667,10 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
 
-            await this.generateMetadata();
+            const metadataPipeline = new ShinkaiPipelineMetadata(this.code, this.language, this.test, this.llmModel, this.stream);
+            const metadataResult = await metadataPipeline.run();
+            this.metadata = metadataResult.metadata;
+
             await this.generateTests();
             await this.fileManager.saveFinal(this.code, this.metadata);
             await this.generateMCP();

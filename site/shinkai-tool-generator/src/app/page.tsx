@@ -103,7 +103,7 @@ export default function Home() {
       
       // Make the API call
       const response = await fetch(
-        `${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&tool_type=${encodeURIComponent(toolTypeValue)}`,
+        `${CODE_GENERATOR_URL}/generate?skipfeedback=false&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&tool_type=${encodeURIComponent(toolTypeValue)}`,
         {
           method: 'GET',
           headers: {
