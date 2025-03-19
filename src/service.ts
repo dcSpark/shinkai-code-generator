@@ -191,7 +191,10 @@ router.post("/metadata", setCorsHeadersMiddleware, limitRequestMiddleware, async
         ctx.response.body = "code is required";
         return;
     }
-    const requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    let requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    if (payload.x_shinkai_request_uuid) {
+        requestUUID = payload.x_shinkai_request_uuid;
+    }
     await generateMetadata(ctx, payload.language, requestUUID, payload.code);
 });
 // Generate metadata for the pipeline

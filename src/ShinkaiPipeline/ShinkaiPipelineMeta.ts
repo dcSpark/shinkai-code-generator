@@ -54,8 +54,8 @@ export class ShinkaiPipelineMetadata {
                 `<available_tools>${this.internalToolsJSON.join('\n')}</available_tools>`
             );
             metadataPrompt = metadataPrompt.replace(
-                /<code>\n\n<\/code>/,
-                `<code>${this.code}</code>`
+                /<input_command>\n\n<\/input_command>/,
+                `<input_command>${this.code}</input_command>`
             );
 
             const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
@@ -77,6 +77,13 @@ export class ShinkaiPipelineMetadata {
     }
 
     public async run() {
+        if (!this.code) {
+            return {
+                status: "ERROR: Missing code",
+                code: '',
+                metadata: '',
+            }
+        }
         try {
             await this.generateMetadata();
             return { metadata: this.metadata }

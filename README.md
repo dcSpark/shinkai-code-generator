@@ -1,5 +1,13 @@
 # Shinkai Prompt Testing
 
+## Tests
+
+#### Simple Test
+deno test --allow-all src/service.test.ts
+
+#### Internal Tools TS
+deno test --allow-all src/service-tools.test.ts
+
 
 ## Install
 ```

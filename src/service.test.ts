@@ -18,7 +18,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
                 prompt: "sum a + b using no libraries.",
                 tool_type: "shinkai",
                 skipfeedback: "false",
-                x_shinkai_request_uuid: uuid,
+                x_shinkai_request_uuid: 'test-ts-' + uuid,
                 feedback: ""
             }),
         });
@@ -54,7 +54,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
                 prompt: "ok",
                 tool_type: "shinkai",
                 skipfeedback: "false",
-                x_shinkai_request_uuid: uuid,
+                x_shinkai_request_uuid: 'test-ts-' + uuid,
                 feedback: ""
             }),
         });
@@ -89,7 +89,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             body: JSON.stringify({
                 language: "typescript",
                 code,
-                x_shinkai_request_uuid: uuid,
+                x_shinkai_request_uuid: 'test-metadata-' + uuid,
             }),
         });
 
