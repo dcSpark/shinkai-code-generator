@@ -48,7 +48,7 @@ export class ShinkaiPipelineMetadata {
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
-            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/metadata-prompt.md');
+            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/metadata.md');
             metadataPrompt = metadataPrompt.replace(
                 /<available_tools>\n\n<\/available_tools>/,
                 `<available_tools>${this.internalToolsJSON.join('\n')}</available_tools>`
@@ -60,7 +60,7 @@ export class ShinkaiPipelineMetadata {
 
             const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
             const promptResponse = llmResponse.message;
-            await this.fileManager.save(this.step, 'a', metadataPrompt, 'metadata-prompt.md');
+            await this.fileManager.save(this.step, 'a', metadataPrompt, 'metadata.md');
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-metadata-response.md');
             return promptResponse;
         }, 'json', {
