@@ -259,8 +259,23 @@ router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => 
 });
 
 
-async function runGenerate(ctx: Context, language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: 'shinkai' | 'mcp') {
+async function runGenerate(ctx: Context, tool_headers: string | undefined, language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: 'shinkai' | 'mcp') {
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
+    console.log('tool_headers', !!tool_headers, language, requestUUID);
+    if (tool_headers) {
+        const fileManager = new FileManager(language, requestUUID, true);
+        await fileManager.save(20000, 'tool_headers', tool_headers, 'tool_headers' + (language === 'typescript' ? '.ts' : '.py'));
+
+        if (language === 'typescript') {
+            const tool_headers_ex = tool_headers
+                .replaceAll("}>;", '}> { return ({} as any); }')
+                .replaceAll("any[]);", 'any[]) { return ({} as any); }');
+            await fileManager.save(20001, 'tool_headers', tool_headers_ex, 'tool_headers.ts');
+        } else {
+            const tool_headers_ex = 'from typing import Any, Dict\n\n' + tool_headers;
+            await fileManager.save(20001, 'tool_headers', tool_headers_ex, 'tool_headers.py');
+        }
+    }
 
     // Function to run pipeline in a separate process and return a readable stream
     const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: string = 'shinkai'): Promise<ReadableStream<Uint8Array>> => {
@@ -370,7 +385,7 @@ router.post('/generate', setCorsHeadersMiddleware, limitRequestMiddleware, async
     }
 
     console.log('<runGenerate>');
-    await runGenerate(ctx, payload.language, payload.requestUUID, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);
+    await runGenerate(ctx, payload.tool_headers, payload.language, payload.requestUUID, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);
 });
 
 // Execute the pipeline
@@ -381,6 +396,7 @@ router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async 
     const feedback = ctx.request.url.searchParams.get('feedback') || '';
     const toolType = ctx.request.url.searchParams.get('tool_type') || 'shinkai'; // Default to 'shinkai' if not provided
     const skipfeedback = ctx.request.url.searchParams.get('skipfeedback');
+    const tool_headers = undefined; // to long for url; use post.
 
     let requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid');
 
@@ -421,7 +437,7 @@ router.get("/generate", setCorsHeadersMiddleware, limitRequestMiddleware, async 
         return;
     }
 
-    return await runGenerate(ctx, language, requestUUID, prompt, feedback, skipfeedback, toolType);
+    return await runGenerate(ctx, tool_headers, language, requestUUID, prompt, feedback, skipfeedback, toolType);
 });
 
 // Serve the static files from public folder
