@@ -47,17 +47,16 @@ export class ShinkaiPipeline {
     private code: string = '';
     private metadata: string = '';
 
-    // Shinkai prompts
-    private shinkaiPrompts: any;;
-
-    // Available tools
-    private availableTools: string[] = [];
-
     // Start time
     private startTime: number;
 
     // Tool type
     private toolType: 'shinkai' | 'mcp';
+
+    private shinkaiLocalTools_headers: string = '';
+    private shinkaiLocalTools_libraryCode: string = '';
+    private shinkaiLocalTools_toolRouterKeys: { functionName: string, toolRouterKey: string, code: string }[] = [];
+    private shinkaiLocalSupport_headers: string = '';
 
     constructor(
         private skipFeedback: boolean,
@@ -76,8 +75,28 @@ export class ShinkaiPipeline {
 
     private async initialize() {
         const completeShinkaiPrompts = await getFullHeadersAndTools();
-        this.shinkaiPrompts = completeShinkaiPrompts[this.language];
-        this.availableTools = completeShinkaiPrompts.availableTools;
+
+
+        if (this.language === 'typescript') {
+            this.shinkaiLocalSupport_headers = completeShinkaiPrompts.typescript.headers["shinkai-local-support"];
+            if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.ts')) {
+                this.shinkaiLocalTools_headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.ts');
+                this.shinkaiLocalTools_libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.ts');
+                this.shinkaiLocalTools_toolRouterKeys = JSON.parse(await this.fileManager.load(20002, 'tool_headers', 'tool_headers.json'));
+            }
+        } else if (this.language === 'python') {
+            this.shinkaiLocalSupport_headers = completeShinkaiPrompts.python.headers["shinkai_local_support"];
+            if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.py')) {
+                const headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.py');
+                const libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');
+                this.shinkaiLocalTools_headers = headers;
+                this.shinkaiLocalTools_libraryCode = libraryCode;
+                this.shinkaiLocalTools_toolRouterKeys = JSON.parse(await this.fileManager.load(20002, 'tool_headers', 'tool_headers.json'));
+            }
+        }
+
+        // this.shinkaiPrompts = completeShinkaiPrompts[this.language];
+        // this.availableTools = completeShinkaiPrompts.availableTools;
         // await this.fileManager.log(`=========================================================`, true);
         await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language} (Tool Type: ${this.toolType})`, true);
     }
@@ -101,16 +120,9 @@ export class ShinkaiPipeline {
             this.fileManager.log(`[Planning Step ${this.step}] System Requirements & Feedback Prompt`, true);
             let headers: string = '';
             if (this.toolType === 'shinkai') {
-                if (this.language === 'typescript') {
-                    headers = (this.shinkaiPrompts.headers as any)['shinkai-local-tools'] +
-                        "\n" +
-                        (this.shinkaiPrompts.headers as any)['shinkai-local-support'];
-                } else {
-                    headers = (this.shinkaiPrompts.headers as any)['shinkai_local_tools'] +
-                        "\n" +
-                        (this.shinkaiPrompts.headers as any)['shinkai_local_support'];
-                }
-
+                headers = this.shinkaiLocalTools_headers +
+                    "\n" +
+                    this.shinkaiLocalSupport_headers;
             } else {
                 headers = "NONE"
             }
@@ -266,12 +278,14 @@ export class ShinkaiPipeline {
             return;
         }
 
+        const availableTools = this.shinkaiLocalTools_toolRouterKeys.map(key => `${key.toolRouterKey} ${key.functionName}`);
+
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.feedback}\n\n</input_command>`
-            ).replace('<tool_router_key>\n\n</tool_router_key>', `<tool_router_key>\n${this.availableTools.join('\n')}\n</tool_router_key>`)
+            ).replace('<tool_router_key>\n\n</tool_router_key>', `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
             await this.fileManager.save(this.step, 'a', prompt, 'internal-tools-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Identifying Required Internal Tools");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-internal-tools-response.md');
@@ -370,6 +384,32 @@ ${doc}
                 `<input_command>\n${this.plan}\n\n</input_command>`
             );
 
+
+            let alternativeHeaders = '';
+            if (this.language === 'typescript') {
+                if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.ts')) {
+                    alternativeHeaders = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.ts');
+                }
+            } else if (this.language === 'python') {
+                if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.py')) {
+                    alternativeHeaders = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');
+                }
+            }
+
+            const toolCode_2 = toolCode_1
+                .replace("Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'", '')
+                .replace(/<file-name=shinkai-local-tools>[\s\S]*?<\/file-name=shinkai-local-tools>/g, '')
+                .replace(/<\/file-name=shinkai-local-support>/, `</file-name=shinkai-local-support>
+
+Import these functions with the format: \`import { xx } from './shinkai-local-tools.ts'\`
+<file-name=shinkai-local-tools>
+${alternativeHeaders}
+</file-name=shinkai-local-tools>
+`
+                );
+
+
+
             const additionalRules = this.language === 'typescript' ? `
     * Use "Internal Libraries" with \`import { xx } from './shinkai-local-support.ts\`; 
     * Use "External Libraries" with \`import { xx } from 'npm:xx'\`;
@@ -386,7 +426,7 @@ ${Object.entries(this.docs).map(([library, doc]) => `
     Now, the prompt begins:
 `).join('\n')}
 </libraries_documentation>
-        ` + toolCode_1.replace(
+        ` + toolCode_2.replace(
                 "* Prefer libraries in the following order:",
                 `
     * As first preference use the libraries described in the "Internal Libraries" and "External Libraries" sections.

@@ -275,7 +275,45 @@ async function runGenerate(ctx: Context, tool_headers: string | undefined, langu
             const tool_headers_ex = 'from typing import Any, Dict\n\n' + tool_headers;
             await fileManager.save(20001, 'tool_headers', tool_headers_ex, 'tool_headers.py');
         }
+
+        const functionMap: { functionName: string, toolRouterKey: string, code: string }[] = [];
+        const functionMapBlock = tool_headers.match(/<tool_key_path_to_function_name>([\s\S]*?)\n(\/\/|#) <\/tool_key_path_to_function_name>/)?.[1] || '';
+        const functionMapLines = functionMapBlock.split('\n').filter(line => line.trim() !== '');
+        for (const line of functionMapLines) {
+            const match = line.match(/^(\/\/|#) ([\s\S]+?) ([\s\S]+?)$/);
+            if (match) {
+                const toolRouterKey = match[2];
+                const functionName = match[3];
+                functionMap.push({ functionName, toolRouterKey, code: '' });
+            }
+        }
+
+        if (language === 'typescript') {
+            const functionCode = tool_headers.match(/(^\/\*\*[\s\S]+?}>;$)/gm) || [];
+            for (const [index, code] of functionCode.entries()) {
+                const functionName = code.match(/export async function ([\s\S]+?)\(/)?.[1] || 'no-name-' + index;
+                const functionMapItem = functionMap.find(f => f.functionName === functionName);
+                if (functionMapItem) {
+                    functionMapItem.code = code;
+                } else {
+                    functionMap.push({ functionName, toolRouterKey: functionName, code: code });
+                }
+            }
+        } else if (language === 'python') {
+            const functionCode = tool_headers.match(/(^async[\s\S]+?pass$)/gm) || [];
+            for (const [index, code] of functionCode.entries()) {
+                const functionName = code.match(/async def ([\s\S]+?)\(/)?.[1] || 'no-name-' + index;
+                const functionMapItem = functionMap.find(f => f.functionName === functionName);
+                if (functionMapItem) {
+                    functionMapItem.code = code;
+                } else {
+                    functionMap.push({ functionName, toolRouterKey: functionName, code: code });
+                }
+            }
+        }
+        await fileManager.save(20002, 'tool_headers', JSON.stringify(functionMap, null, 2), 'tool_headers.json');
     }
+
 
     // Function to run pipeline in a separate process and return a readable stream
     const runPipelineInProcess = async (language: Language, requestUUID: string, prompt: string, feedback: string, skipfeedback: 'true' | 'false', toolType: string = 'shinkai'): Promise<ReadableStream<Uint8Array>> => {

@@ -3,7 +3,6 @@ import { FileManager } from "./FileManager.ts";
 import { BaseEngine } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
-import { ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { Language } from "./types.ts";
 
 export class ShinkaiPipelineMetadata {
@@ -49,12 +48,15 @@ export class ShinkaiPipelineMetadata {
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
-            let metadataPrompt = '';
-            if (this.language === 'typescript') {
-                metadataPrompt = (await new ShinkaiAPI().getTypescriptToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
-            } else {
-                metadataPrompt = (await new ShinkaiAPI().getPythonToolImplementationPrompt(this.internalToolsJSON, this.code)).metadataPrompt;
-            }
+            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/metadata-prompt.md');
+            metadataPrompt = metadataPrompt.replace(
+                /<available_tools>\n\n<\/available_tools>/,
+                `<available_tools>${this.internalToolsJSON.join('\n')}</available_tools>`
+            );
+            metadataPrompt = metadataPrompt.replace(
+                /<code>\n\n<\/code>/,
+                `<code>${this.code}</code>`
+            );
 
             const llmResponse = await this.llmModel.run(metadataPrompt, this.fileManager, undefined, "Generating Tool Metadata");
             const promptResponse = llmResponse.message;

@@ -4,7 +4,7 @@
 * In the following input-command section, there is a complete document that describes a software tool.
 * There are some literal internal-libaries to be used in the "# Internal Libraries" section. 
 * Extract the internal-libraries names used as queries as in a JSON ARRAY format.
-* You must convert the library to the corresponding tool-router-key, they are in the tool-router-key tag section. 
+* You must convert the library to the corresponding tool-router-key, they are in the tool_router_key tag  section as a list that has per line: `{tool-router-key} {functionName}`. 
 * In the query must only contain the name of the exact internal-library corresponding tool-router-key.
 </rules>
 
