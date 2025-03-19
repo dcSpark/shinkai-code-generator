@@ -8,6 +8,8 @@ deno test --allow-all src/service.test.ts
 #### Internal Tools TS
 deno test --allow-all src/service-tools.test.ts
 
+#### Internal Tools PY
+deno test --allow-all src/service-tools-py.test.ts
 
 ## Install
 ```

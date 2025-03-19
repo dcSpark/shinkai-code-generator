@@ -87,10 +87,8 @@ export class ShinkaiPipeline {
         } else if (this.language === 'python') {
             this.shinkaiLocalSupport_headers = completeShinkaiPrompts.python.headers["shinkai_local_support"];
             if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.py')) {
-                const headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.py');
-                const libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');
-                this.shinkaiLocalTools_headers = headers;
-                this.shinkaiLocalTools_libraryCode = libraryCode;
+                this.shinkaiLocalTools_headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.py');;
+                this.shinkaiLocalTools_libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');;
                 this.shinkaiLocalTools_toolRouterKeys = JSON.parse(await this.fileManager.load(20002, 'tool_headers', 'tool_headers.json'));
             }
         }
@@ -277,15 +275,16 @@ export class ShinkaiPipeline {
             this.step++;
             return;
         }
-
         const availableTools = this.shinkaiLocalTools_toolRouterKeys.map(key => `${key.toolRouterKey} ${key.functionName}`);
-
+        // console.log(JSON.stringify({ availableTools }));
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.feedback}\n\n</input_command>`
-            ).replace('<tool_router_key>\n\n</tool_router_key>', `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
+            ).replace(
+                '<tool_router_key>\n\n</tool_router_key>',
+                `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
             await this.fileManager.save(this.step, 'a', prompt, 'internal-tools-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Identifying Required Internal Tools");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-internal-tools-response.md');
