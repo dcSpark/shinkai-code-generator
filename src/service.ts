@@ -421,6 +421,8 @@ router.post('/generate', setCorsHeadersMiddleware, limitRequestMiddleware, async
     if (!payload.feedback) {
         payload.feedback = '';
     }
+    const fileManager = new FileManager(payload.language, payload.x_shinkai_request_uuid, true);
+    await fileManager.save(30000, 'x', JSON.stringify(payload, null, 2), 'original-prompt.json');
 
     console.log('<runGenerate>');
     await runGenerate(ctx, payload.tool_headers, payload.language, payload.x_shinkai_request_uuid, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);

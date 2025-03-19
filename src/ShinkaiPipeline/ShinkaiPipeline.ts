@@ -330,7 +330,7 @@ ${doc}
                 `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
             ).replace(
                 '<internal_libraries>\n\n</internal_libraries>',
-                `<internal_libraries>\n${internalTools}\n</internal_libraries>`
+                `<internal_libraries>\n${internalTools.tools}\n</internal_libraries>`
             ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
 
 
