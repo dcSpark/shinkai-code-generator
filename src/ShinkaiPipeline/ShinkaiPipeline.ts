@@ -421,7 +421,23 @@ ${additionalRules}
             const existingFile = await this.fileManager.load(this.step, 'a', 'code-check-results.json');
             checkResult = JSON.parse(existingFile) as CheckCodeResponse;
         } else {
-            checkResult = await shinkaiAPI.checkCode(this.language, this.code);
+
+            const additional_headers: Record<string, string> = {};
+            if (this.language === 'typescript') {
+                if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.ts')) {
+                    additional_headers["shinkai-local-support"] = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.ts');
+                } else {
+                    console.log('[Warning] Not using local tools.');
+                }
+            } else {
+                if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.py')) {
+                    additional_headers["shinkai-local-support"] = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');
+                } else {
+                    console.log('[Warning] Not using local tools.');
+                }
+            };
+
+            checkResult = await shinkaiAPI.checkCode(this.language, this.code, additional_headers);
             this.fileManager.log(`[Planning Step ${this.step}] Code check results ${checkResult.warnings.length} warnings`, true);
             await this.fileManager.save(this.step, 'a', JSON.stringify(checkResult, null, 2), 'code-check-results.json');
         }

@@ -111,13 +111,14 @@ export class ShinkaiAPI {
         }
     }
 
-    public async checkCode(language: Language, code: string): Promise<CheckCodeResponse> {
+    public async checkCode(language: Language, code: string, additional_headers: Record<string, string> = {}): Promise<CheckCodeResponse> {
         const response = await axios<CheckCodeResponse>({
             method: "POST",
             url: `${this.shinkaiApiUrl}/v2/tool_check`,
             data: {
                 language,
                 code,
+                additional_headers
             },
             headers: {
                 Authorization: `Bearer ${this.bearerToken}`,

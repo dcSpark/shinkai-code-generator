@@ -377,15 +377,15 @@ router.post('/generate', setCorsHeadersMiddleware, limitRequestMiddleware, async
         console.log('<error>', ctx.response.body);
         return;
     }
-    if (!payload.requestUUID) {
-        payload.requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    if (!payload.x_shinkai_request_uuid) {
+        payload.x_shinkai_request_uuid = new Date().getTime().toString() + '-' + crypto.randomUUID();
     }
     if (!payload.feedback) {
         payload.feedback = '';
     }
 
     console.log('<runGenerate>');
-    await runGenerate(ctx, payload.tool_headers, payload.language, payload.requestUUID, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);
+    await runGenerate(ctx, payload.tool_headers, payload.language, payload.x_shinkai_request_uuid, payload.prompt, payload.feedback, payload.skipfeedback, payload.tool_type);
 });
 
 // Execute the pipeline
