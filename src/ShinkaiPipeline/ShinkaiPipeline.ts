@@ -739,12 +739,15 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
 
-            const metadataPipeline = new ShinkaiPipelineMetadata(this.code, this.language, this.test, this.llmModel, this.stream);
-            const metadataResult = await metadataPipeline.run();
-            this.metadata = metadataResult.metadata;
+            const doTestAndMetadata = false;
+            if (doTestAndMetadata) {
+                const metadataPipeline = new ShinkaiPipelineMetadata(this.code, this.language, this.test, this.llmModel, this.stream);
+                const metadataResult = await metadataPipeline.run();
+                this.metadata = metadataResult.metadata;
+                await this.generateTests();
+            }
+            await this.fileManager.saveFinal(this.code, this.metadata || '');
 
-            await this.generateTests();
-            await this.fileManager.saveFinal(this.code, this.metadata);
             await this.generateMCP();
             await this.logCompletion();
 
