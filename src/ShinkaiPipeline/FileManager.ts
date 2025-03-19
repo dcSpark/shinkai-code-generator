@@ -37,6 +37,7 @@ export class FileManager {
             await this.writeState({
                 completed: false,
                 date: new Date().toISOString(),
+                feedback_expected: false,
             });
         }
         return filePath;
@@ -60,6 +61,7 @@ export class FileManager {
         await this.writeState({
             completed: true,
             date: new Date().toISOString(),
+            feedback_expected: false,
         });
     }
 
@@ -68,15 +70,20 @@ export class FileManager {
         return await exists(filePath);
     }
 
-    async writeState(config: { completed: boolean, date: string }) {
+    async writeState(config: { completed: boolean, date: string, feedback_expected: boolean }) {
         const filePath = path.join(this.toolDir, `state.json`);
         await Deno.writeTextFile(filePath, JSON.stringify(config));
     }
 
-    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string }> {
+    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string, feedback_expected: boolean }> {
         const filePath = path.join(this.toolDir, `state.json`);
         if (!await exists(filePath)) {
-            return { exists: false, completed: false, date: new Date().toISOString() };
+            return {
+                exists: false,
+                completed: false,
+                date: new Date().toISOString(),
+                feedback_expected: false,
+            };
         }
         return { exists: true, ...JSON.parse(await Deno.readTextFile(filePath)) };
     }

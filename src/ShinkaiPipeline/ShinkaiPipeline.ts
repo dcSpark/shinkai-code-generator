@@ -577,17 +577,18 @@ In the next example tag is an example of the commented script block that MUST be
         // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
     }
 
-    private async processFeedbackAnalysis(): Promise<'no-feedback' | 'changes-requested' | 'no-changes'> {
-        if (this.feedback === "") return 'no-changes';
-        if (!this.feedback) return 'no-feedback';
-        const user_feedback = this.feedback;
+    private async processFeedbackAnalysis(): Promise<'changes-requested' | 'no-changes'> {
+
+        const user_prompt = this.test.prompt;
+        if (user_prompt === "") return 'no-changes';
+        if (!user_prompt) return 'no-changes';
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback_analysis.md')).replace(
                 '<feedback>\n\n</feedback>',
-                `<feedback>\n${user_feedback}\n</feedback>`
+                `<feedback>\n${user_prompt}\n</feedback>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-analysis-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing User Feedback");
@@ -651,6 +652,21 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     metadata: '',
                 }
             }
+            if (state.exists && state.feedback_expected) {
+                // Probably feedback. Let's check the current step.
+                const feedbackAnalysis = await this.processFeedbackAnalysis();
+                await this.fileManager.writeState({
+                    completed: false,
+                    date: new Date().toISOString(),
+                    feedback_expected: false,
+                });
+                if (feedbackAnalysis === 'changes-requested') {
+                    this.test.feedback = this.test.prompt;
+                } else {
+                    this.test.feedback = undefined;
+                }
+            }
+
             // const feedbackAnalysis = await this.processFeedbackAnalysis();
 
             await this.initialize();
@@ -700,6 +716,11 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
         } catch (e) {
             if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
+                this.fileManager.writeState({
+                    completed: false,
+                    date: new Date().toISOString(),
+                    feedback_expected: true,
+                });
                 console.log("EVENT: request-feedback");
                 // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
                 return {
