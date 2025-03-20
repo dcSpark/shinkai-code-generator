@@ -8,7 +8,7 @@ import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { ShinkaiPipelineMetadata } from "./ShinkaiPipelineMeta.ts";
-import { getFullHeadersAndTools, getInternalTools } from "./support.ts";
+import { getHeaders } from "./support.ts";
 import { Language } from "./types.ts";
 
 const flags = parseArgs(Deno.args, {
@@ -74,7 +74,7 @@ export class ShinkaiPipeline {
     }
 
     private async initialize() {
-        const completeShinkaiPrompts = await getFullHeadersAndTools();
+        const completeShinkaiPrompts = getHeaders();
 
 
         if (this.language === 'typescript') {
@@ -310,7 +310,17 @@ export class ShinkaiPipeline {
             this.step++;
             return;
         }
-        const internalTools = await getInternalTools(this.language, this.internalToolsJSON);
+
+        // Generate the internal tools headers that is
+        // 1. The internal tools that are **used** in the code
+        // 2. All support functions.
+        const usedInternalTools = this.shinkaiLocalTools_toolRouterKeys
+            .filter(trk => this.internalToolsJSON.includes(trk.toolRouterKey))
+            .map(trk => trk.code)
+            .join('\n');
+
+        const internalTools_Tools = usedInternalTools + '\n\n' + this.shinkaiLocalSupport_headers;
+
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate Development Plan`, true);
 
@@ -329,7 +339,7 @@ ${doc}
                 `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
             ).replace(
                 '<internal_libraries>\n\n</internal_libraries>',
-                `<internal_libraries>\n${internalTools.tools}\n</internal_libraries>`
+                `<internal_libraries>\n${internalTools_Tools}\n</internal_libraries>`
             ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
 
 
@@ -372,10 +382,24 @@ ${doc}
 
             this.fileManager.log(`[Planning Step ${this.step}] Generate the tool code`, true);
             let toolPrompt = '';
+
+            const usedInternalTools = this.shinkaiLocalTools_toolRouterKeys
+                .filter(trk => this.internalToolsJSON.includes(trk.toolRouterKey))
+                .map(trk => trk.code)
+                .join('\n');
+
             if (this.language === 'typescript') {
-                toolPrompt = (await new ShinkaiAPI().getTypescriptToolImplementationPrompt(this.internalToolsJSON)).codePrompt;
-            } else {
-                toolPrompt = (await new ShinkaiAPI().getPythonToolImplementationPrompt(this.internalToolsJSON)).codePrompt;
+                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/code-ts.md');
+                toolPrompt = toolPrompt.replace(
+                    '<file-name=shinkai-local-tools>\n\n</file-name=shinkai-local-tools>',
+                    `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
+                );
+            } else if (this.language === 'python') {
+                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/code-py.md');
+                toolPrompt = toolPrompt.replace(
+                    '<file-name=shinkai_local_tools>\n\n</file-name=shinkai_local_tools>',
+                    `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
+                );
             }
 
             const toolCode_1 = toolPrompt.replace(

@@ -11,6 +11,7 @@ cache/searchurls_*
 cache/doc_*
 cache/query_*
 
+cache/.internal/*
 cache/ips/*
 cache/.execution/*
 cache/chunks/*

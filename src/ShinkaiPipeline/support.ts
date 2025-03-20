@@ -1,41 +1,29 @@
-import { GetPythonToolImplementationPromptResponse, GetTypescriptToolImplementationPromptResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
-import { Language } from "./types.ts";
 
-// Wrapper to merge system prompts
-export async function getFullHeadersAndTools(code: string = ""): Promise<{
-  availableTools: string[],
-  typescript: GetTypescriptToolImplementationPromptResponse,
-  python: GetPythonToolImplementationPromptResponse
-}> {
-  const api = new ShinkaiAPI();
-  const fetch_tools = await api.getTypescriptToolImplementationPrompt();
-  const { availableTools } = fetch_tools;
+const py_header_shinkai_local_support = "\nasync def get_mount_paths() -> List[str]:\n    \"\"\"Gets an array of mounted files.\n    \n    Returns:\n        List[str]: Array of files\n    \"\"\"\n    ...\n\n\nasync def get_asset_paths() -> List[str]:\n    \"\"\"Gets an array of asset files. These files are read only.\n    \n    Returns:\n        List[str]: Array of files\n    \"\"\"\n    ...\n\n\nasync def get_home_path() -> str:\n    \"\"\"Gets the home directory path. All created files must be written to this directory.\n    \n    Returns:\n        str: Home directory path\n    \"\"\"\n    ...\n\n\nasync def get_shinkai_node_location() -> str:\n    \"\"\"Gets the Shinkai Node location URL. This is the URL of the Shinkai Node server.\n    \n    Returns:\n        str: Shinkai Node URL\n    \"\"\"\n    ...\n\n\nasync def get_access_token(provider_name: str) -> str:\n    \"\"\"Gets a valid OAuth AccessToken for the given provider.\n    \n    Returns:\n        str: OAuth access token\n    \"\"\"\n    ...\n\n";
+const ts_header_shinkai_local_support = "\n/**\n * Gets an array of mounted files.\n * @returns Promise<string[]> - Array of files.\n */\ndeclare async function getMountPaths(): Promise<string[]>;\n\n/**\n * Gets an array of asset files. These files are read only.\n * @returns Promise<string[]> - Array of files.\n */\ndeclare async function getAssetPaths(): Promise<string[]>;\n\n/**\n * Gets the home directory path. All created files must be written to this directory.\n * @returns Promise<string> - Home directory path.\n */\ndeclare async function getHomePath(): Promise<string>;\n\n/**\n * Gets the Shinkai Node location URL. This is the URL of the Shinkai Node server.\n * @returns Promise<string> - Shinkai Node URL.\n */\ndeclare async function getShinkaiNodeLocation(): Promise<string>;\n\n/**\n * Gets a valid OAuth AccessToken for the given provider.\n * @returns Promise<string> - OAuth access token.\n */\ndeclare async function getAccessToken(providerName: string): Promise<string>;\n";
 
-  const typescript_full = await api.getTypescriptToolImplementationPrompt(availableTools, code);
-  const python_full = await api.getPythonToolImplementationPrompt(availableTools, code);
-  return {
-    availableTools,
-    typescript: typescript_full,
-    python: python_full,
+export function getHeaders(): {
+  typescript: {
+    headers: {
+      "shinkai-local-support": string,
+    }
+  },
+  python: {
+    headers: {
+      "shinkai_local_support": string,
+    }
   }
-}
-
-// Get partial tools
-export async function getInternalTools(language: Language, tools: string[] = []): Promise<{
-  tools: string,
-}> {
-  const api = new ShinkaiAPI();
-  const typescript_full = await api.getTypescriptToolImplementationPrompt(tools, "");
-  const python_full = await api.getPythonToolImplementationPrompt(tools, "");
-
-  const external_tools = language === 'typescript' ?
-    typescript_full.headers["shinkai-local-tools"] :
-    python_full.headers["shinkai_local_tools"];
-  const internal_tools = language === 'typescript' ?
-    typescript_full.headers["shinkai-local-support"] :
-    python_full.headers["shinkai_local_support"];
-
+} {
   return {
-    tools: internal_tools + '\n' + external_tools,
+    typescript: {
+      headers: {
+        "shinkai-local-support": ts_header_shinkai_local_support,
+      }
+    },
+    python: {
+      headers: {
+        "shinkai_local_support": py_header_shinkai_local_support,
+      }
+    }
   }
 }

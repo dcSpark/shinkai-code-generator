@@ -25,6 +25,37 @@ export class FileManager {
         }
     }
 
+    async saveCache(fileName: string, text: string): Promise<void> {
+        if (Deno.env.get('CACHE') === 'false') {
+            return;
+        }
+        const basePath = path.join(Deno.cwd(), 'cache', '.internal');
+        const filePath = path.join(basePath, fileName);
+        await Deno.mkdir(basePath, { recursive: true });
+        await Deno.writeTextFile(filePath, text);
+        if (Deno.env.get('DEBUG') === 'true') {
+            console.log(`[DEBUG] Saved Cache: ${filePath}`);
+        }
+    }
+
+    async loadCache(fileName: string): Promise<string | null> {
+        if (Deno.env.get('CACHE') === 'false') {
+            return null;
+        }
+        const basePath = path.join(Deno.cwd(), 'cache', '.internal');
+        const filePath = path.join(basePath, fileName);
+        if (!await exists(filePath)) {
+            if (Deno.env.get('DEBUG') === 'true') {
+                console.log(`[DEBUG] Cache Not Found: ${filePath}`);
+            }
+            return null;
+        }
+        if (Deno.env.get('DEBUG') === 'true') {
+            console.log(`[DEBUG] Loaded Cache: ${filePath}`);
+        }
+        return await Deno.readTextFile(filePath);
+    }
+
     async save(step: number, substep: string, text: string, fileName: string): Promise<string> {
         const filePath = path.join(this.toolDir, `step_${step}.${substep}.${fileName}`);
         await Deno.mkdir(this.toolDir, { recursive: true });

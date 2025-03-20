@@ -3,13 +3,13 @@
 ## Tests
 
 #### Simple Test
-deno test --allow-all src/service.test.ts
+deno test --allow-all tests/service.test.ts
 
 #### Internal Tools TS
-deno test --allow-all src/service-tools.test.ts
+deno test --allow-all tests/service-tools-ts.test.ts
 
 #### Internal Tools PY
-deno test --allow-all src/service-tools-py.test.ts
+deno test --allow-all tests/service-tools-py.test.ts
 
 ## Install
 ```

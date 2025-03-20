@@ -127,6 +127,14 @@ function countTokensFromMessageLlama3(message: string): number {
   return Math.floor(tokenCount / 30) + 1;
 }
 
+// SHA-256 hash function using Web Crypto API
+async function hashString(str: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 class OpenAI extends BaseEngine {
 
   override async run(
@@ -153,15 +161,27 @@ class OpenAI extends BaseEngine {
       }
     };
     logger?.save(1000, `${new Date().toISOString()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
-    const response = await axios<OpenAIResponse>(data);
+
+    const payloadString = JSON.stringify(payload, null, 2);
+    const hashedFilename = (await hashString(payloadString)) + '-' + tokenCount + '.json';
+    const cachedPayload = await logger?.loadCache(hashedFilename);
+    let responseData: OpenAIResponse | null = null;
+    if (cachedPayload) {
+      logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
+      responseData = JSON.parse(cachedPayload);
+    } else {
+      const response = await axios<OpenAIResponse>(data);
+      responseData = response.data;
+      logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
+    }
 
     const end = Date.now();
     const time = end - start;
     // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
     logger?.log(`[Thinking] AI took ${time}[ms] to process ${contextMessage}`);
-    payload = this.addToOpenAIPayload(response.data.choices[0].message.content, 'assistant', payload);
+    payload = this.addToOpenAIPayload(responseData!.choices[0].message.content, 'assistant', payload);
     return {
-      message: response.data.choices[0].message.content,
+      message: responseData!.choices[0].message.content,
       metadata: payload
     };
   }

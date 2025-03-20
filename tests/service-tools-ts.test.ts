@@ -1,6 +1,16 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { router } from "./service.ts";
+import { router } from "../src/service.ts";
 console.log(String(router)[0]); // so that {router} get loaded
+
+const body = {
+    "language": "typescript",
+    "prompt": "\nnFrom a youtube URL, get the video transcipt, and then write a haiku about with the LLMProcessor\n",
+    "feedback": "",
+    "tool_type": "shinkai",
+    "tool_headers": Deno.readTextFileSync(Deno.cwd() + '/tests/tool_headers.ts'),
+    "x_shinkai_request_uuid": "replace-me",
+    "skipfeedback": "false"
+}
 
 Deno.test("POST /generate should return 200 with valid parameters", async () => {
 
@@ -13,14 +23,11 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
                 "accept": "text/event-stream",
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                language: "typescript",
-                prompt: "sum a + b using no libraries.",
-                tool_type: "shinkai",
-                skipfeedback: "false",
-                x_shinkai_request_uuid: 'test-ts-' + uuid,
-                feedback: ""
-            }),
+            body: JSON.stringify(
+                {
+                    ...body,
+                    x_shinkai_request_uuid: 'test-ts-' + uuid,
+                }),
         });
         assertEquals(response1.status, 200, 'response1.status');
 
