@@ -112,7 +112,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
     console.log(
         'Done logs @\n',
         `./cache/.execution/test-ts-${uuid}/src/tool.ts \n`,
-        `./cache/.execution/test-metadata-${uuid}/src/metadata.json \n`,
+        `./cache/.execution/test-metadata-${uuid}/step_0.c.metadata.json \n`,
 
     );
 });

@@ -161,7 +161,7 @@ class OpenAI extends BaseEngine {
       }
     };
     logger?.save(1000, `${new Date().toISOString()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
-
+    // logger?.save(999, 'payload-' + new Date().toISOString(), JSON.stringify(payload, null, 2), 'json');
     const payloadString = JSON.stringify(payload, null, 2);
     const hashedFilename = (await hashString(payloadString)) + '-' + tokenCount + '.json';
     const cachedPayload = await logger?.loadCache(hashedFilename);

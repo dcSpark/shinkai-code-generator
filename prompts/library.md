@@ -1,13 +1,11 @@
 <rules>
-* You need to generate queries to search on the internet.
-* They must be concise, short and exact.
-* The will directly searched in a search engine. 
-* More words don't make it necessary better.
-* In the following input-command section, there is a complete document that describes a software tool.
-* There are some literal external-libaries to be used in the "# External Libraries" section. 
-* Extract the external-libraries used as queries as in a JSON ARRAY format.
-* In the query must only contain the name of the exact external-library name to search.
-* If there are EXACT URLS in the input_command add them as well to the output json array verbatim. Do not make up URLS, only use literal values.
+* You need to generate a list of elements containing "External-Libraries" and/or "URLs".
+* They must be concise and exact.
+* Inside the following input-command tag, there is a complete document the used described for a software tool.
+* There are some literal "external-libaries" to be used in the "# External Libraries" section, and URLs in any the entire document. 
+* First extract the external-libraries exact names and add them to the json array list.
+* Then extract the URLs present in the input_command tag, so add them verbatim to the json array list.
+* In the final list there must be only names of the exact "external-libraries" provided and/or the "exact URLs".
 </rules>
 
 <input_command>
@@ -16,19 +14,14 @@
 
 <formatting>
 * The output should be a single `string[]`
-* The output should be formatted as follows:
+* The output should be formatted as follows in the output tag:
 <output>
 ```json
-    ["library-name-1", "library-name-2", "exact-url-1", "exact-url-2"...]
+    ["library-name-1", "library-name-2", "https://verbatim-url-1", "https://verbatim-url-2"...]
 ```
 </output>
 
-* If there are no external-libraries, return
-<empty-external-libraries-output>
-```json
-    []
-```
-</empty-external-libraries-output>
+* If there are no "URLs" and no "external-libraries", return just an empty array.
 
 * Do not change the libraries, do not add or remove libraries.
 * Do not include System Libraies or Internal Libraries
