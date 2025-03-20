@@ -29,5 +29,5 @@
 * Generate a valid JSON Array of Objects.
 * Return exacty 3 Objects in the Array.
 * Each Object has a 'input', 'config' and 'output'.
-* The output must be inside a fenced triple tick json block.
+* Your JSON Array response must be inside a fenced triple tick json block.
 </formating>
