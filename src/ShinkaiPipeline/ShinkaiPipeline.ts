@@ -53,6 +53,9 @@ export class ShinkaiPipeline {
     // Tool type
     private toolType: 'shinkai' | 'mcp';
 
+    // Tests
+    private tests: { input: Record<string, any>, config: Record<string, any>, output: Record<string, any> }[] = [];
+
     private shinkaiLocalTools_headers: string = '';
     private shinkaiLocalTools_libraryCode: string = '';
     private shinkaiLocalTools_toolRouterKeys: { functionName: string, toolRouterKey: string, code: string }[] = [];
@@ -275,13 +278,37 @@ export class ShinkaiPipeline {
             this.step++;
             return;
         }
-        const availableTools = this.shinkaiLocalTools_toolRouterKeys.map(key => `${key.toolRouterKey} ${key.functionName}`);
+        const availableTools: string[] = this.shinkaiLocalTools_toolRouterKeys.map(key => `${key.toolRouterKey} ${key.functionName}`);
+
+        if (this.language === 'typescript') {
+            availableTools.push(`
+NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+getMountPaths
+getAssetPaths
+getHomePath
+getShinkaiNodeLocation
+getAccessToken
+`
+            );
+        } else if (this.language === 'python') {
+            availableTools.push(`
+NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+get_mount_paths
+get_asset_paths
+get_home_path
+get_shinkai_node_location
+get_access_token
+`
+            );
+        }
+
+
         // console.log(JSON.stringify({ availableTools }));
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-            this.fileManager.log(`[Planning Step ${this.step}] Internal Libraries Prompt`, true);
+            this.fileManager.log(`[Planning Step ${this.step}]Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.feedback}\n\n</input_command>`
+                `<input_command>\n${this.feedback}\n\n </input_command>`
             ).replace(
                 '<tool_router_key>\n\n</tool_router_key>',
                 `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
@@ -629,6 +656,7 @@ In the next example tag is an example of the commented script block that MUST be
         });
 
         await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'tests.json');
+        this.tests = JSON.parse(parsedLLMResponse);
         console.log(`EVENT: tests\n${JSON.stringify({ tests: JSON.parse(parsedLLMResponse) })}`);
         this.step++;
     }
@@ -680,10 +708,8 @@ In the next example tag is an example of the commented script block that MUST be
         const srcPath = path.join(this.fileManager.toolDir, `src`);
         const mcp = await Deno.readTextFile(Deno.cwd() + '/templates/mcp.ts');
         const denojson = await Deno.readTextFile(Deno.cwd() + '/templates/deno.json');
-        const metadata = await Deno.readTextFile(Deno.cwd() + '/templates/deno.lock');
         Deno.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
         Deno.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
-        Deno.writeTextFileSync(path.join(srcPath, 'deno.lock'), metadata);
         const mcp_name = JSON.parse(this.metadata).name.toLocaleLowerCase().replace(/[^a-z0-9_]/g, '_');
         const markdown = `
 # MCP Config
@@ -730,7 +756,6 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 }
             }
 
-            // const feedbackAnalysis = await this.processFeedbackAnalysis();
 
             await this.initialize();
             await this.generateRequirements();
@@ -762,19 +787,21 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
 
-            const doTestAndMetadata = false;
-            if (doTestAndMetadata) {
+            const runMetadata = Deno.env.get('GENERATE_METADATA') === 'true';
+            if (runMetadata) {
                 const metadataPipeline = new ShinkaiPipelineMetadata(this.code, this.language, this.test, this.llmModel, this.stream);
                 const metadataResult = await metadataPipeline.run();
                 this.metadata = metadataResult.metadata;
+            }
+
+            const runTests = Deno.env.get('GENERATE_TESTS') === 'true';
+            if (runTests) {
                 await this.generateTests();
             }
             await this.fileManager.saveFinal(this.code, this.metadata || '');
 
             await this.generateMCP();
             await this.logCompletion();
-
-            console.log(`EVENT: metadata\n${JSON.stringify({ metadata: this.metadata })}`);
 
             return {
                 code: this.code,
