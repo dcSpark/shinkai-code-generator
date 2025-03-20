@@ -377,7 +377,7 @@ ${doc}
         }, 'markdown', {
             regex: [
                 new RegExp("# Development Plan"),
-                new RegExp("# Example Input and Output "),
+                new RegExp("# Example Input and Output"),
                 new RegExp("# Config"),
             ]
         });

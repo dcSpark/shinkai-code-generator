@@ -4,7 +4,7 @@ console.log(String(router)[0]); // so that {router} get loaded
 
 const body = {
     "language": "python",
-    "prompt": "\nnnFrom a youtube URL, get the video transcipt, and then write a haiku about with the LLMProcessor\n",
+    "prompt": "\nDownload a page using download_pages\n",
     "feedback": "",
     "tool_type": "shinkai",
     "tool_headers": Deno.readTextFileSync(Deno.cwd() + '/tests/tool_headers.py'),
