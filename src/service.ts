@@ -106,6 +106,7 @@ router.get("/state", setCorsHeadersMiddleware, async (ctx: Context) => {
 
 async function generateMetadata(ctx: Context, language: Language, requestUUID: string, code: string) {
     ctx.response.headers.set("X-SHINKAI-REQUEST-UUID", requestUUID);
+    ctx.response.headers.set("Content-Type", "text/event-stream");
 
     // Function to run pipeline in a separate process and return a readable stream
     const runPipelineInProcess = async (language: Language, requestUUID: string, code: string): Promise<ReadableStream<Uint8Array>> => {
@@ -218,18 +219,21 @@ router.get("/metadata", setCorsHeadersMiddleware, limitRequestMiddleware, async 
         ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
         return;
     }
-    const requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
-    const state = await (new FileManager(
-        language,
-        requestUUID,
-        true
-    )).loadState();
-
-    if (!state || !state.completed) {
-        ctx.response.status = 400;
-        ctx.response.body = "Pipeline is not complete";
-        return;
+    let requestUUID = new Date().getTime().toString() + '-' + crypto.randomUUID();
+    if (ctx.request.url.searchParams.get('x_shinkai_request_uuid')) {
+        requestUUID = ctx.request.url.searchParams.get('x_shinkai_request_uuid') || '';
     }
+    // const state = await (new FileManager(
+    //     language,
+    //     requestUUID,
+    //     true
+    // )).loadState();
+
+    // if (!state || !state.completed) {
+    //     ctx.response.status = 400;
+    //     ctx.response.body = `Pipeline is not complete for ${requestUUID}. State: ${JSON.stringify(state || {})}`;
+    //     return;
+    // }
     await generateMetadata(ctx, language, requestUUID, code);
 });
 

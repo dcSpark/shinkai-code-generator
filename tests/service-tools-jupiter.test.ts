@@ -17,7 +17,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
     let code = '';
     let tests = '';
     let metadata = '';
-
+    assertEquals(Deno.env.get('GENERATE_TESTS'), 'true', 'Set .env GENERATE_TESTS=true');
 
     const baseUrl = `http://localhost:8080`;
     const uuid = new Date().getTime().toString() + '-' + Math.random().toString(36).substring(2, 15);
