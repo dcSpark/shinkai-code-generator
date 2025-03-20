@@ -1,5 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { router } from "../src/service.ts";
+import { ShinkaiAPI } from "../src/ShinkaiPipeline/ShinkaiAPI.ts";
 console.log(String(router)[0]); // so that {router} get loaded
 
 const body = {
@@ -14,6 +15,9 @@ const body = {
 
 Deno.test("POST /generate should return 200 with valid parameters", async () => {
     let code = '';
+    let tests = '';
+    let metadata = '';
+
 
     const baseUrl = `http://localhost:8080`;
     const uuid = new Date().getTime().toString() + '-' + Math.random().toString(36).substring(2, 15);
@@ -53,7 +57,11 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
 
         code = part1.split('event: code')[1].split('\n')[1].replace(/^data: /, '');
         assertEquals(code.includes('export async function run'), true, 'code.includes(export async function run)');
+
+        tests = part1.split('event: tests')[1].split('\n')[1].replace(/^data: /, '');
+        assertEquals(tests.includes('"input"'), true, 'tests.includes("input")');
     }
+
     {
         let response3 = await fetch(`${baseUrl}/metadata`, {
             method: "POST",
@@ -83,7 +91,28 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         decoder3 = undefined as any;
         response3 = undefined as any;
         assertEquals(part3.includes('event: metadata'), true, 'part3.includes(metadata)');
-
+        metadata = part3.split('event: metadata')[1].split('\n')[1].replace(/^data: /, '');
+        assertEquals(metadata.includes('name'), true, 'metadata.includes(name)');
     }
 
+    // Now we have tests and code.
+    const jCode: { code: string } = JSON.parse(code);
+    const jTest: { tests: { input: Record<string, any>, config: Record<string, any>, output: Record<string, any> }[] } = JSON.parse(tests);
+    const api = new ShinkaiAPI();
+    const jMetadata: { metadata: string } = JSON.parse(metadata);
+    const jjMetadata: Record<string, any> = JSON.parse(jMetadata.metadata);
+    for (const [index, test] of jTest.tests.entries()) {
+        if (index > 0) break;
+        console.log('[Running Test] ' + (index + 1) + ' of ' + jTest.tests.length);
+        const result = await api.executeCode(jCode.code, jjMetadata.tools, test.input, test.config, 'gpt-4o-mini');
+        console.log(test.output, result);
+        // assertObjectMatch(result, test.output);
+    }
+
+    console.log(
+        'Done logs @\n',
+        `./cache/.execution/test-ts-${uuid}/src/tool.ts \n`,
+        `./cache/.execution/test-metadata-${uuid}/src/metadata.json \n`,
+
+    );
 });
