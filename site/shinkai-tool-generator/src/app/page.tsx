@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import {
@@ -31,7 +33,7 @@ type StreamEvent = {
 const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080'
 
 export default function Home() {
-  const [prompt, setPrompt] = useState("")
+  const [prompt, setPrompt] = useState("sum 1 + 1, use no libraries")
   const [language, setLanguage] = useState<Language>("typescript")
   const [toolType, setToolType] = useState<ToolType>("shinkai")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -70,6 +72,57 @@ export default function Home() {
   useEffect(() => {
     console.log(`State changed - isGenerating: ${isGenerating}, generationComplete: ${generationComplete}`);
   }, [isGenerating, generationComplete]);
+
+  // Debug useEffect to log code changes
+  useEffect(() => {
+    console.log('<<code>>', code);
+
+    async function generateMetadata() {
+      if (code) {
+        try {
+          const metadataResponse = await fetch(
+            `${DEFAULT_CODE_GENERATOR_URL}/metadata?language=${encodeURIComponent(language)}&code=${encodeURIComponent(code)}&x_shinkai_request_uuid=m${encodeURIComponent(requestUuid)}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'text/event-stream'
+              }
+            }
+          )
+
+          if (!metadataResponse.ok) {
+            throw new Error(`HTTP error! status: ${metadataResponse.status}`)
+          }
+
+          if (!metadataResponse.body) {
+            throw new Error('ReadableStream not supported or response body is null')
+          }
+
+          // Process metadata stream
+          const metadataReader = metadataResponse.body.getReader()
+          const metadataDecoder = new TextDecoder()
+
+          while (true) {
+            const { done, value } = await metadataReader.read()
+
+            if (done) {
+              break
+            }
+
+            // Decode the chunk
+            const chunk = metadataDecoder.decode(value, { stream: true })
+            
+            // Process the SSE events
+            processEvents(chunk)
+          }
+        } catch (error) {
+          console.error('Metadata generation error:', error)
+          setEvents(prev => [...prev, { type: 'message', content: `Metadata generation error: ${error instanceof Error ? error.message : 'Unknown error'}` }])
+        }
+      }
+    }
+    generateMetadata()
+  }, [code]);
 
   // Function to get the current API URL
   const getApiUrl = () => {
@@ -159,6 +212,9 @@ export default function Home() {
         // Process the SSE events
         processEvents(chunk)
       }
+      // Generate metadata after code is generated and if code exists in state
+      
+
     } catch (error) {
       console.error('Error:', error)
       setEvents(prev => [...prev, { type: 'message', content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}` }])
@@ -206,20 +262,6 @@ export default function Home() {
               const jsonObj = JSON.parse(data.message)
               if (jsonObj.markdown) {
                 setEvents(prev => [...prev, { type: 'message', content: '```markdown\n' + jsonObj.markdown + '\n```' }])
-              } else if (jsonObj.code) {
-                setCode(jsonObj.code)
-                setEvents(prev => [...prev, { type: 'code', content: jsonObj.code }])
-              } else if (jsonObj.metadata) {
-                setMetadata(jsonObj.metadata)
-                setEvents(prev => [...prev, { type: 'metadata', content: jsonObj.metadata }])
-              } else if (jsonObj.tests) {
-                try {
-                  const testsArray = JSON.parse(jsonObj.tests)
-                  setTests(testsArray)
-                  setEvents(prev => [...prev, { type: 'test', content: testsArray }])
-                } catch (e) {
-                  console.warn('Failed to parse tests array:', e)
-                }
               } else {
                 setEvents(prev => [...prev, { type: 'message', content: data.message }])
               }
@@ -238,17 +280,31 @@ export default function Home() {
 
         case 'code':
           console.log('Event: code', data)
-          setEvents(prev => [...prev, { type: 'message', content: 'Receiving code...' }])
+          if (data.code) {
+            setCode(data.code)
+            setEvents(prev => [...prev, { type: 'code', content: data.code }])
+          }
           break
 
         case 'metadata':
           console.log('Event: metadata', data)
-          setEvents(prev => [...prev, { type: 'message', content: 'Receiving metadata...' }])
+          if (data.metadata) {
+            setMetadata(data.metadata)
+            setEvents(prev => [...prev, { type: 'metadata', content: data.metadata }])
+          }
           break
 
         case 'tests':
           console.log('Event: tests', data)
-          setEvents(prev => [...prev, { type: 'message', content: 'Receiving test cases...' }])
+          if (data.tests) {
+            try {
+              const testsArray = JSON.parse(data.tests)
+              setTests(testsArray)
+              setEvents(prev => [...prev, { type: 'test', content: testsArray }])
+            } catch (e) {
+              console.warn('Failed to parse tests array:', e)
+            }
+          }
           break
 
         case 'error':
@@ -281,7 +337,7 @@ export default function Home() {
       
       // Make the API call with feedback
       const response = await fetch(
-        `${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&feedback=${encodeURIComponent(feedback)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
+        `${CODE_GENERATOR_URL}/generate?skipfeedback=false&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(feedback)}&feedback=${encodeURIComponent(feedback)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
         {
           method: 'GET',
           headers: {
@@ -337,7 +393,7 @@ export default function Home() {
       
       // Make the API call to continue without feedback
       const response = await fetch(
-        `${CODE_GENERATOR_URL}/generate?language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
+        `${CODE_GENERATOR_URL}/generate?skipfeedback=false&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
         {
           method: 'GET',
           headers: {
