@@ -14,7 +14,40 @@ export class ShinkaiPipelineMetadata {
     private step: number = 0;
 
     // Internal tools
-    private internalToolsJSON: string[] = [];
+    // TODO: Workardoun to get the tool list.
+    // We should get this from the node.
+    private internalToolsJSON: string[] = [
+        'local:::__official_shinkai:::shinkai_typescript_unsafe_processor',
+        'local:::__official_shinkai:::shinkai_llm_map_reduce_processor',
+        'local:::__official_shinkai:::shinkai_llm_prompt_processor',
+        'local:::__official_shinkai:::shinkai_sqlite_query_executor',
+        'local:::__official_shinkai:::shinkai_process_embeddings',
+        'local:::__official_shinkai:::shinkai_tool_config_updater',
+        'local:::__official_shinkai:::coinbase_balance_getter',
+        'local:::__official_shinkai:::x_twitter_post',
+        'local:::__official_shinkai:::math_expression_evaluator',
+        'local:::__official_shinkai:::duckduckgo_search',
+        'local:::__official_shinkai:::memory_management',
+        'local:::__official_shinkai:::write_file_contents',
+        'local:::__official_shinkai:::email_answerer',
+        'local:::__official_shinkai:::meme_generator',
+        'local:::__official_shinkai:::coinbase_wallet_creator',
+        'local:::__official_shinkai:::perplexity',
+        'local:::__official_shinkai:::update_file_with_prompt',
+        'local:::__official_shinkai:::youtube_transcript_summarizer',
+        'local:::__official_shinkai:::smart_search_engine',
+        'local:::__official_shinkai:::email_fetcher',
+        'local:::__official_shinkai:::x_twitter_search',
+        'local:::__official_shinkai:::read_file_contents',
+        'local:::__official_shinkai:::coinbase_my_address_getter',
+        'local:::__official_shinkai:::coinbase_transaction_sender',
+        'local:::__official_shinkai:::coinbase_transactions_getter',
+        'local:::__official_shinkai:::send_email',
+        'local:::__official_shinkai:::download_pages',
+        'local:::__official_shinkai:::coinbase_faucet_caller',
+        'local:::__official_shinkai:::google_search',
+        'local:::__official_shinkai:::perplexity_api',
+    ];
 
     // Generated code
     private metadata: string = '';
