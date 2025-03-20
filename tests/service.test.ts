@@ -4,6 +4,7 @@ import { ShinkaiAPI } from "../src/ShinkaiPipeline/ShinkaiAPI.ts";
 console.log(String(router)[0]); // so that {router} get loaded
 
 Deno.test("POST /generate should return 200 with valid parameters", async () => {
+    assertEquals(Deno.env.get('GENERATE_TESTS'), 'true', 'GENERATE_TESTS must be true');
 
     const baseUrl = `http://localhost:8080`;
     const uuid = new Date().getTime().toString() + '-' + Math.random().toString(36).substring(2, 15);

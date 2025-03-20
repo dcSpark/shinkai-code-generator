@@ -52,7 +52,7 @@ export class ShinkaiAPI {
             extra_config: config,
             parameters
         };
-
+        // console.log('[run payload]', payload);
         try {
             const response = await axios<CodeExecutionResponse>({
                 method: "POST",
@@ -89,6 +89,13 @@ export class ShinkaiAPI {
                 "Content-Type": "application/json; charset=utf-8",
             },
         });
+
+        // TODO: THIS ONLY WORKS FOR MACOS PATHS
+        // To make this deterministic, we clean up the path
+        // Users/edwardalvarado/shinkai-node-5/shinkai-tools-runner-execution-storage/QcpZYci8uR1TQKPn_03fV/code/UOYXdGAGCx7q1xeZ0LDsZ-tk0pO4Y0rcvFPb7pYdYTc/index.ts:4:25
+        // We want to only leave the ./index.ts:4:25
+        response.data.warnings = response.data.warnings.map(warning => warning.replace(/Users\/[a-zA-Z0-9_\/-]+?\/code\/[a-zA-Z0-9_-]+?\//g, './'));
+
         return response.data;
     }
 
