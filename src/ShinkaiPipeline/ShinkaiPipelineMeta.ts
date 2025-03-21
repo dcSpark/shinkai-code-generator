@@ -115,7 +115,7 @@ export class ShinkaiPipelineMetadata {
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
-            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/metadata.md');
+            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/9-metadata.md');
 
             if (!this.headers_found) {
                 metadataPrompt = metadataPrompt.replace(

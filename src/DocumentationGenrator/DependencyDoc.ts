@@ -1,9 +1,9 @@
-import { exists } from "jsr:@std/fs/exists";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
 import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";
+import { mapReducePrompt } from "./prompts/map-reduce.ts";
 import { Scrape } from "./Scrape.ts";
 import { Search } from "./Search.ts";
 
@@ -75,29 +75,16 @@ export class DependencyDoc {
         await this.cache.save(fileOriginal, documentation, foldersOriginal);
 
         const { folders, file } = this.cache.toSafeFilename('doc_postprocess_' + library, 'md', 'processed');
-        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
-            return await this.cache.load(file, folders);
-        }
+        // if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+        //     return await this.cache.load(file, folders);
+        // }
 
         const chunks = this.chunkDocumentation(documentation);
         const cleanChunks = [];
         for (const [index, chunk] of chunks.entries()) {
             const partialDoc = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
-                const response = await this.llm.run(`
-This next documentation tag contains the partial markdown documentation of "${library}" library.
-<documentation>
-\`\`\`markdown
-${chunk}
-\`\`\`
-</documentation>
-
-<rules>
-* You are builing a documentation that will be used by a LLM to understand how to use this library.
-* You can sythesize, but do not lose documentation, descriptions, information, methods, function, arguments, properties, classes, how to initialize, how install, use the library and any other information related to the library use.
-* If a section has no relation with the documentation, then remove it - for example: changelogs, release notes, ads, sitemaps, web headers, web footers, sponsors, external links that add no value to the documentation.
-</rules>
-
-                `, this.logger, undefined, `Processing documentation chunk ${index + 1}/${chunks.length} for "${library}"`);
+                const prompt = mapReducePrompt(library, chunk);
+                const response = await this.llm.run(prompt, this.logger, undefined, `Processing documentation chunk ${index + 1}/${chunks.length} for "${library}"`);
                 return response.message;
             }, 'none', {});
             const { folders: chunkFolders, file: chunkFile } = this.cache.toSafeFilename('query_' + (index + 1) + 'of' + chunks.length + '_' + library, 'md', 'chunks');
@@ -115,9 +102,9 @@ ${chunk}
         let query = ''
 
         const { folders, file } = this.cache.toSafeFilename('doc_postprocess_' + libraryName, 'md', 'processed');
-        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
-            return await this.cache.load(file, folders);
-        }
+        // if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+        //     return await this.cache.load(file, folders);
+        // }
 
 
         if (isURL) {

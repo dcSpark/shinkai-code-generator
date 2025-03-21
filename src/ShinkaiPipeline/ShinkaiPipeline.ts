@@ -1,7 +1,7 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import path from "node:path";
-import { DependencyDoc } from "../DocumentationGenrator/DependencyDoc.ts";
+import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { FileManager } from "./FileManager.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
@@ -133,7 +133,7 @@ export class ShinkaiPipeline {
                 user_prompt += "\n\nNo matter what was said before, the \"Internal Libraries\" section is always NONE."
             }
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/requirements-feedback.md')).replace(
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/1-initial-requirements.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${user_prompt}\n\n</input_command>`
             )
@@ -194,7 +194,7 @@ export class ShinkaiPipeline {
 
             this.fileManager.log(`[Planning Step ${this.step}] User Requirements & Feedback Prompt`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback.md')).replace(
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/2-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
@@ -232,7 +232,7 @@ export class ShinkaiPipeline {
         } else {
             parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                 this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
-                const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/library.md')).replace(
+                const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
                     '<input_command>\n\n</input_command>',
                     `<input_command>\n${this.feedback}\n\n</input_command>`
                 );
@@ -306,7 +306,7 @@ get_access_token
         // console.log(JSON.stringify({ availableTools }));
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}]Internal Libraries Prompt`, true);
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/internal-tools.md')).replace(
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/4-internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.feedback}\n\n </input_command>`
             ).replace(
@@ -358,7 +358,7 @@ ${doc}
 `).join('\n\n');
 
             // TODO Refetch only used libaries
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/plan.md')).replace(
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
                 `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
             ).replace(
@@ -416,13 +416,13 @@ ${doc}
                 .join('\n');
 
             if (this.language === 'typescript') {
-                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/code-ts.md');
+                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-ts.md');
                 toolPrompt = toolPrompt.replace(
                     '<file-name=shinkai-local-tools>\n\n</file-name=shinkai-local-tools>',
                     `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
                 );
             } else if (this.language === 'python') {
-                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/code-py.md');
+                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-py.md');
                 toolPrompt = toolPrompt.replace(
                     '<file-name=shinkai_local_tools>\n\n</file-name=shinkai_local_tools>',
                     `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
@@ -560,7 +560,7 @@ ${additionalRules}
                     warningString = warningString.replace(/^Download [^ ]+$/g, '');
                 }
                 // Read the fix-code prompt
-                const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/fix-code.md'))
+                const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/7-fix-code.md'))
                     .replace('<warnings>\n\n</warnings>', `<warnings>\n${warningString}\n</warnings>`)
                     .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
                     .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
@@ -637,7 +637,7 @@ In the next example tag is an example of the commented script block that MUST be
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/test.md'))
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/8-test.md'))
                 .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.feedback}\n</requirement>`)
                 .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
 
@@ -678,7 +678,7 @@ In the next example tag is an example of the commented script block that MUST be
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/feedback_analysis.md')).replace(
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-feedback_analysis.md')).replace(
                 '<feedback>\n\n</feedback>',
                 `<feedback>\n${user_prompt}\n</feedback>`
             );

@@ -4,6 +4,8 @@ import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
 import { Cache } from "./Cache.ts";
+import { selectInPageUrlsPrompt } from "./prompts/select-in-page-urls.ts";
+import { selectSearchUrlsPrompt } from "./prompts/select-serach-urls.ts";
 import { SearchResponse } from "./Search.ts";
 const FIRECRAWL_API_URL = Deno.env.get('FIRECRAWL_API_URL');
 const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
@@ -105,10 +107,10 @@ export class Scrape {
 
     public async getURLsFromSearch(searchResponse: SearchResponse, finalQuery: string) {
         const { folders, file } = this.cache.toSafeFilename('searchurls_' + finalQuery, 'json', 'search');
-        if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
-            await this.logger?.log(` getURLsFromScratch for ${finalQuery}`, true);
-            return JSON.parse(await this.cache.load(file, folders)).links;
-        }
+        // if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
+        //     await this.logger?.log(` getURLsFromScratch for ${finalQuery}`, true);
+        //     return JSON.parse(await this.cache.load(file, folders)).links;
+        // }
 
         // How to get the best match? trust the first result?
         const url = searchResponse.web.results.find(r => {
@@ -121,33 +123,8 @@ export class Scrape {
         }
 
         const urlsString = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
-            const response = await this.llm.run(`
-In the search results tag, there is JSON with a internet serach result for the query: "${finalQuery}"
-<search_results>
-${JSON.stringify(searchResponse.web.results.map(r => ({
-                title: r.title,
-                url: r.url,
-                description: r.description,
-            })))}
-</search_results>
-
-<rules>
-* We want to get the links that may contain the official programming documentation. Ideally the complete documentation.
-* Keep only those that might have the documentation. 
-* Return the links as a JSON array.
-</rules>
-
-<format>
-* Output only the JSON array as in the output tag below
-<output>
-\`\`\`json
-["https://URL1", "https://URL2", "https://URL3"]
-\`\`\`
-</output>
-* JSON have valid syntax and only urls.
-</format>
-
-            `, this.logger, undefined, `Analyzing search results for "${finalQuery}"`);
+            const prompt = selectSearchUrlsPrompt(searchResponse, finalQuery);
+            const response = await this.llm.run(prompt, this.logger, undefined, `Analyzing search results for "${finalQuery}"`);
             return response.message;
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 
@@ -173,35 +150,8 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
         }
 
         const urlsString2 = await new LLMFormatter(this.logger).retryUntilSuccess(async () => {
-            const response = await this.llm.run(`
-In the search we have a lot possible pages that contain documentation, there is JSON with a internet serach result for the query: "${finalQuery}"
-We have some general incomplete information about the documentation, that is in the context tag below.
-<context>
-${context.join('\n')}   
-</context>
-
-<search_results>
-${possiblePages.join('\n')}   
-</search_results>
-
-<rules>
-* Use the context to get an idea of what possible pages might be important to the documentation, but also asume the context is incomplete.
-* We want to get the links that may contain the official programming documentation. Ideally the complete documentation.
-* Keep only those that might have the documentation. 
-* Return the links as a JSON array.
-</rules>
-
-<format>
-* Output only the JSON array as in the output tag below
-<output>
-\`\`\`json
-["https://URL1", "https://URL2", "https://URL3"]
-\`\`\`
-</output>
-* JSON have valid syntax and only urls.
-</format>
-
-            `, this.logger, undefined, `Finding documentation pages for "${finalQuery}"`);
+            const prompt = selectInPageUrlsPrompt(context, possiblePages, finalQuery);
+            const response = await this.llm.run(prompt, this.logger, undefined, `Finding documentation pages for "${finalQuery}"`);
             return response.message;
         }, 'json', { regex: [/^https?:\/\/.*$/], isJSONArray: true });
 

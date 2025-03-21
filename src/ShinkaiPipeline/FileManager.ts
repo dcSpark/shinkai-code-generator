@@ -46,7 +46,7 @@ export class FileManager {
         const filePath = path.join(basePath, fileName);
         if (!await exists(filePath)) {
             if (Deno.env.get('DEBUG') === 'true') {
-                console.log(`EVENT: debug\n[DEBUG] Cache Not Found ::: ${filePath}`);
+                // console.log(`EVENT: debug\n[DEBUG] Cache Not Found ::: ${filePath}`);
             }
             return null;
         }
