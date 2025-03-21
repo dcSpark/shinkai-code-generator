@@ -1,24 +1,33 @@
 {
-  "name": "Meme Generator and Twitter Poster",
+  "name": "Twitter Meme Generator",
   "homepage": "https://shinkai.com",
-  "description": "Generates memes based on jokes and posts them to Twitter.",
+  "description": "Fetches user mentions from Twitter, generates a meme based on a mention, and posts the meme response back to Twitter.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
-    "meme",
     "twitter",
-    "joke",
-    "meme generator",
-    "social media"
+    "meme",
+    "generator",
+    "mentions"
   ],
   "runner": "any",
-  "operatingSystem": ["linux", "macos", "windows"],
+  "operatingSystem": [
+    "linux",
+    "macos",
+    "windows"
+  ],
   "tool_set": "",
   "configurations": {
     "type": "object",
     "properties": {
-      "twitterApiKey": { "type": "string", "description": "Twitter API key" },
-      "twitterApiSecret": { "type": "string", "description": "Twitter API secret" }
+      "twitterApiKey": {
+        "type": "string",
+        "description": "API key for Twitter"
+      },
+      "twitterApiSecret": {
+        "type": "string",
+        "description": "API secret for Twitter"
+      }
     },
     "required": [
       "twitterApiKey",
@@ -28,23 +37,35 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "username": { "type": "string", "description": "Twitter username" },
-      "joke": { "type": "string", "description": "Joke to generate the meme" }
+      "username": {
+        "type": "string",
+        "description": "The Twitter username to fetch mentions for"
+      },
+      "searchQuery": {
+        "type": "string",
+        "description": "The search query to filter posts"
+      }
     },
     "required": [
       "username",
-      "joke"
+      "searchQuery"
     ]
   },
   "result": {
     "type": "object",
     "properties": {
-      "memeUrl": { "type": "string", "description": "URL of the generated meme" },
-      "status": { "type": "string", "description": "Status of the Twitter post" }
+      "message": {
+        "type": "string",
+        "description": "Response message confirming meme post"
+      },
+      "imagePath": {
+        "type": "string",
+        "description": "The URL of the generated meme image"
+      }
     },
     "required": [
-      "memeUrl",
-      "status"
+      "message",
+      "imagePath"
     ]
   },
   "sqlTables": [],

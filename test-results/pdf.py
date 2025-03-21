@@ -1,53 +1,35 @@
 # /// script
-# requires-python = ">=3.10,<3.12"
 # dependencies = [
 #   "requests",
-#   "PyPDF2",
 #   "pdfminer.six",
+#   "typing-extensions",
 # ]
 # ///
 
-from PyPDF2 import PdfReader
-from pdfminer.high_level import extract_text as pdfminer_extract_text
+from pdfminer.high_level import extract_text
+from typing import Dict
 
 class CONFIG:
     pass
 
 class INPUTS:
-    pdf_path: str
+    file_path: str
 
 class OUTPUT:
     text: str
 
-def extract_text_from_pdf(pdf_path: str) -> str:
+async def extract_text_from_pdf(file_path: str) -> Dict[str, str]:
     try:
-        # Try using PyPDF2 first
-        reader = PdfReader(pdf_path)
-        text = ""
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
-        
-        if text.strip():
-            return text
+        text = extract_text(file_path)
+        return {"text": text}
+    except FileNotFoundError:
+        return {"error": "File not found. Please check the file path."}
     except Exception as e:
-        print(f"PyPDF2 failed to extract text: {e}")
-
-    try:
-        # If PyPDF2 fails, use pdfminer.six
-        text = pdfminer_extract_text(pdf_path)
-        return text
-    except Exception as e:
-        print(f"pdfminer.six failed to extract text: {e}")
-    
-    # If both methods fail, return an error message
-    return "Failed to extract text from the PDF file."
+        return {"error": f"An error occurred: {str(e)}"}
 
 async def run(config: CONFIG, inputs: INPUTS) -> OUTPUT:
-    pdf_path = inputs.pdf_path
-    text = extract_text_from_pdf(pdf_path)
+    result = await extract_text_from_pdf(inputs.file_path)
     
     output = OUTPUT()
-    output.text = text
+    output.text = result.get("text", "")
     return output

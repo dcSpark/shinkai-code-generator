@@ -1,91 +1,83 @@
 {
-  "name": "Arbitrage Opportunities Finder",
+  "name": "Arbitrage Opportunity Analyzer",
   "homepage": "https://shinkai.com",
-  "description": "Identifies and executes arbitrage opportunities for stablecoins using the Jupiter API.",
+  "description": "Analyzes arbitrage opportunities for stablecoins across different liquidity pools.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
     "arbitrage",
-    "stablecoins",
-    "Jupiter API",
-    "crypto trading"
+    "stablecoin",
+    "liquidity pool",
+    "opportunity analysis"
   ],
   "runner": "any",
-  "operatingSystem": ["linux", "macos", "windows"],
+  "operatingSystem": [
+    "linux",
+    "macos",
+    "windows"
+  ],
   "tool_set": "",
   "configurations": {
     "type": "object",
     "properties": {
-      "jupiterApiKey": {
+      "JUPITER_API_URL": {
         "type": "string",
-        "description": "API key for accessing the Jupiter API"
+        "description": "The API URL to fetch liquidity pools."
       }
     },
     "required": [
-      "jupiterApiKey"
+      "JUPITER_API_URL"
     ]
   },
   "parameters": {
     "type": "object",
     "properties": {
-      "baseAsset": {
+      "stablecoin": {
         "type": "string",
-        "description": "The base asset for the arbitrage"
-      },
-      "targetAsset": {
-        "type": "string",
-        "description": "The target asset for the arbitrage"
-      },
-      "amount": {
-        "type": "number",
-        "description": "The amount of base asset to trade"
+        "description": "The stablecoin to analyze for arbitrage opportunities."
       }
     },
     "required": [
-      "baseAsset",
-      "targetAsset",
-      "amount"
+      "stablecoin"
     ]
   },
   "result": {
     "type": "object",
     "properties": {
-      "opportunityFound": {
-        "type": "boolean",
-        "description": "Indicates whether an arbitrage opportunity was found"
-      },
-      "arbitragePaths": {
+      "opportunities": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "swapPath": {
-              "type": "array",
-              "description": "The path taken for the trade",
-              "items": {
-                "type": "string"
-              }
+            "pool_a": {
+              "type": "string",
+              "description": "ID of the first liquidity pool."
+            },
+            "pool_b": {
+              "type": "string",
+              "description": "ID of the second liquidity pool."
             },
             "profit": {
               "type": "number",
-              "description": "The potential profit from the arbitrage opportunity"
+              "description": "Potential profit from arbitrage between the two pools."
             }
           },
           "required": [
-            "swapPath",
+            "pool_a",
+            "pool_b",
             "profit"
           ]
         },
-        "description": "Details of the identified arbitrage paths"
+        "description": "An array of arbitrage opportunities."
       }
     },
     "required": [
-      "opportunityFound"
+      "opportunities"
     ]
   },
   "sqlTables": [],
   "sqlQueries": [],
   "tools": [
-    "local:::__official_shinkai:::shinkai_sqlite_query_executor"
+    "local:::__official_shinkai:::shinkai_process_embeddings"
   ]
 }

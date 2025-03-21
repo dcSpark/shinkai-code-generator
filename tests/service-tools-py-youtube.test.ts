@@ -3,7 +3,7 @@ import { router } from "../src/service.ts";
 console.log(String(router)[0]); // so that {router} get loaded
 
 const body = {
-    "language": "typescript",
+    "language": "python",
     "prompt": "Get a youtube video complete transcript from a youtube video URL. I cannot provide any APIKEY.\n",
     "feedback": "",
     "tool_type": "shinkai",
@@ -26,7 +26,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             body: JSON.stringify(
                 {
                     ...body,
-                    x_shinkai_request_uuid: 'test-py-' + uuid,
+                    x_shinkai_request_uuid: 'test-' + uuid,
                 }),
         });
         assertEquals(response1.status, 200, 'response1.status');
@@ -61,7 +61,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
                 prompt: "ok",
                 tool_type: "shinkai",
                 skipfeedback: "false",
-                x_shinkai_request_uuid: 'test-py-' + uuid,
+                x_shinkai_request_uuid: 'test-' + uuid,
                 feedback: ""
             }),
         });
@@ -97,7 +97,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             body: JSON.stringify({
                 language: "typescript",
                 code,
-                x_shinkai_request_uuid: 'test-metadata-' + uuid,
+                x_shinkai_request_uuid: 'test-' + uuid,
             }),
         });
 
@@ -121,7 +121,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
 
     const jCode: { code: string } = JSON.parse(code);
     const jMetadata: { metadata: string } = JSON.parse(metadata);
-    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube-ts.ts', jCode.code);
-    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube-ts.metadata.json', jMetadata.metadata);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube.py', jCode.code);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube.metadata.json', jMetadata.metadata);
 
 });

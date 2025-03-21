@@ -1,0 +1,57 @@
+{
+  "name": "YouTube Transcript Summarizer",
+  "homepage": "https://shinkai.com",
+  "description": "Fetches the transcript of a YouTube video and generates a summary using a language model.",
+  "author": "@@localhost.sep-shinkai",
+  "version": "1.0.0",
+  "keywords": [
+    "youtube",
+    "transcript",
+    "summarization",
+    "language model"
+  ],
+  "runner": "any",
+  "operatingSystem": [
+    "linux",
+    "macos",
+    "windows"
+  ],
+  "tool_set": "",
+  "configurations": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The URL of the YouTube video."
+      },
+      "lang": {
+        "type": "string",
+        "description": "The language for the transcript.",
+        "nullable": true
+      }
+    },
+    "required": ["url"]
+  },
+  "result": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "string",
+        "description": "The generated summary of the transcript."
+      }
+    },
+    "required": ["summary"]
+  },
+  "sqlTables": [],
+  "sqlQueries": [],
+  "tools": [
+    "local:::__official_shinkai:::shinkai_llm_prompt_processor",
+    "local:::__official_shinkai:::shinkai_process_embeddings",
+    "local:::__official_shinkai:::yt_dlp"
+  ]
+}

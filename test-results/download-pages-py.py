@@ -1,13 +1,15 @@
 # /// script
-# requires-python = ">=3.10,<3.12"
 # dependencies = [
 #   "requests",
-#   "html2text",
+#   "beautifulsoup4",
+#   "markdownify",
 # ]
 # ///
 
+from typing import Dict, Any
 import requests
-import html2text
+from bs4 import BeautifulSoup
+from markdownify import markdownify as md
 
 class CONFIG:
     pass
@@ -18,20 +20,28 @@ class INPUTS:
 class OUTPUT:
     markdown: str
 
-async def run(config: CONFIG, inputs: INPUTS) -> OUTPUT:
-    url = inputs.url
+async def download_pages(input: Dict[str, Any]) -> Dict[str, Any]:
+    url = input.get("url")
+    if not url:
+        raise ValueError("The input must contain a 'url' key with a valid URL string.")
     
-    # Download the HTML content from the URL
-    response = requests.get(url)
-    response.raise_for_status()  # Ensure we notify of bad response
-    
-    html_content = response.text
-    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+    except requests.RequestException as e:
+        raise RuntimeError(f"Failed to download the page: {e}")
+
+    # Parse the HTML content
+    soup = BeautifulSoup(response.content, 'html.parser')
+
     # Convert HTML to markdown
-    markdown_content = html2text.html2text(html_content)
+    markdown_content = md(str(soup))
     
-    # Prepare the output
-    output = OUTPUT()
-    output.markdown = markdown_content
-    
-    return output
+    return {"markdown": markdown_content}
+
+async def run(input: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        result = await download_pages(input)
+        return result
+    except Exception as e:
+        return {"error": str(e)}

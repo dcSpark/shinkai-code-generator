@@ -1,17 +1,21 @@
 {
-  "name": "Download Pages",
+  "name": "YouTube Transcript Fetcher",
   "homepage": "https://shinkai.com",
-  "description": "Downloads one or more URLs and converts the HTML content to markdown.",
+  "description": "Fetches the summary of a YouTube video transcript based on the provided video URL.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
-    "HTML to Markdown",
-    "web page downloader",
-    "content conversion",
-    "URL to Markdown"
+    "youtube",
+    "transcript",
+    "fetch",
+    "summary"
   ],
   "runner": "any",
-  "operatingSystem": ["linux", "macos", "windows"],
+  "operatingSystem": [
+    "linux",
+    "macos",
+    "windows"
+  ],
   "tool_set": "",
   "configurations": {
     "type": "object",
@@ -23,7 +27,7 @@
     "properties": {
       "url": {
         "type": "string",
-        "description": "The URL to download"
+        "description": "The URL of the YouTube video to fetch the transcript for."
       }
     },
     "required": [
@@ -33,19 +37,18 @@
   "result": {
     "type": "object",
     "properties": {
-      "markdown": {
+      "summary": {
         "type": "string",
-        "description": "The markdown content of the downloaded page"
+        "description": "The summary of the YouTube video transcript."
       }
     },
     "required": [
-      "markdown"
+      "summary"
     ]
   },
   "sqlTables": [],
   "sqlQueries": [],
   "tools": [
-    "local:::__official_shinkai:::shinkai_http_request_executor",
-    "local:::__official_shinkai:::shinkai_markdown_converter"
+    "local:::__official_shinkai:::youtube_transcript_summarizer"
   ]
 }

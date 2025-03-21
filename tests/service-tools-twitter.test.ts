@@ -31,7 +31,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             body: JSON.stringify(
                 {
                     ...body,
-                    x_shinkai_request_uuid: 'test-ts-' + uuid,
+                    x_shinkai_request_uuid: 'test-' + uuid,
                 }),
         });
         assertEquals(response1.status, 200, 'response1.status');
@@ -72,7 +72,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             body: JSON.stringify({
                 language: "typescript",
                 code,
-                x_shinkai_request_uuid: 'test-metadata-' + uuid,
+                x_shinkai_request_uuid: 'test-' + uuid,
             }),
         });
 
@@ -118,8 +118,8 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
 
     console.log(
         'Done logs @\n',
-        `./cache/.execution/test-ts-${uuid}/src/tool.ts \n`,
-        `./cache/.execution/test-metadata-${uuid}/step_0.c.metadata.json \n`,
+        `./cache/.execution/test--${uuid}/src/tool.ts \n`,
+        `./cache/.execution/test-${uuid}/step_0.c.metadata.json \n`,
 
     );
 });

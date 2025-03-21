@@ -3,7 +3,7 @@ Given a input_command, First analyze the problem, think about the standard-libra
 The context of the implementation is a server-side function called "run", and will have structured:
 * Input: program inputs (object).
 * Config: static external values as API Keys, Secrets or other Developer settings that is absolutly need - you may use placeholders if they will work in runtime, as file names.
-* Output: program outputs (object) in general rule if not defined - if the output is text, numeric, boolean or any basic type as enums, output it, other-wise if binary return the file path.
+* Output: Program outputs a object. As a general rule, if not defined, if the output is text, numeric, boolean or any basic type as enums, output it in the object, other-wise if binary, or file type, return the file path in the object.
 
     1. Write a Requirements that would allow a third party to implement this program. Desribe the requirements as a list. 
     2. What {LANGUAGE} standard-libraries (only libraries that need to be imported to work inside the code to be used) and that are bundled in {RUNTIME} runtime are required to resolve this requierement, if none just write NONE.

@@ -1,14 +1,14 @@
 {
   "name": "PDF Text Extractor",
   "homepage": "https://shinkai.com",
-  "description": "Extracts text from PDF files using PyPDF2 and pdfminer.six.",
+  "description": "Extracts text from PDF files and returns it as a structured output.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
-    "pdf",
+    "PDF",
     "text extraction",
-    "PyPDF2",
-    "pdfminer.six"
+    "document processing",
+    "shinkai"
   ],
   "runner": "any",
   "operatingSystem": ["linux", "macos", "windows"],
@@ -21,13 +21,13 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "pdf_path": {
+      "file_path": {
         "type": "string",
-        "description": "The path to the PDF file from which to extract text."
+        "description": "The path to the PDF file"
       }
     },
     "required": [
-      "pdf_path"
+      "file_path"
     ]
   },
   "result": {
@@ -35,16 +35,12 @@
     "properties": {
       "text": {
         "type": "string",
-        "description": "The extracted text from the PDF file."
+        "description": "The extracted text from the PDF file"
       }
     },
-    "required": [
-      "text"
-    ]
+    "required": []
   },
   "sqlTables": [],
   "sqlQueries": [],
-  "tools": [
-    "local:::__official_shinkai:::shinkai_sqlite_query_executor"
-  ]
+  "tools": []
 }

@@ -1,14 +1,13 @@
 {
-  "name": "Download Pages Function",
+  "name": "HTML to Markdown Converter",
   "homepage": "https://shinkai.com",
-  "description": "Downloads a specified URL and returns the HTML content as markdown.",
+  "description": "Converts HTML content from a given URL to Markdown format.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
     "HTML to Markdown",
-    "web page downloader",
-    "content conversion",
-    "URL to Markdown"
+    "URL converter",
+    "content transformation"
   ],
   "runner": "any",
   "operatingSystem": ["linux", "macos", "windows"],
@@ -21,7 +20,7 @@
   "parameters": {
     "type": "object",
     "properties": {
-      "url": { "type": "string", "description": "The URL to download" }
+      "url": { "type": "string", "description": "The URL to process for conversion" }
     },
     "required": [
       "url"
@@ -30,7 +29,7 @@
   "result": {
     "type": "object",
     "properties": {
-      "markdown": { "type": "string", "description": "The markdown content of the downloaded page" }
+      "markdown": { "type": "string", "description": "The converted markdown content" }
     },
     "required": [
       "markdown"
