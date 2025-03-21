@@ -34,7 +34,7 @@ export class FileManager {
         await Deno.mkdir(basePath, { recursive: true });
         await Deno.writeTextFile(filePath, text);
         if (Deno.env.get('DEBUG') === 'true') {
-            console.log(`[DEBUG] Saved Cache: ${filePath}`);
+            console.log(`EVENT: debug\n[DEBUG] Saved Cache ::: ${filePath}`);
         }
     }
 
@@ -46,12 +46,12 @@ export class FileManager {
         const filePath = path.join(basePath, fileName);
         if (!await exists(filePath)) {
             if (Deno.env.get('DEBUG') === 'true') {
-                console.log(`[DEBUG] Cache Not Found: ${filePath}`);
+                console.log(`EVENT: debug\n[DEBUG] Cache Not Found ::: ${filePath}`);
             }
             return null;
         }
         if (Deno.env.get('DEBUG') === 'true') {
-            console.log(`[DEBUG] Loaded Cache: ${filePath}`);
+            console.log(`EVENT: debug\n[DEBUG] Loaded Cache ::: ${filePath}`);
         }
         return await Deno.readTextFile(filePath);
     }
@@ -61,7 +61,7 @@ export class FileManager {
         await Deno.mkdir(this.toolDir, { recursive: true });
         await Deno.writeTextFile(filePath, text);
         if (Deno.env.get('DEBUG') === 'true') {
-            console.log(`[DEBUG] Saved File: ${filePath}`);
+            console.log(`EVENT: debug\n[DEBUG] Saved File ::: ${filePath}`);
         }
         const state = await this.loadState();
         if (!state.exists) {

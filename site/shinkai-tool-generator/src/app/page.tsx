@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -24,7 +25,7 @@ import remarkGfm from 'remark-gfm'
 type ToolType = "shinkai" | "mcp"
 type Language = "typescript" | "python"
 type StreamEvent = {
-  type: "message" | "feedback" | "code" | "metadata" | "test"
+  type: "message" | "feedback" | "code" | "metadata" | "test" | "debug"
   content: any
 }
 
@@ -48,6 +49,8 @@ export default function Home() {
   const [apiUrl, setApiUrl] = useState(DEFAULT_CODE_GENERATOR_URL)
   const [showConfig, setShowConfig] = useState(false)
   const [generationComplete, setGenerationComplete] = useState(false)
+  const [showFileDialog, setShowFileDialog] = useState(false)
+  const [fileUrl, setFileUrl] = useState("")
   const outputRef = useRef<HTMLDivElement>(null)
 
   // Load API URL from localStorage on component mount
@@ -245,10 +248,27 @@ export default function Home() {
         data = JSON.parse(dataLine.substring(6)) // Remove "data: "
       } catch (e) {
         console.warn('Failed to parse event data:', dataLine)
+        data = { message: dataLine.substring(6) }
       }
 
       // Handle different event types
       switch (eventType) {
+        case 'debug':
+          console.log('Event: debug', data)
+          // data: [DEBUG] Saved File ::: /Users/edwardalvarado/shinkai-prompt-test/cache/.execution/1742520218317-b209c28c-7be1-4c6b-bf61-6e104635220c/step_1000.2025-03-21T01:23:38.403Z-1116.json	
+            const parts = data.message.split(' ::: ')
+            if (parts.length === 2) {
+              setEvents(prev => [...prev, { 
+                type: 'debug', 
+                content: {
+                  text: parts[0].replace('DEBUG ', ''), 
+                  filePath: parts[1].trim()
+                }
+              }])
+            }
+          
+          break
+
         case 'start':
           console.log('Event: start', data)
           // setEvents(prev => [...prev, { type: 'message', content: 'Starting code generation...' }])
@@ -709,6 +729,35 @@ export default function Home() {
                           </CardContent>
                         </Card>
                       );
+                    } else if (event.type === "debug") {
+                      const fileName = event.content.filePath.split('/').pop() // Get the last part of the path
+                      return (
+                        <Card 
+                          key={index} 
+                          className="border-2 border-red-500 shadow-md bg-red-50 dark:bg-red-900/20"
+                        >
+                          <CardContent className="px-2 py-0">
+                            <div className="p-3 flex flex-col gap-2">
+                              <div className="flex justify-between items-center">
+                                <span>{event.content.text}</span>
+                                <Button
+                                  variant="link"
+                                  className="text-blue-600 hover:text-blue-800 underline ml-4"
+                                  onClick={() => {
+                                    setFileUrl(`http://localhost:8080/cache/${event.content.filePath.split('cache/')[1]}`)
+                                    setShowFileDialog(true)
+                                  }}
+                                >
+                                  Open File
+                                </Button>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                File: {fileName}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
                     } else if (event.type === "feedback") {
                       return (
                         <Card key={index} className="border-2 border-green-500 shadow-md bg-green-50 dark:bg-green-900/20">
@@ -838,6 +887,20 @@ export default function Home() {
           </div>
         </div>
       )}
+      <Dialog open={showFileDialog} onOpenChange={setShowFileDialog}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader className="pb-2">
+            <DialogTitle>File Content</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            <iframe 
+              src={fileUrl} 
+              className="w-full h-full border-0" 
+              title="File Content"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }
