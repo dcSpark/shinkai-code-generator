@@ -45,12 +45,15 @@ export default function Home() {
   const [code, setCode] = useState("")
   const [metadata, setMetadata] = useState("")
   const [tests, setTests] = useState<any[]>([])
+  const [editedTests, setEditedTests] = useState<Record<number, { input: any, config: any }>>({})
   const [requestUuid, setRequestUuid] = useState("")
   const [apiUrl, setApiUrl] = useState(DEFAULT_CODE_GENERATOR_URL)
   const [showConfig, setShowConfig] = useState(false)
   const [generationComplete, setGenerationComplete] = useState(false)
   const [showFileDialog, setShowFileDialog] = useState(false)
   const [fileUrl, setFileUrl] = useState("")
+  const [showTestResult, setShowTestResult] = useState(false)
+  const [testResult, setTestResult] = useState<{ actual: any; expected: any } | null>(null)
   const outputRef = useRef<HTMLDivElement>(null)
 
   // Load API URL from localStorage on component mount
@@ -124,7 +127,11 @@ export default function Home() {
         }
       }
     }
-    generateMetadata()
+    if (!metadata) {
+      generateMetadata()
+    } else {
+      console.log('metadata already exists, skipping metadata generation')
+    }
   }, [code]);
 
   // Function to get the current API URL
@@ -318,9 +325,9 @@ export default function Home() {
           console.log('Event: tests', data)
           if (data.tests) {
             try {
-              const testsArray = JSON.parse(data.tests)
-              setTests(testsArray)
-              setEvents(prev => [...prev, { type: 'test', content: testsArray }])
+              console.log('testsArray', data)
+              setTests(data.tests)
+              setEvents(prev => [...prev, { type: 'test', content: data.tests }])
             } catch (e) {
               console.warn('Failed to parse tests array:', e)
             }
@@ -467,9 +474,51 @@ export default function Home() {
     setGenerationComplete(false)
   }
 
-  const handleTestSend = (test: any) => {
-    alert(`Running test: ${test.name}`)
-    // Here you would implement the actual test execution
+  const handleTestSend = async (test: any) => {
+    try {
+      let tools: string[] = [];
+      try {
+        const metadataObj = JSON.parse(metadata);
+        tools = metadataObj.tools || [];
+      } catch (e) {
+        console.warn('Failed to parse metadata for tools:', e);
+      }
+
+      const payload = {
+        code: code,
+        tools: tools,
+        parameters: test.input,
+        extra_config: test.config
+      };
+
+      const response = await fetch(
+        `${getApiUrl()}/code_execution?payload=${encodeURIComponent(JSON.stringify(payload))}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setTestResult({
+        actual: result,
+        expected: test.output
+      });
+      setShowTestResult(true);
+    } catch (error) {
+      console.error('Test execution error:', error);
+      setTestResult({
+        actual: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        expected: test.output
+      });
+      setShowTestResult(true);
+    }
   }
 
   // Function to save configuration
@@ -860,18 +909,54 @@ export default function Home() {
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                   <div>
                                     <h4 className="font-medium mb-1">Input</h4>
-                                    <pre className="bg-muted p-2 rounded text-sm overflow-auto">
-                                      {JSON.stringify(test.input, null, 2)}
-                                    </pre>
+                                    <Textarea
+                                      className="font-mono text-sm"
+                                      value={editedTests[index]?.input ? JSON.stringify(editedTests[index].input, null, 2) : JSON.stringify(test.input, null, 2)}
+                                      onChange={(e) => {
+                                        try {
+                                          const newInput = JSON.parse(e.target.value)
+                                          setEditedTests(prev => ({
+                                            ...prev,
+                                            [index]: { ...prev[index], input: newInput }
+                                          }))
+                                        } catch (error) {
+                                          // Invalid JSON, ignore the change
+                                          console.warn('Invalid JSON input:', error)
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium mb-1">Config</h4>
+                                    <Textarea
+                                      className="font-mono text-sm"
+                                      value={editedTests[index]?.config ? JSON.stringify(editedTests[index].config, null, 2) : JSON.stringify(test.config, null, 2)}
+                                      onChange={(e) => {
+                                        try {
+                                          const newConfig = JSON.parse(e.target.value)
+                                          setEditedTests(prev => ({
+                                            ...prev,
+                                            [index]: { ...prev[index], config: newConfig }
+                                          }))
+                                        } catch (error) {
+                                          // Invalid JSON, ignore the change
+                                          console.warn('Invalid JSON config:', error)
+                                        }
+                                      }}
+                                    />
                                   </div>
                                   <div>
                                     <h4 className="font-medium mb-1">Expected</h4>
                                     <pre className="bg-muted p-2 rounded text-sm overflow-auto">
-                                      {JSON.stringify(test.expected, null, 2)}
+                                      {JSON.stringify(test.output, null, 2)}
                                     </pre>
                                   </div>
                                 </div>
-                                <Button onClick={() => handleTestSend(test)} size="sm">
+                                <Button onClick={() => handleTestSend({
+                                  ...test,
+                                  input: editedTests[index]?.input || test.input,
+                                  config: editedTests[index]?.config || test.config
+                                })} size="sm">
                                   Run Test
                                 </Button>
                               </CardContent>
@@ -898,6 +983,28 @@ export default function Home() {
               className="w-full h-full border-0" 
               title="File Content"
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showTestResult} onOpenChange={setShowTestResult}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Test Results</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-medium mb-2">Actual Result</h3>
+              <pre className="bg-muted p-4 rounded-md overflow-auto max-h-[400px]">
+                {testResult ? JSON.stringify(testResult.actual, null, 2) : ''}
+              </pre>
+            </div>
+            <div>
+              <h3 className="font-medium mb-2">Expected Result</h3>
+              <pre className="bg-muted p-4 rounded-md overflow-auto max-h-[400px]">
+                {testResult ? JSON.stringify(testResult.expected, null, 2) : ''}
+              </pre>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
