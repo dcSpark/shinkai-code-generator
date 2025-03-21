@@ -1,0 +1,44 @@
+{
+  "name": "Download HTML to Markdown",
+  "homepage": "https://shinkai.com",
+  "description": "Downloads HTML content from a URL and converts it to markdown format.",
+  "author": "@@localhost.sep-shinkai",
+  "version": "1.0.0",
+  "keywords": [
+    "HTML",
+    "Markdown",
+    "downloader",
+    "converter"
+  ],
+  "runner": "any",
+  "operatingSystem": ["linux", "macos", "windows"],
+  "tool_set": "",
+  "configurations": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string", "description": "The URL of the page to download" }
+    },
+    "required": [
+      "url"
+    ]
+  },
+  "result": {
+    "type": "object",
+    "properties": {
+      "markdown": { "type": "string", "description": "The converted markdown content" }
+    },
+    "required": [
+      "markdown"
+    ]
+  },
+  "sqlTables": [],
+  "sqlQueries": [],
+  "tools": [
+    "local:::__official_shinkai:::shinkai_sqlite_query_executor"
+  ]
+}

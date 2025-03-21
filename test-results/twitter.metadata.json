@@ -1,0 +1,57 @@
+{
+  "name": "Meme Generator and Twitter Poster",
+  "homepage": "https://shinkai.com",
+  "description": "Generates memes based on jokes and posts them to Twitter.",
+  "author": "@@localhost.sep-shinkai",
+  "version": "1.0.0",
+  "keywords": [
+    "meme",
+    "twitter",
+    "joke",
+    "meme generator",
+    "social media"
+  ],
+  "runner": "any",
+  "operatingSystem": ["linux", "macos", "windows"],
+  "tool_set": "",
+  "configurations": {
+    "type": "object",
+    "properties": {
+      "twitterApiKey": { "type": "string", "description": "Twitter API key" },
+      "twitterApiSecret": { "type": "string", "description": "Twitter API secret" }
+    },
+    "required": [
+      "twitterApiKey",
+      "twitterApiSecret"
+    ]
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "username": { "type": "string", "description": "Twitter username" },
+      "joke": { "type": "string", "description": "Joke to generate the meme" }
+    },
+    "required": [
+      "username",
+      "joke"
+    ]
+  },
+  "result": {
+    "type": "object",
+    "properties": {
+      "memeUrl": { "type": "string", "description": "URL of the generated meme" },
+      "status": { "type": "string", "description": "Status of the Twitter post" }
+    },
+    "required": [
+      "memeUrl",
+      "status"
+    ]
+  },
+  "sqlTables": [],
+  "sqlQueries": [],
+  "tools": [
+    "local:::__official_shinkai:::x_twitter_search",
+    "local:::__official_shinkai:::meme_generator",
+    "local:::__official_shinkai:::x_twitter_post"
+  ]
+}

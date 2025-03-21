@@ -86,6 +86,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         assertEquals(code.includes('async def run'), true, 'code.includes(async def run)');
     }
 
+    let metadata = '';
     {
         let response3 = await fetch(`${baseUrl}/metadata`, {
             method: "POST",
@@ -115,7 +116,12 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         decoder3 = undefined as any;
         response3 = undefined as any;
         assertEquals(part3.includes('event: metadata'), true, 'part3.includes(metadata)');
-
+        metadata = part3.split('event: metadata')[1].split('\n')[1].replace(/^data: /, '');
     }
+
+    const jCode: { code: string } = JSON.parse(code);
+    const jMetadata: { metadata: string } = JSON.parse(metadata);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube-ts.ts', jCode.code);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'youtube-ts.metadata.json', jMetadata.metadata);
 
 });

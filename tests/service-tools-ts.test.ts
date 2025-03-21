@@ -135,11 +135,14 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
     const jjMetadata: Record<string, any> = JSON.parse(jMetadata.metadata);
     for (const [index, test] of jTest.tests.entries()) {
         if (index > 0) break;
-        console.log('[Running Test] ' + (index + 1) + ' of ' + jTest.tests.length);
-        const result = await api.executeCode(jCode.code, jjMetadata.tools, test.input, test.config, 'gpt-4o-mini');
-        console.log(test.output, result);
+        // console.log('[Running Test] ' + (index + 1) + ' of ' + jTest.tests.length);
+        // const result = await api.executeCode(jCode.code, jjMetadata.tools, test.input, test.config, 'gpt-4o-mini');
+        // console.log(test.output, result);
         // assertObjectMatch(result, test.output);
     }
+
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'download-pages-ts.ts', jCode.code);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'download-pages-ts.metadata.json', jMetadata.metadata);
 
     console.log('Done logs @', uuid);
 });

@@ -1,0 +1,44 @@
+{
+  "name": "Download Pages Function",
+  "homepage": "https://shinkai.com",
+  "description": "Downloads a specified URL and returns the HTML content as markdown.",
+  "author": "@@localhost.sep-shinkai",
+  "version": "1.0.0",
+  "keywords": [
+    "HTML to Markdown",
+    "web page downloader",
+    "content conversion",
+    "URL to Markdown"
+  ],
+  "runner": "any",
+  "operatingSystem": ["linux", "macos", "windows"],
+  "tool_set": "",
+  "configurations": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string", "description": "The URL to download" }
+    },
+    "required": [
+      "url"
+    ]
+  },
+  "result": {
+    "type": "object",
+    "properties": {
+      "markdown": { "type": "string", "description": "The markdown content of the downloaded page" }
+    },
+    "required": [
+      "markdown"
+    ]
+  },
+  "sqlTables": [],
+  "sqlQueries": [],
+  "tools": [
+    "local:::__official_shinkai:::download_pages"
+  ]
+}

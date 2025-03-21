@@ -1,0 +1,91 @@
+{
+  "name": "Arbitrage Opportunities Finder",
+  "homepage": "https://shinkai.com",
+  "description": "Identifies and executes arbitrage opportunities for stablecoins using the Jupiter API.",
+  "author": "@@localhost.sep-shinkai",
+  "version": "1.0.0",
+  "keywords": [
+    "arbitrage",
+    "stablecoins",
+    "Jupiter API",
+    "crypto trading"
+  ],
+  "runner": "any",
+  "operatingSystem": ["linux", "macos", "windows"],
+  "tool_set": "",
+  "configurations": {
+    "type": "object",
+    "properties": {
+      "jupiterApiKey": {
+        "type": "string",
+        "description": "API key for accessing the Jupiter API"
+      }
+    },
+    "required": [
+      "jupiterApiKey"
+    ]
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "baseAsset": {
+        "type": "string",
+        "description": "The base asset for the arbitrage"
+      },
+      "targetAsset": {
+        "type": "string",
+        "description": "The target asset for the arbitrage"
+      },
+      "amount": {
+        "type": "number",
+        "description": "The amount of base asset to trade"
+      }
+    },
+    "required": [
+      "baseAsset",
+      "targetAsset",
+      "amount"
+    ]
+  },
+  "result": {
+    "type": "object",
+    "properties": {
+      "opportunityFound": {
+        "type": "boolean",
+        "description": "Indicates whether an arbitrage opportunity was found"
+      },
+      "arbitragePaths": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "swapPath": {
+              "type": "array",
+              "description": "The path taken for the trade",
+              "items": {
+                "type": "string"
+              }
+            },
+            "profit": {
+              "type": "number",
+              "description": "The potential profit from the arbitrage opportunity"
+            }
+          },
+          "required": [
+            "swapPath",
+            "profit"
+          ]
+        },
+        "description": "Details of the identified arbitrage paths"
+      }
+    },
+    "required": [
+      "opportunityFound"
+    ]
+  },
+  "sqlTables": [],
+  "sqlQueries": [],
+  "tools": [
+    "local:::__official_shinkai:::shinkai_sqlite_query_executor"
+  ]
+}

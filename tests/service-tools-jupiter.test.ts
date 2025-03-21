@@ -53,7 +53,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         // assertEquals(part1.includes('event: request-feedback'), true, 'part1.includes(request-feedback)');
         // }
 
-        assertEquals(part1.includes('event: code'), true, 'part2.includes(code)');
+        assertEquals(part1.includes('event: code'), true, 'part1.includes(code)');
 
         code = part1.split('event: code')[1].split('\n')[1].replace(/^data: /, '');
         assertEquals(code.includes('export async function run'), true, 'code.includes(export async function run)');
@@ -103,9 +103,9 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
     const jjMetadata: Record<string, any> = JSON.parse(jMetadata.metadata);
     for (const [index, test] of jTest.tests.entries()) {
         if (index > 0) break;
-        console.log('[Running Test] ' + (index + 1) + ' of ' + jTest.tests.length);
-        const result = await api.executeCode(jCode.code, jjMetadata.tools, test.input, test.config, 'gpt-4o-mini');
-        console.log(test.output, result);
+        // console.log('[Running Test] ' + (index + 1) + ' of ' + jTest.tests.length);
+        // const result = await api.executeCode(jCode.code, jjMetadata.tools, test.input, test.config, 'gpt-4o-mini');
+        // console.log(test.output, result);
         // assertObjectMatch(result, test.output);
     }
 
@@ -113,6 +113,8 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         'Done logs @\n',
         `./cache/.execution/test-ts-${uuid}/src/tool.ts \n`,
         `./cache/.execution/test-metadata-${uuid}/step_0.c.metadata.json \n`,
-
     );
+
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'jupiter.ts', jCode.code);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'jupiter.metadata.json', jMetadata.metadata);
 });

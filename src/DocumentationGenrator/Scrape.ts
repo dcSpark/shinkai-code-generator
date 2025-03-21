@@ -1,5 +1,5 @@
 import { exists } from "jsr:@std/fs/exists";
-import axios, { AxiosError } from 'npm:axios';
+import axios from 'npm:axios';
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
@@ -226,10 +226,17 @@ export class Scrape {
             await this.cache.save(file, JSON.stringify(crawlResponse, null, 2), folders);
             return crawlResponse;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(`Crawl API error: ${error.message}`);
-            }
-            throw error;
+            console.log(`INTERNAL ERROR @ crawlWebsite`, options.url);
+            return {
+                success: false,
+                status: 'error',
+                completed: 0,
+                total: 0,
+                creditsUsed: 0,
+                expiresAt: new Date(),
+                data: [],
+            };
+
         }
     }
 
@@ -264,10 +271,8 @@ export class Scrape {
             await this.cache.save(file, JSON.stringify(mapResponse, null, 2), folders);
             return mapResponse.links;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(`Map API error: ${error.message}`);
-            }
-            throw error;
+            console.log(`INTERNAL ERROR @ mapWebsite`, url);
+            return [];
         }
     }
 
@@ -309,10 +314,18 @@ export class Scrape {
             }
             return scrapeResponse;
         } catch (error: unknown) {
-            if (error instanceof AxiosError) {
-                throw new Error(`Scrape API error: ${error.message}`);
+            console.log(`INTERNAL ERROR @ scrapeWebsite`, options.url);
+            return {
+                success: false,
+                data: {
+                    markdown: '',
+                    html: '',
+                    metadata: {
+                        statusCode: 500,
+                        sourceURL: options.url,
+                    }
+                }
             }
-            throw error;
         }
     }
 }

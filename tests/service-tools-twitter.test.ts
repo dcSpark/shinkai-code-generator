@@ -113,6 +113,9 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
         // assertObjectMatch(result, test.output);
     }
 
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'twitter.ts', jCode.code);
+    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'twitter.metadata.json', jMetadata.metadata);
+
     console.log(
         'Done logs @\n',
         `./cache/.execution/test-ts-${uuid}/src/tool.ts \n`,
