@@ -773,7 +773,7 @@ export default function Home() {
                                 </ReactMarkdown>
                               </div>
                             ) : (
-                              <div className="p-3">{title ? (<span className="font-bold">{title} </span>) : ''}{content}</div>
+                              <div className="p-3">{title ? (<span className="font-bold">{title} </span>) : ''}{content}</div> 
                             )}
                           </CardContent>
                         </Card>
@@ -829,7 +829,7 @@ export default function Home() {
               </div>
 
               {showFeedback && (
-                <Card className="border-2 border-primary">
+                <Card className="border-2 border-primary py-5 px-3">
                   <CardHeader>
                     <CardTitle>Feedback Requested</CardTitle>
                   </CardHeader>

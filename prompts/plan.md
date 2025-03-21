@@ -35,6 +35,7 @@ Do not write any other output or source code.
 * Use the following format, inside the output tag, to output the requested document
 <output>
 ```markdown
+
 # Development Plan
 {initial_requirements}
 
@@ -44,6 +45,7 @@ Output: {json}
 
 # Config
 {name}: {example-value}
+
 ```
 </output>
 </formating>

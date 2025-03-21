@@ -66,7 +66,6 @@ export class FileManager {
         const state = await this.loadState();
         if (!state.exists) {
             await this.writeState({
-                completed: false,
                 date: new Date().toISOString(),
                 feedback_expected: false,
             });
@@ -74,23 +73,30 @@ export class FileManager {
         return filePath;
     }
 
-    async saveFinal(tool: string, metadata: string) {
+    async saveFinal(tool: string | undefined, metadata: string | undefined) {
         const srcPath = path.join(this.toolDir, `src`);
         if (this.language === 'typescript') {
             const filePath1 = path.join(srcPath, `tool.ts`);
             const filePath2 = path.join(srcPath, `metadata.json`);
             await Deno.mkdir(srcPath, { recursive: true });
-            await Deno.writeTextFile(filePath1, tool);
-            await Deno.writeTextFile(filePath2, metadata);
+            if (tool) {
+                await Deno.writeTextFile(filePath1, tool);
+            }
+            if (metadata) {
+                await Deno.writeTextFile(filePath2, metadata);
+            }
         } else if (this.language === 'python') {
             const filePath = path.join(srcPath, `tool.py`);
             const filePath2 = path.join(srcPath, `metadata.json`);
             await Deno.mkdir(srcPath, { recursive: true });
-            await Deno.writeTextFile(filePath, tool);
-            await Deno.writeTextFile(filePath2, metadata);
+            if (tool) {
+                await Deno.writeTextFile(filePath, tool);
+            }
+            if (metadata) {
+                await Deno.writeTextFile(filePath2, metadata);
+            }
         }
         await this.writeState({
-            completed: true,
             date: new Date().toISOString(),
             feedback_expected: false,
         });
@@ -101,12 +107,12 @@ export class FileManager {
         return await exists(filePath);
     }
 
-    async writeState(config: { completed: boolean, date: string, feedback_expected: boolean }) {
+    async writeState(config: { date: string, feedback_expected: boolean }) {
         const filePath = path.join(this.toolDir, `state.json`);
         await Deno.writeTextFile(filePath, JSON.stringify(config));
     }
 
-    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string, feedback_expected: boolean }> {
+    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string, feedback_expected: boolean, metadata: boolean }> {
         const filePath = path.join(this.toolDir, `state.json`);
         if (!await exists(filePath)) {
             return {
@@ -114,9 +120,26 @@ export class FileManager {
                 completed: false,
                 date: new Date().toISOString(),
                 feedback_expected: false,
+                metadata: false,
             };
         }
-        return { exists: true, ...JSON.parse(await Deno.readTextFile(filePath)) };
+
+        const srcPath = path.join(this.toolDir, `src`);
+
+        const codePath1 = path.join(srcPath, `tool.ts`);
+        const codePath2 = path.join(srcPath, `tool.py`);
+        const metadataPath1 = path.join(srcPath, `metadata.json`);
+
+        const completed = await exists(codePath1) || await exists(codePath2);
+        const metadata = await exists(metadataPath1);
+
+        const state: { date: string, feedback_expected: boolean } = JSON.parse(await Deno.readTextFile(filePath));
+        return {
+            ...state,
+            exists: true,
+            metadata,
+            completed,
+        };
     }
 
     async load(step: number, substep: string, fileName: string) {

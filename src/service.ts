@@ -87,15 +87,9 @@ router.get("/state", setCorsHeadersMiddleware, async (ctx: Context) => {
         ctx.response.body = "x_shinkai_request_uuid is required";
         return;
     }
-    const language = ctx.request.url.searchParams.get('language');
-    if (!language || (language !== 'typescript' && language !== 'python')) {
-        ctx.response.status = 400;
-        ctx.response.body = "Language is required and must be either 'typescript' or 'python'";
-        return;
 
-    }
     const state = await (new FileManager(
-        language,
+        'typescript', // Not used.
         requestUUID,
         true
     )).loadState();

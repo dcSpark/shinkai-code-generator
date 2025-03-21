@@ -3,6 +3,7 @@ import { FileManager } from "./FileManager.ts";
 import { BaseEngine } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
+import { getHeaders } from "./support.ts";
 import { Language } from "./types.ts";
 
 export class ShinkaiPipelineMetadata {
@@ -11,7 +12,7 @@ export class ShinkaiPipelineMetadata {
     private llmFormatter: LLMFormatter;
 
     // State machine step
-    private step: number = 0;
+    private step: number = 14000;
 
     // Internal tools
     // TODO: Workardoun to get the tool list.
@@ -55,6 +56,11 @@ export class ShinkaiPipelineMetadata {
     // Start time
     private startTime: number;
 
+    private headers_found: boolean = false;
+    private shinkaiLocalTools_headers: string = '';
+    private shinkaiLocalTools_libraryCode: string = '';
+    private shinkaiLocalTools_toolRouterKeys: { functionName: string, toolRouterKey: string, code: string }[] = [];
+    private shinkaiLocalSupport_headers: string = '';
 
     constructor(
         private code: string,
@@ -66,6 +72,34 @@ export class ShinkaiPipelineMetadata {
         this.fileManager = new FileManager(language, test.code, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
+    }
+
+    private async initialize() {
+        const completeShinkaiPrompts = getHeaders();
+
+
+        if (this.language === 'typescript') {
+            this.shinkaiLocalSupport_headers = completeShinkaiPrompts.typescript.headers["shinkai-local-support"];
+            if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.ts')) {
+                this.headers_found = true;
+                this.shinkaiLocalTools_headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.ts');
+                this.shinkaiLocalTools_libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.ts');
+                this.shinkaiLocalTools_toolRouterKeys = JSON.parse(await this.fileManager.load(20002, 'tool_headers', 'tool_headers.json'));
+            }
+        } else if (this.language === 'python') {
+            this.shinkaiLocalSupport_headers = completeShinkaiPrompts.python.headers["shinkai_local_support"];
+            if (await this.fileManager.exists(20001, 'tool_headers', 'tool_headers.py')) {
+                this.headers_found = true;
+                this.shinkaiLocalTools_headers = await this.fileManager.load(20000, 'tool_headers', 'tool_headers.py');;
+                this.shinkaiLocalTools_libraryCode = await this.fileManager.load(20001, 'tool_headers', 'tool_headers.py');;
+                this.shinkaiLocalTools_toolRouterKeys = JSON.parse(await this.fileManager.load(20002, 'tool_headers', 'tool_headers.json'));
+            }
+        }
+
+        // this.shinkaiPrompts = completeShinkaiPrompts[this.language];
+        // this.availableTools = completeShinkaiPrompts.availableTools;
+        // await this.fileManager.log(`=========================================================`, true);
+        await this.fileManager.log(`🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language} (Tool Type: ${this.toolType})`, true);
     }
 
     private async generateMetadata() {
@@ -82,10 +116,24 @@ export class ShinkaiPipelineMetadata {
             this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
             let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/metadata.md');
-            metadataPrompt = metadataPrompt.replace(
-                /<available_tools>\n\n<\/available_tools>/,
-                `<available_tools>${this.internalToolsJSON.join('\n')}</available_tools>`
-            );
+
+            if (!this.headers_found) {
+                metadataPrompt = metadataPrompt.replace(
+                    /<available_tools>\n\n<\/available_tools>/,
+                    `<available_tools>${this.internalToolsJSON.join('\n')}</available_tools>`
+                );
+            } else {
+                const trks: string[] = this.shinkaiLocalTools_toolRouterKeys.map(t => t.toolRouterKey);
+                if (Deno.env.get('DEBUG') === 'true') {
+                    console.log({ message: '[DEBUG] Found tool router keys', trks: trks.join(',') });
+                }
+                metadataPrompt = metadataPrompt.replace(
+                    /<available_tools>\n\n<\/available_tools>/,
+                    `<available_tools>${trks.join('\n')}</available_tools>`
+                );
+            }
+
+
             metadataPrompt = metadataPrompt.replace(
                 /<input_command>\n\n<\/input_command>/,
                 `<input_command>${this.code}</input_command>`
@@ -119,6 +167,8 @@ export class ShinkaiPipelineMetadata {
         }
         try {
             await this.generateMetadata();
+            await this.fileManager.saveFinal(undefined, this.metadata);
+
             return { metadata: this.metadata }
         } catch (e) {
             console.log(String(e));

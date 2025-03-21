@@ -799,7 +799,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             if (runTests) {
                 await this.generateTests();
             }
-            await this.fileManager.saveFinal(this.code, this.metadata || '');
+            await this.fileManager.saveFinal(this.code, undefined);
 
             await this.generateMCP();
             await this.logCompletion();
@@ -811,7 +811,6 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
         } catch (e) {
             if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
                 this.fileManager.writeState({
-                    completed: false,
                     date: new Date().toISOString(),
                     feedback_expected: true,
                 });
