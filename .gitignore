@@ -24,3 +24,5 @@ cache/search/*
 cache/original/*
 cache/processed/*
 cache/exact_url/*
+.execution
+public/_next
