@@ -1,5 +1,5 @@
 import { exists } from "jsr:@std/fs/exists";
-import path from "node:path";
+import * as path from "jsr:@std/path";
 import { Language } from "./types.ts";
 
 export class FileManager {
