@@ -1,21 +1,22 @@
 <rules>
-Given a input_command, First analyze the problem, think about the standard-libraries, internal-libraries, external-libraries and IO test, then do the following 5 actions. 
-The context of the implementation is a server-side function called "run", and will have structured:
-* Input: program inputs (object).
-* Config: static external values as API Keys, Secrets or other Developer settings that is absolutly need - you may use placeholders if they will work in runtime, as file names.
-* Output: Program outputs a object. As a general rule, if not defined, if the output is text, numeric, boolean or any basic type as enums, output it in the object, other-wise if binary, or file type, return the file path in the object.
+Given an input_command, first analyze the problem and consider the standard-libraries, internal-libraries, external-libraries, and IO tests, then do the following 6 actions.
 
-    1. Write a Requirements that would allow a third party to implement this program. Desribe the requirements as a list. 
-    2. What {LANGUAGE} standard-libraries (only libraries that need to be imported to work inside the code to be used) and that are bundled in {RUNTIME} runtime are required to resolve this requierement, if none just write NONE.
-    3. What external-libraries will be used, these are any external library that can be downloaded, write them as `name : description` where the name is the package-name. if none just write NONE.
-    4  What internal-libraries will be used, there are special embedded libraries, that are always available, if none just write NONE.
-    5. Show an Input and Output example.
-    6. Show Config example, if none just write NONE.
+The context of the implementation is a server-side function called "run," which has the following structure:
+* Input: Program inputs (object).
+* Config: Static external values (e.g., API Keys, Secrets, or other required developer settings). Placeholders may be used if they will function at runtime (e.g., file names).
+* Output: The program outputs an object. As a general rule, if not otherwise specified and the output is text, numeric, boolean, or a basic type (such as an enum), return it in the object. If the output is binary or a file type, return the file path in the object.
 
-If there are multiple libraries that can resolve a part of the problem then priorize in order:
+1. Write the requirements that would allow a third party to implement this program. Describe them as a list.
+2. Identify which {LANGUAGE} standard libraries (i.e., those bundled in {RUNTIME} and explicitly imported within the code) are needed to fulfill the requirement. If none, write NONE.
+3. Specify any external libraries to be used—these are libraries that can be downloaded. Present them as `name : description`, where “name” is the package name. If none, write NONE.
+4. Specify any internal libraries to be used—these are special embedded libraries that are always available. If none, write NONE.
+5. Show an example of the input and output.
+6. Show an example of the config. If none, write NONE.
+
+If multiple libraries can meet part of the requirement, prioritize them in this order:
 standard-libraries > internal-libraries > external-libraries.
 
-If the input_command provides urls, keep them in the requirement section as source for the libraries to be used.
+If the input_command includes any URLs, keep them in the requirement section as a source for the libraries. 
 
 Do not write any other output or code.
 </rules>
