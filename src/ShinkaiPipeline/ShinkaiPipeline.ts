@@ -282,7 +282,7 @@ export class ShinkaiPipeline {
 
         if (this.language === 'typescript') {
             availableTools.push(`
-NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+NOTE: The following 5 functions do not have a tool-router-key, if you need their tool-router-key skip them and do not add them to the final output.
 getMountPaths
 getAssetPaths
 getHomePath
@@ -292,7 +292,7 @@ getAccessToken
             );
         } else if (this.language === 'python') {
             availableTools.push(`
-NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+NOTE: The following 5 functions do not have a tool-router-key, if you need their tool-router-key skip them and do not add them to the final output.
 get_mount_paths
 get_asset_paths
 get_home_path
