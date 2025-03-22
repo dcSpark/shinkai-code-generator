@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-frontend",
+            "type": "shell",
+            "command": "cd site/shinkai-tool-generator && npm run build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+} 

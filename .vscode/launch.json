@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Deno",
+            "name": "Deno Backend",
             "type": "pwa-node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
@@ -10,7 +10,8 @@
             "runtimeArgs": ["run", "--inspect-brk", "-A", "./src/service.ts"],
             "attachSimplePort": 9229,
             "program": "${workspaceFolder}/src/service.ts",
-            "outputCapture": "std"
+            "outputCapture": "std",
+            "preLaunchTask": "build-frontend"
         }
     ]
 }
