@@ -3,26 +3,53 @@
     "configurations": [
         {
             "name": "Deno Backend (with frontend rebuild)",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "deno",
-            "runtimeArgs": ["run", "--inspect-brk", "-A", "./src/service.ts"],
+            "runtimeArgs": [
+                "run",
+                "--inspect-wait",
+                "-A",
+                "./src/service.ts"
+            ],
             "attachSimplePort": 9229,
             "program": "${workspaceFolder}/src/service.ts",
             "outputCapture": "std",
-            "preLaunchTask": "build-frontend"
+            "preLaunchTask": "build-frontend",
+            "sourceMaps": true
         },
         {
             "name": "Deno Backend (no rebuild)",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "deno",
-            "runtimeArgs": ["run", "--inspect-brk", "-A", "./src/service.ts"],
+            "runtimeArgs": [
+                "run",
+                "--inspect-wait",
+                "-A",
+                "./src/service.ts"
+            ],
             "attachSimplePort": 9229,
             "program": "${workspaceFolder}/src/service.ts",
-            "outputCapture": "std"
+            "outputCapture": "std",
+            "sourceMaps": true
+        },
+        {
+            "name": "Deno Backend (clean cache)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "sh",
+            "runtimeArgs": [
+                "-c",
+                "rm -rf cache/.execution cache/.internal && deno run --inspect-wait -A ./src/service.ts"
+            ],
+            "attachSimplePort": 9229,
+            "program": "${workspaceFolder}/src/service.ts",
+            "outputCapture": "std",
+            "sourceMaps": true
         }
     ]
 }

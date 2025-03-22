@@ -803,7 +803,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 // Probably feedback. Let's check the current step.
                 const feedbackAnalysis = await this.processFeedbackAnalysis();
                 await this.fileManager.writeState({
-                    completed: false,
+                    // completed: false,
                     date: new Date().toISOString(),
                     feedback_expected: false,
                 });
