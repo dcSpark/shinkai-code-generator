@@ -53,7 +53,7 @@ export class LLMFormatter {
                 extractorType: extractor
             }, null, 2),
             'failed_after_retries.json');
-        throw new Error('Failed to get result after 3 retries')
+        throw new Error(`Failed to extract content after 3 retries.\nExtractor type: ${extractor}\nLast attempt content length: ${lastFile?.length || 0} chars\nExpected format rules: ${JSON.stringify(expected)}\nCheck logs for detailed error information in failed_after_retries.json`)
     }
 
     private async checkExtracted(result: string, expected: Rules) {
