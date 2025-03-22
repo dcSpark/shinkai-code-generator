@@ -1,6 +1,6 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
-import path from "node:path";
+import * as path from "jsr:@std/path";
 import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { FileManager } from "./FileManager.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
@@ -36,6 +36,9 @@ export class ShinkaiPipeline {
 
     // External libraries docs
     private docs: Record<string, string> = {};
+
+    // Perplexity search results
+    private perplexityResults: string = '';
 
     // Internal tools
     private internalToolsJSON: string[] = [];
@@ -269,6 +272,55 @@ export class ShinkaiPipeline {
         this.step++;
     }
 
+    private async processPerplexitySearch() {
+        // Skip if PERPLEXITY_API_KEY is not set
+        const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+        if (!perplexityApiKey) {
+            await this.fileManager.log(`[Planning Step ${this.step}] Skipping Perplexity search - API key not found`, true);
+            return;
+        }
+
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'perplexity.md')) {
+            await this.fileManager.log(` Step ${this.step} - Perplexity Search `, true);
+            this.perplexityResults = await this.fileManager.load(this.step, 'c', 'perplexity.md');
+            this.step++;
+            return;
+        }
+
+        this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
+
+        try {
+            const response = await fetch('https://api.perplexity.ai/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${perplexityApiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'sonar-reasoning',
+                    messages: [{
+                        role: 'user',
+                        content: `I need to implement the following functionality: ${this.test.prompt}\n\nPlease provide detailed technical information, implementation approaches, best practices, and any relevant code examples or libraries that could help implement this.`
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            this.perplexityResults = data.choices[0].message.content;
+            await this.fileManager.save(this.step, 'c', this.perplexityResults, 'perplexity.md');
+            this.step++;
+        } catch (error: unknown) {
+            await this.fileManager.log(`[Warning] Perplexity search failed: ${error instanceof Error ? error.message : String(error)}`, true);
+            // Continue pipeline even if Perplexity search fails
+            return;
+        }
+    }
+
     private async processInternalTools() {
         // Check if output file exists
         if (await this.fileManager.exists(this.step, 'c', 'internal-tools.json')) {
@@ -357,18 +409,23 @@ get_access_token
 ${doc}
 `).join('\n\n');
 
+            // Add Perplexity search results if available
+            const perplexityDocsString = this.perplexityResults ? `
+# Perplexity Search Results
+${this.perplexityResults}
+` : '';
+
             // TODO Refetch only used libaries
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
                 `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
             ).replace(
                 '<libraries_documentation>\n\n</libraries_documentation>',
-                `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
+                `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
             ).replace(
                 '<internal_libraries>\n\n</internal_libraries>',
                 `<internal_libraries>\n${internalTools_Tools}\n</internal_libraries>`
-            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
-
+            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python');
 
             await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
@@ -456,7 +513,7 @@ Import these functions with the format: \`import { xx } from './shinkai-local-to
 ${alternativeHeaders}
 </file-name=shinkai-local-tools>
 `
-                );
+            );
 
 
 
@@ -727,7 +784,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
         "command": "deno"
     }
 }
-        `;
+    `;
         console.log(JSON.stringify({ markdown }));
     }
 
@@ -777,6 +834,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
 
             await this.processLibrarySearch();
+            await this.processPerplexitySearch();
             await this.processInternalTools();
             await this.generatePlan();
             await this.generateCode();
