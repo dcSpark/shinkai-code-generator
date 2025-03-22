@@ -24,6 +24,11 @@ cp .env.example .env
 deno --watch -A src/service.ts
 ```
 
+If you prefer to have a debugger run
+```
+run --inspect-brk -A ./src/service.ts
+```
+
 > TEST curl localhost:8080/generate\?language=typescript\&prompt=hello_world                                                              
 
 > Open test.html to use the frontend
