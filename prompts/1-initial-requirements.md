@@ -1,5 +1,5 @@
 <rules>
-Given an input_command, first analyze the problem and consider the standard-libraries, internal-libraries, external-libraries, and IO tests, then do the following 6 actions.
+Given an input_command, first think how you would solve the problem, considering the the standard-libraries, internal-libraries, external-libraries, and IO tests, then do the following 6 actions.
 
 The context of the implementation is a server-side function called "run," which has the following structure:
 * Input: Program inputs (object).

@@ -200,7 +200,7 @@ class OpenAI extends BaseEngine {
     const payload: OpenAIPayload = {
       model: this.name,
       messages: [{
-        role: 'developer',
+        role: 'system',
         content:
           [{
             type: 'text',
@@ -215,7 +215,7 @@ class OpenAI extends BaseEngine {
 }
 
 interface OpenAIMessage {
-  role: 'developer' | 'user' | 'assistant';
+  role: 'system' | 'user' | 'assistant';
   content: {
     type: 'text',
     text: string,
