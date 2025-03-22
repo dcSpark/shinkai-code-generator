@@ -34,7 +34,7 @@ type StreamEvent = {
 const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080'
 
 export default function Home() {
-  const [prompt, setPrompt] = useState("sum 1 + 1, use no libraries")
+  const [prompt, setPrompt] = useState("generate a tool that downloads the transcript from a youtube url. it shouldnt require any api keys")
   const [language, setLanguage] = useState<Language>("typescript")
   const [toolType, setToolType] = useState<ToolType>("shinkai")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -420,7 +420,7 @@ export default function Home() {
       
       // Make the API call to continue without feedback
       const response = await fetch(
-        `${CODE_GENERATOR_URL}/generate?skipfeedback=false&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
+        `${CODE_GENERATOR_URL}/generate?skipfeedback=true&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
         {
           method: 'GET',
           headers: {
