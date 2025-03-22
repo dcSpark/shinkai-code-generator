@@ -1,10 +1,12 @@
 <rules>
-Given an input_command, first think how you would solve the problem, considering the the standard-libraries, internal-libraries, external-libraries, and IO tests, then do the following 6 actions.
+Given an input_command, first think how you would solve the problem, considering the the standard-libraries, internal-libraries, external-libraries, and IO tests.
 
 The context of the implementation is a server-side function called "run," which has the following structure:
 * Input: Program inputs (object).
 * Config: Static external values (e.g., API Keys, Secrets, or other required developer settings). Placeholders may be used if they will function at runtime (e.g., file names).
 * Output: The program outputs an object. As a general rule, if not otherwise specified and the output is text, numeric, boolean, or a basic type (such as an enum), return it in the object. If the output is binary or a file type, return the file path in the object.
+
+Then do the following 6 actions:
 
 1. Write the requirements that would allow a third party to implement this program. Describe them as a list.
 2. Identify which {LANGUAGE} standard libraries (i.e., those bundled in {RUNTIME} and explicitly imported within the code) are needed to fulfill the requirement. If none, write NONE.
