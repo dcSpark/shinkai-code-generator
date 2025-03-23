@@ -1,8 +1,11 @@
-import axios from "npm:axios";
+// Using fetch API instead of axios for better Deno compatibility
+// import axios from "npm:axios";
 import { FileManager } from "./FileManager.ts";
+import { EnvironmentService } from "./services/EnvironmentService.ts";
 
-const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");
-const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");
+const envService = new EnvironmentService();
+const ollamaApiUrl = envService.get("OLLAMA_API_URL");
+const OPEN_AI_KEY = envService.get("OPEN_AI_KEY");
 
 export type Payload = OllamaPayload | OpenAIPayload;
 
@@ -14,9 +17,9 @@ export abstract class BaseEngine {
     public readonly name: string,
     public readonly thinkingAbout: string = ""
   ) {
-    this.path = name.replaceAll(/[^a-zA-Z0-9]/g, "-");
+    this.path = name.replace(/[^a-zA-Z0-9]/g, "-");
     // TODO how to generate names correctly for shinkai?
-    this.shinkaiName = `o_${name.replaceAll(/[^a-zA-Z0-9]/g, "_")}`;
+    this.shinkaiName = `o_${name.replace(/[^a-zA-Z0-9]/g, "_")}`;
   }
 
   abstract run(
@@ -170,8 +173,12 @@ class OpenAI extends BaseEngine {
       logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
       responseData = JSON.parse(cachedPayload);
     } else {
-      const response = await axios<OpenAIResponse>(data);
-      responseData = response.data;
+      const response = await fetch(data.url, {
+        method: data.method,
+        headers: data.headers,
+        body: JSON.stringify(data.data)
+      });
+      responseData = await response.json();
       logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
     }
 
@@ -254,28 +261,29 @@ class OllamaEngine extends BaseEngine {
     const contextMessage = thinkingAbout || this.thinkingAbout || "Processing";
     logger?.log(`[Thinking] AI Thinking About ${contextMessage}`);
 
-    const response = await axios({
-      url: `${ollamaApiUrl}/api/chat`,
+    const response = await fetch(`${ollamaApiUrl}/api/chat`, {
       method: "POST",
-      data: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
+    const responseData = await response.json();
     const end = Date.now();
 
     const time = end - start;
     logger?.log(`[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(/\n/g, " "));
-    payload = this.addToOllamaPayload(response.data.message.content, 'assistant', payload);
+    payload = this.addToOllamaPayload(responseData.message.content, 'assistant', payload);
     return {
-      message: response.data.message.content,
+      message: responseData.message.content,
       metadata: payload
     };
   }
 
   public static async fetchModels(): Promise<string[]> {
-    const response = await axios<{ models: { model: string }[] }>({
-      url: `${ollamaApiUrl}/api/tags`,
-      method: "GET",
-    });
-    return response.data.models
+    const response = await fetch(`${ollamaApiUrl}/api/tags`);
+    const data = await response.json();
+    return data.models
       .filter((m) => !m.model.startsWith("snowflake-arctic"))
       .map((m) => m.model);
   }
