@@ -35,7 +35,7 @@ const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080'
 
 export default function Home() {
   // const [prompt, setPrompt] = useState("generate a tool that downloads the transcript from a youtube url. it shouldnt require any api keys")
-  const [prompt, setPrompt] = useState("generate a tool that searches for the most recent papers about a supplement eg: curcumin, ashwagandha and summarizes the information. it shouldnt require any api keys")
+  const [prompt, setPrompt] = useState("generate a tool that searches for the most recent papers online about a supplement. input egs: curcumin, ashwagandha and summarizes the information. it shouldnt require any api keys")
   const [language, setLanguage] = useState<Language>("typescript")
   const [toolType, setToolType] = useState<ToolType>("shinkai")
   const [isGenerating, setIsGenerating] = useState(false)
