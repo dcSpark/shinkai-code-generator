@@ -1,6 +1,9 @@
-import { parseArgs } from "jsr:@std/cli/parse-args";
-import "jsr:@std/dotenv/load";
-import path from "node:path";
+// Use relative path handling instead of external path module
+// Simple path joining function to replace path.join
+function joinPaths(...paths: string[]): string {
+  return paths.join('/').replace(/\/+/g, '/');
+}
+// Environment variables and arguments will be handled by EnvironmentService
 import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { FileManager } from "./FileManager.ts";
 import { BaseEngine, Payload } from "./llm-engines.ts";
@@ -10,19 +13,26 @@ import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
 import { ShinkaiPipelineMetadata } from "./ShinkaiPipelineMeta.ts";
 import { getHeaders } from "./support.ts";
 import { Language } from "./types.ts";
+import { PipelineContext } from "./PipelineContext.ts";
+import { PipelineExecutor } from "./PipelineExecutor.ts";
+import { RequirementsStep } from "./steps/RequirementsStep.ts";
+import { PerplexitySearchStep } from "./steps/PerplexitySearchStep.ts";
+import { EnvironmentService } from "./services/EnvironmentService.ts";
+import { IPipelineStep } from "./interfaces/IPipelineStep.ts";
 
-const flags = parseArgs(Deno.args, {
-    boolean: ["keepcache", "force-docs"],
-});
-const KEEP_CACHE = flags.keepcache || flags["force-docs"];
-const FORCE_DOCS_GENERATION = flags["force-docs"];
+// Replace Deno-specific argument parsing with environment variables
+const envService = new EnvironmentService();
+const KEEP_CACHE = envService.get('KEEPCACHE') === 'true' || envService.get('FORCE_DOCS') === 'true';
+const FORCE_DOCS_GENERATION = envService.get('FORCE_DOCS') === 'true';
 
 export class ShinkaiPipeline {
-    // Setup in constructor
+    // Core components
     private fileManager: FileManager;
     private llmFormatter: LLMFormatter;
-
-    // State machine step
+    private context: PipelineContext;
+    private envService: EnvironmentService;
+    
+    // State machine step (kept for backward compatibility)
     private step: number = 0;
 
     // Final "Requirements" with feedback
@@ -36,6 +46,9 @@ export class ShinkaiPipeline {
 
     // External libraries docs
     private docs: Record<string, string> = {};
+
+    // Perplexity search results
+    private perplexityResults: string = '';
 
     // Internal tools
     private internalToolsJSON: string[] = [];
@@ -74,6 +87,8 @@ export class ShinkaiPipeline {
         this.llmFormatter = new LLMFormatter(this.fileManager);
         this.startTime = Date.now();
         this.toolType = toolType;
+        this.context = new PipelineContext();
+        this.envService = new EnvironmentService();
     }
 
     private async initialize() {
@@ -133,7 +148,7 @@ export class ShinkaiPipeline {
                 user_prompt += "\n\nNo matter what was said before, the \"Internal Libraries\" section is always NONE."
             }
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/1-initial-requirements.md')).replace(
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/1-initial-requirements.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${user_prompt}\n\n</input_command>`
             )
@@ -194,7 +209,7 @@ export class ShinkaiPipeline {
 
             this.fileManager.log(`[Planning Step ${this.step}] User Requirements & Feedback Prompt`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/2-feedback.md')).replace(
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/2-feedback.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
@@ -232,7 +247,7 @@ export class ShinkaiPipeline {
         } else {
             parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                 this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
-                const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
+                const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/3-library.md')).replace(
                     '<input_command>\n\n</input_command>',
                     `<input_command>\n${this.feedback}\n\n</input_command>`
                 );
@@ -306,7 +321,7 @@ get_access_token
         // console.log(JSON.stringify({ availableTools }));
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}]Internal Libraries Prompt`, true);
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/4-internal-tools.md')).replace(
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/4-internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
                 `<input_command>\n${this.feedback}\n\n </input_command>`
             ).replace(
@@ -358,7 +373,7 @@ ${doc}
 `).join('\n\n');
 
             // TODO Refetch only used libaries
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
                 `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
             ).replace(
@@ -416,13 +431,13 @@ ${doc}
                 .join('\n');
 
             if (this.language === 'typescript') {
-                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-ts.md');
+                toolPrompt = this.envService.readTextFileSync(this.envService.getCwd() + '/prompts/6-code-ts.md');
                 toolPrompt = toolPrompt.replace(
                     '<file-name=shinkai-local-tools>\n\n</file-name=shinkai-local-tools>',
                     `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
                 );
             } else if (this.language === 'python') {
-                toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-py.md');
+                toolPrompt = this.envService.readTextFileSync(this.envService.getCwd() + '/prompts/6-code-py.md');
                 toolPrompt = toolPrompt.replace(
                     '<file-name=shinkai_local_tools>\n\n</file-name=shinkai_local_tools>',
                     `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
@@ -560,7 +575,7 @@ ${additionalRules}
                     warningString = warningString.replace(/^Download [^ ]+$/g, '');
                 }
                 // Read the fix-code prompt
-                const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/7-fix-code.md'))
+                const fixCodePrompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/7-fix-code.md'))
                     .replace('<warnings>\n\n</warnings>', `<warnings>\n${warningString}\n</warnings>`)
                     .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
                     .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
@@ -637,7 +652,7 @@ In the next example tag is an example of the commented script block that MUST be
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/8-test.md'))
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/8-test.md'))
                 .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.feedback}\n</requirement>`)
                 .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
 
@@ -678,7 +693,7 @@ In the next example tag is an example of the commented script block that MUST be
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
 
-            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-feedback_analysis.md')).replace(
+            const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/3-feedback_analysis.md')).replace(
                 '<feedback>\n\n</feedback>',
                 `<feedback>\n${user_prompt}\n</feedback>`
             );
@@ -706,23 +721,24 @@ In the next example tag is an example of the commented script block that MUST be
             return;
         }
 
-        const srcPath = path.join(this.fileManager.toolDir, `src`);
-        const mcp = await Deno.readTextFile(Deno.cwd() + '/templates/mcp.ts');
-        const denojson = await Deno.readTextFile(Deno.cwd() + '/templates/deno.json');
-        Deno.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
-        Deno.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
+        const srcPath = joinPaths(this.fileManager.toolDir, `src`);
+        const mcp = await this.envService.readTextFile(this.envService.getCwd() + '/templates/mcp.ts');
+        const denojson = await this.envService.readTextFile(this.envService.getCwd() + '/templates/deno.json');
+        // Use EnvironmentService to write files instead of Deno directly
+        this.envService.writeTextFileSync(joinPaths(srcPath, 'mcp.ts'), mcp);
+        this.envService.writeTextFileSync(joinPaths(srcPath, 'deno.json'), denojson);
         const mcp_name = JSON.parse(this.metadata).name.toLocaleLowerCase().replace(/[^a-z0-9_]/g, '_');
         const markdown = `
 # MCP Config
 ## CURSOR
-deno -A ${path.normalize(srcPath)}/src/mcp.ts
+deno -A ${srcPath}/src/mcp.ts
 
 ## CLAUDE
 "mcpServers": {
     "${mcp_name}": {
         "args": [
             "-A",
-            "${path.normalize(srcPath)}/src/mcp.ts"
+            "${srcPath}/src/mcp.ts"
         ],
         "command": "deno"
     }
@@ -742,6 +758,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     metadata: '',
                 }
             }
+            
             if (state.exists && state.feedback_expected) {
                 // Probably feedback. Let's check the current step.
                 const feedbackAnalysis = await this.processFeedbackAnalysis();
@@ -750,6 +767,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     date: new Date().toISOString(),
                     feedback_expected: false,
                 });
+                
                 if (feedbackAnalysis === 'changes-requested') {
                     this.test.feedback = this.test.prompt;
                 } else {
@@ -757,29 +775,75 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 }
             }
 
-
             await this.initialize();
-            await this.generateRequirements();
+            
+            // Set up pipeline steps
+            const steps: IPipelineStep[] = [];
 
-            if (this.test.feedback) {
-                await this.processUserFeedback();
-                if (!this.skipFeedback) {
-                    console.log(JSON.stringify({ markdown: this.feedback }));
-                    throw new Error('REQUEST_FEEDBACK');
+            // Handle requirements generation
+            if (!this.skipFeedback) {
+                // Setup requirements step
+                const requirementsStep = new RequirementsStep(
+                    this.language,
+                    this.test.prompt,
+                    this.llmModel, 
+                    this.llmFormatter,
+                    this.toolType,
+                    this.shinkaiLocalTools_headers + "\n" + this.shinkaiLocalSupport_headers
+                );
+                steps.push(requirementsStep);
+                
+                // Process user feedback using old implementation temporarily
+                if (this.test.feedback) {
+                    await this.processUserFeedback();
+                    if (!this.skipFeedback) {
+                        console.log(JSON.stringify({ markdown: this.feedback }));
+                        throw new Error('REQUEST_FEEDBACK');
+                    }
+                } else {
+                    while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
+                        this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+                        console.log('EVENT: feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing feedback' }));
+                        this.step++;
+                    }
                 }
             } else {
-                while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
-                    this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
-
-                    console.log('EVENT: feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing feedback' }));
-                    this.step++;
-                }
+                // If skipping feedback, use legacy method to generate requirements
+                await this.generateRequirements();
             }
 
+            // Add Library Search step using legacy implementation for now
             await this.processLibrarySearch();
+
+            // Add Perplexity Search step (from PR #6)
+            const perplexityStep = new PerplexitySearchStep(this.test.prompt);
+            steps.push(perplexityStep);
+            
+            // Execute the new pipeline steps
+            if (steps.length > 0) {
+                // Initialize context with current state
+                this.context.step = this.step;
+                if (this.feedback) this.context.setFeedback(this.feedback);
+                if (this.promptHistory) this.context.setPromptHistory(this.promptHistory);
+                if (this.docs) this.context.setDocs(this.docs);
+                
+                const executor = new PipelineExecutor(steps, this.fileManager, this.context);
+                await executor.execute();
+                
+                // Sync context with legacy properties for backward compatibility
+                this.step = this.context.getStep();
+                this.feedback = this.context.getFeedback();
+                this.promptHistory = this.context.getPromptHistory();
+                this.perplexityResults = this.context.getPerplexityResults();
+                this.docs = this.context.getDocs();
+            }
+            
+            // Continue with rest of pipeline using legacy implementation
             await this.processInternalTools();
             await this.generatePlan();
             await this.generateCode();
+            
+            // Check code only if needed
             let retries = 5;
             while (retries > 0) {
                 const { warnings } = await this.checkGeneratedCode();
@@ -787,23 +851,27 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 retries--;
             }
             console.log(`EVENT: code\n${JSON.stringify({ code: this.code })}`);
-
-            const runMetadata = Deno.env.get('GENERATE_METADATA') === 'true';
+            
+            // Generate metadata if needed
+            const runMetadata = this.envService.get('GENERATE_METADATA') === 'true';
             if (runMetadata) {
                 const metadataPipeline = new ShinkaiPipelineMetadata(this.code, this.language, this.test, this.llmModel, this.stream);
                 const metadataResult = await metadataPipeline.run();
                 this.metadata = metadataResult.metadata;
             }
-
-            const runTests = Deno.env.get('GENERATE_TESTS') === 'true';
+            
+            // Generate tests if needed
+            const runTests = this.envService.get('GENERATE_TESTS') === 'true';
             if (runTests) {
                 await this.generateTests();
             }
-            await this.fileManager.saveFinal(this.code, undefined);
-
+            
+            // Preserve final outputs and logs
+            await this.fileManager.saveFinal(this.code, this.metadata);
             await this.generateMCP();
             await this.logCompletion();
 
+            // Return the final result
             return {
                 code: this.code,
                 metadata: this.metadata,
@@ -815,7 +883,6 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     feedback_expected: true,
                 });
                 console.log("EVENT: request-feedback");
-                // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
                 return {
                     status: "REQUEST_FEEDBACK",
                     code: '',

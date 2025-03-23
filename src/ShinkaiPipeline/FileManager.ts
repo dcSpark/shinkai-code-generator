@@ -1,6 +1,11 @@
-import { exists } from "jsr:@std/fs/exists";
-import path from "node:path";
+import { exists } from "https://deno.land/std/fs/exists.ts";
+import * as path from "https://deno.land/std/path/mod.ts";
 import { Language } from "./types.ts";
+
+// Simple path joining function to replace path.join
+function joinPaths(...paths: string[]): string {
+  return paths.join('/').replace(/\/+/g, '/');
+}
 
 export class FileManager {
 
@@ -73,14 +78,14 @@ export class FileManager {
         return filePath;
     }
 
-    async saveFinal(tool: string | undefined, metadata: string | undefined) {
+    async saveFinal(code: string, metadata: string | undefined) {
         const srcPath = path.join(this.toolDir, `src`);
         if (this.language === 'typescript') {
             const filePath1 = path.join(srcPath, `tool.ts`);
             const filePath2 = path.join(srcPath, `metadata.json`);
             await Deno.mkdir(srcPath, { recursive: true });
-            if (tool) {
-                await Deno.writeTextFile(filePath1, tool);
+            if (code) {
+                await Deno.writeTextFile(filePath1, code);
             }
             if (metadata) {
                 await Deno.writeTextFile(filePath2, metadata);
@@ -107,7 +112,7 @@ export class FileManager {
         return await exists(filePath);
     }
 
-    async writeState(config: { date: string, feedback_expected: boolean }) {
+    async writeState(config: { date: string, feedback_expected: boolean, completed?: boolean }) {
         const filePath = path.join(this.toolDir, `state.json`);
         await Deno.writeTextFile(filePath, JSON.stringify(config));
     }
