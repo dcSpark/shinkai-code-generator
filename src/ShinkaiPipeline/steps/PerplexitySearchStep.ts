@@ -7,7 +7,7 @@ export class PerplexitySearchStep extends BasePipelineStep {
     super();
   }
   
-  async shouldSkip(): Promise<boolean> {
+  override async shouldSkip(): Promise<boolean> {
     const perplexityApiKey = this.envService.get('PERPLEXITY_API_KEY');
     return !perplexityApiKey;
   }

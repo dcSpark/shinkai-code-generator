@@ -284,8 +284,8 @@ class OllamaEngine extends BaseEngine {
     const response = await fetch(`${ollamaApiUrl}/api/tags`);
     const data = await response.json();
     return data.models
-      .filter((m) => !m.model.startsWith("snowflake-arctic"))
-      .map((m) => m.model);
+      .filter((m: { model: string }) => !m.model.startsWith("snowflake-arctic"))
+      .map((m: { model: string }) => m.model);
   }
 
   static override async getInstalledModels(): Promise<BaseEngine[]> {
