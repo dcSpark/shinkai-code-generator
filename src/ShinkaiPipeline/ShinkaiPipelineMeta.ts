@@ -5,14 +5,19 @@ import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { getHeaders } from "./support.ts";
 import { Language } from "./types.ts";
+import { EnvironmentService } from "./services/EnvironmentService.ts";
 
 export class ShinkaiPipelineMetadata {
     // Setup in constructor
     private fileManager: FileManager;
     private llmFormatter: LLMFormatter;
+    private envService: EnvironmentService;
 
     // State machine step
     private step: number = 14000;
+    
+    // Tool type
+    private toolType: 'shinkai' | 'mcp' = 'shinkai';
 
     // Internal tools
     // TODO: Workardoun to get the tool list.
@@ -71,6 +76,7 @@ export class ShinkaiPipelineMetadata {
     ) {
         this.fileManager = new FileManager(language, test.code, stream);
         this.llmFormatter = new LLMFormatter(this.fileManager);
+        this.envService = new EnvironmentService();
         this.startTime = Date.now();
     }
 
@@ -115,7 +121,7 @@ export class ShinkaiPipelineMetadata {
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate the metadata`, true);
 
-            let metadataPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/9-metadata.md');
+            let metadataPrompt = this.envService.readTextFileSync(this.envService.getCwd() + '/prompts/9-metadata.md');
 
             if (!this.headers_found) {
                 metadataPrompt = metadataPrompt.replace(
@@ -124,7 +130,7 @@ export class ShinkaiPipelineMetadata {
                 );
             } else {
                 const trks: string[] = this.shinkaiLocalTools_toolRouterKeys.map(t => t.toolRouterKey);
-                if (Deno.env.get('DEBUG') === 'true') {
+                if (this.envService.get('DEBUG') === 'true') {
                     console.log({ message: '[DEBUG] Found tool router keys', trks: trks.join(',') });
                 }
                 metadataPrompt = metadataPrompt.replace(
@@ -167,7 +173,7 @@ export class ShinkaiPipelineMetadata {
         }
         try {
             await this.generateMetadata();
-            await this.fileManager.saveFinal(undefined, this.metadata);
+            await this.fileManager.saveFinal("", this.metadata);
 
             return { metadata: this.metadata }
         } catch (e) {
