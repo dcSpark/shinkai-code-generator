@@ -1,7 +1,7 @@
 import { SearchResponse } from "../Search.ts";
 
 export const selectSearchUrlsPrompt = (searchResponse: SearchResponse, finalQuery: string) => `
-In the search results tag, there is JSON with a internet serach result for the query: "${finalQuery}"
+In the search_results tag, there is JSON with an Internet search result for the query: "${finalQuery}"
 <search_results>
 ${JSON.stringify(searchResponse.web.results.map(r => ({
     title: r.title,
@@ -23,7 +23,7 @@ ${JSON.stringify(searchResponse.web.results.map(r => ({
 ["https://URL1", "https://URL2", "https://URL3"]
 \`\`\`
 </output>
-* JSON have valid syntax and only urls.
+* JSON must have valid syntax and only contain URLs.
 </format>
 
             `

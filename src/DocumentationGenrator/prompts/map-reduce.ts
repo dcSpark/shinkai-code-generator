@@ -37,7 +37,7 @@ ${chunk}
 * sponsors
 * external links that add no value to the documentation.
 
-## If not sure, or possible ambiguous, then keep it.  
+## If not sure, or possibly ambiguous, then keep it.  
 </rules>
 
 `;
