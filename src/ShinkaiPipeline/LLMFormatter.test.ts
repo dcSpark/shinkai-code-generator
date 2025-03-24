@@ -226,4 +226,20 @@ x = "\`\`\` not a code block"
     assertEquals(result[1].type, 'python');
     assertArrayIncludes(result[1].content.split('\n'), ['print("This is a backtick: `")']);
     assertArrayIncludes(result[1].content.split('\n'), ['x = "``` not a code block"']);
+});
+
+Deno.test("LLMFormatter.extractStateMachine should handle input that is entirely a code block", () => {
+    const formatter = new LLMFormatter(undefined);
+
+    const pureCodeText = `
+function pureCode() {
+    const greeting = "Hello, World!";
+    console.log(greeting);
+    return greeting;
+}
+`;
+
+    const result = (formatter as any).tryToExtractTS(pureCodeText);
+
+    assertEquals(result, pureCodeText);
 }); 

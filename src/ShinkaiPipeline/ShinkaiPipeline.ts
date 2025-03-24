@@ -1,7 +1,7 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import * as path from "jsr:@std/path";
-import { DependencyDoc } from "../DocumentationGenrator/index.ts";
+// import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
@@ -311,7 +311,7 @@ export class ShinkaiPipeline {
 
         const libQueries = JSON.parse(parsedLLMResponse) as string[];
         const codes = 'defghijklmnopqrstuvwxyz';
-        const docManager = new DependencyDoc(this.llmModel, this.fileManager);
+        // const docManager = new DependencyDoc(this.llmModel, this.fileManager);
         for (const [index, library] of libQueries.entries()) {
             const safeLibraryName = library.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
             if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md')) {
@@ -320,7 +320,7 @@ export class ShinkaiPipeline {
                 this.docs[library] = existingFile;
             } else {
                 this.fileManager.log(`[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
-                const dependencyDoc = await docManager.getDependencyDocumentation(library, this.language);
+                const dependencyDoc = ''; // await docManager.getDependencyDocumentation(library, this.language);
                 this.docs[library] = dependencyDoc;
                 await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
             }
@@ -595,8 +595,13 @@ ${Object.entries(this.docs).map(([library, doc]) => `
 ${additionalRules}
     * For missing and additional required libraries, prefer the following order:`
             );
-            await this.fileManager.save(this.step, 'a', toolCode, 'code-prompt.md');
-            const llmResponse = await this.advancedLlmModel.run(toolCode, this.fileManager, undefined, "Generating Tool Code");
+
+            const toolCodeWithReferenceImplementation = toolCode.replace(
+                '<example_implementation>\n\n</example_implementation>',
+                `<example_implementation>\n${this.perplexityResults}\n</example_implementation>`
+            );
+            await this.fileManager.save(this.step, 'a', toolCodeWithReferenceImplementation, 'code-prompt.md');
+            const llmResponse = await this.advancedLlmModel.run(toolCodeWithReferenceImplementation, this.fileManager, undefined, "Generating Tool Code");
             const promptResponse = llmResponse.message;
 
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-code-response.md');

@@ -110,6 +110,10 @@ declare async function getAccessToken(providerName: string): Promise<string>;
   </deno>
 </agent_libraries_documentation>
 
+<example_implementation>
+
+</example_implementation>
+
 <input_command>
 
 </input_command>

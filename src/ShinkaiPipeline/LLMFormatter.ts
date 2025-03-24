@@ -218,6 +218,10 @@ export class LLMFormatter {
                 /```(?:typescript)?\n([\s\S]+?)\n```/;
             return match[index]?.match(regex2)?.[1];
         }
+        // If no code blocks found and extraction is empty, return the entire text
+        if (!text.includes('```')) {
+            return text;
+        }
         return;
     }
 
@@ -231,6 +235,10 @@ export class LLMFormatter {
                 /```python\n([\s\S]+?)\n```/ :
                 /```(?:python)?\n([\s\S]+?)\n```/;
             return match[index]?.match(regex2)?.[1];
+        }
+        // If no code blocks found and extraction is empty, return the entire text
+        if (!text.includes('```')) {
+            return text;
         }
         return;
     }

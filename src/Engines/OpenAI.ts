@@ -16,6 +16,7 @@ export interface OpenAIPayload {
     model: string;
     messages: OpenAIMessage[];
     // stream: boolean;
+    reasoning_effort?: string;
 }
 interface OpenAIResponse {
     id: string;
@@ -63,6 +64,10 @@ export class OpenAI extends BaseEngine {
         let payload = payloadHistory ? this.addToOpenAIPayload(prompt, 'user', payloadHistory) : this.newOpenAIPayload(prompt);
         if (!OPEN_AI_KEY) {
             throw new Error("OPEN_AI_KEY is not set");
+        }
+
+        if (this.name === 'o3-mini') {
+            payload.reasoning_effort = "low"
         }
 
         const tokenCount = countTokensFromMessageLlama3(JSON.stringify(payload));

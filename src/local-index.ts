@@ -1,6 +1,6 @@
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4Mini } from "./Engines/index.ts";
+import { getModelSmall } from "./Engines/index.ts";
 import { FileManager } from "./ShinkaiPipeline/FileManager.ts";
 import { getTests } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiPipeline } from "./ShinkaiPipeline/ShinkaiPipeline.ts";
@@ -17,9 +17,7 @@ async function start() {
         await FileManager.clearFolder();
     }
     const llm = [
-        // getDeepSeekR132B(), // Good results (for testing output)
-        // getLlama318bInstruct() // Fast results (for testing engine)
-        getOpenAIO4Mini() // Fast + Good
+        getModelSmall()
     ];
     const languages: Language[] = [
         'typescript',
