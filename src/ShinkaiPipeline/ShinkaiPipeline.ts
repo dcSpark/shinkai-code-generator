@@ -2,6 +2,7 @@ import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import * as path from "jsr:@std/path";
 // import { DependencyDoc } from "../DocumentationGenrator/index.ts";
+import * as TurndownService from "npm:turndown";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
@@ -282,51 +283,106 @@ export class ShinkaiPipeline {
     }
 
     private async processLibrarySearch() {
-
-        let parsedLLMResponse = ''
-        if (await this.fileManager.exists(this.step, 'c', 'library.json')) {
-            await this.fileManager.log(` Step ${this.step} - Library Search `, true);
-            const existingLibraryJson = await this.fileManager.load(this.step, 'c', 'library.json');
-            parsedLLMResponse = existingLibraryJson;
-            // Load existing dependency docs
-        } else {
-            parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
-                this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
-                const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
-                    '<input_command>\n\n</input_command>',
-                    `<input_command>\n${this.requirements}\n\n</input_command>`
-                );
-                await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
-                const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Searching for Required Libraries");
-                const promptResponse = llmResponse.message;
-                await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
-                return promptResponse;
-            }, 'json', {
-                isJSONArray: true
-            });
-
-            await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'library.json');
-        }
-
-
-        const libQueries = JSON.parse(parsedLLMResponse) as string[];
         const codes = 'defghijklmnopqrstuvwxyz';
-        // const docManager = new DependencyDoc(this.llmModel, this.fileManager);
-        for (const [index, library] of libQueries.entries()) {
-            const safeLibraryName = library.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
-            if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md')) {
-                await this.fileManager.log(` Step ${this.step} - Dependency Doc `, true);
-                const existingFile = await this.fileManager.load(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md');
-                this.docs[library] = existingFile;
+        {
+            let parsedLLMResponse = ''
+            if (await this.fileManager.exists(this.step, 'c', 'library.json')) {
+                await this.fileManager.log(` Step ${this.step} - Library Search `, true);
+                const existingLibraryJson = await this.fileManager.load(this.step, 'c', 'library.json');
+                parsedLLMResponse = existingLibraryJson;
+                // Load existing dependency docs
             } else {
-                this.fileManager.log(`[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
-                const dependencyDoc = ''; // await docManager.getDependencyDocumentation(library, this.language);
-                this.docs[library] = dependencyDoc;
-                await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
+                parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+                    this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
+                    const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
+                        '<input_command>\n\n</input_command>',
+                        `<input_command>\n${this.requirements}\n\n</input_command>`
+                    );
+                    await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
+                    const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Searching for Required Libraries");
+                    const promptResponse = llmResponse.message;
+                    await this.fileManager.save(this.step, 'b', promptResponse, 'raw-library-response.md');
+                    return promptResponse;
+                }, 'json', {
+                    isJSONArray: true
+                });
+
+                await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'library.json');
             }
+
+
+            const libQueries = JSON.parse(parsedLLMResponse) as string[];
+
+            // const docManager = new DependencyDoc(this.llmModel, this.fileManager);
+            for (const [index, library] of libQueries.entries()) {
+                const safeLibraryName = library.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
+                if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md')) {
+                    await this.fileManager.log(` Step ${this.step} - Dependency Doc `, true);
+                    const existingFile = await this.fileManager.load(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md');
+                    this.docs[library] = existingFile;
+                } else {
+                    this.fileManager.log(`[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
+                    const dependencyDoc = ''; // await docManager.getDependencyDocumentation(library, this.language);
+                    this.docs[library] = dependencyDoc;
+                    await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
+                }
+            }
+
+            this.step++;
         }
 
-        this.step++;
+        {
+
+
+            const documentationURL = 'https://shinkai-agent-knowledge-base.pages.dev/';
+            let parsedLLMResponse = ''
+            if (await this.fileManager.exists(this.step, 'c', 'kb-library.jsonn')) {
+                await this.fileManager.log(` Step ${this.step} - KB Library Search `, true);
+                const existingLibraryJson = await this.fileManager.load(this.step, 'c', 'kb-library.json');
+                parsedLLMResponse = existingLibraryJson;
+                // Load existing dependency docs
+            } else {
+
+                const documentation = await fetch(documentationURL);
+                const documentationHTML = await documentation.text();
+
+                parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+                    let documentationFile = Deno.readTextFileSync(Deno.cwd() + '/prompts/3a-fetch-library.md');
+                    documentationFile = documentationFile.replace('<web>\n\n</web>', `<web>\n${documentationHTML}\n</web>`);
+                    documentationFile = documentationFile.replace('<requirements>\n\n</requirements>', `<requirements>\n${this.requirements}\n</requirements>`);
+                    await this.fileManager.save(this.step, 'a', documentationFile, 'kb-library-prompt.md');
+
+                    const llmResponse = await this.llmModel.run(documentationFile, this.fileManager, undefined, "Fetching Documentation");
+                    await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-kb-library-response.md');
+
+                    return llmResponse.message
+                }, 'json', {
+                    isJSONArray: true
+                });
+                await this.fileManager.save(this.step, 'c', parsedLLMResponse, 'kb-library.json');
+            }
+            const documentationJSON: string[] = JSON.parse(parsedLLMResponse);
+
+            for (const [index, url] of documentationJSON.entries()) {
+                const safeLibraryName = url.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
+                if (await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-kb-dependency-doc.md')) {
+                    await this.fileManager.log(` Step ${this.step} - KB Library `, true);
+                    const existingFile = await this.fileManager.load(this.step, codes[index % codes.length], safeLibraryName + '-kb-dependency-doc.md');
+                    this.docs[safeLibraryName] = existingFile;
+                } else {
+                    this.fileManager.log(`[Planning Step ${this.step}] KB Library : ${safeLibraryName}`, true);
+                    const documentation = await fetch(url);
+                    const documentationHTML = await documentation.text();
+                    const turndownService = new TurndownService.default()
+                    const markdown = turndownService.turndown(documentationHTML)
+                    this.docs[safeLibraryName] = markdown;
+                    await this.fileManager.save(this.step, codes[index % codes.length], markdown, safeLibraryName + '-kb-dependency-doc.md');
+                }
+            }
+
+            this.step++;
+        }
+
     }
 
     private async processPerplexitySearch() {
