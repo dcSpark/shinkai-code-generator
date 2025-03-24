@@ -1,7 +1,8 @@
 import { FileManager } from "../FileManager.ts";
 import { BasePipelineStep } from "./BasePipelineStep.ts";
 import { IPipelineStepResult } from "../interfaces/IPipelineStep.ts";
-import { BaseEngine, Payload } from "../llm-engines.ts";
+import { BaseEngine } from "../../Engines/BaseEngine.ts";
+import { Payload } from "../../Engines/index.ts";
 import { LLMFormatter } from "../LLMFormatter.ts";
 import { Language } from "../types.ts";
 

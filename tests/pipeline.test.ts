@@ -5,7 +5,7 @@ import { BasePipelineStep } from "../src/ShinkaiPipeline/steps/BasePipelineStep.
 import { FileManager } from "../src/ShinkaiPipeline/FileManager.ts";
 import { IPipelineStep, IPipelineStepResult } from "../src/ShinkaiPipeline/interfaces/IPipelineStep.ts";
 import { EnvironmentService } from "../src/ShinkaiPipeline/services/EnvironmentService.ts";
-import { Payload } from "../src/ShinkaiPipeline/llm-engines.ts";
+import { Payload } from "../src/Engines/index.ts";
 
 // Mock types for testing
 type MockOpenAIMessage = {

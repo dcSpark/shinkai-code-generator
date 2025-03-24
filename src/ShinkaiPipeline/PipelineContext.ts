@@ -1,4 +1,4 @@
-import { Payload } from "./llm-engines.ts";
+import { Payload } from "../Engines/index.ts";
 
 export class PipelineContext {
   step: number = 0;
