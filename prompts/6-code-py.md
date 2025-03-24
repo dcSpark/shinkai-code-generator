@@ -128,6 +128,10 @@ class OUTPUT:
   * Only if required any additional notes, comments or explanation lines should be prefixed with # character.
   * Write a single implementation file, only one typescript code block.
   * Implements the code in python for the following input_command tag
+  * All functions must be fully implemented with real business logic
+  * If external APIs or services are needed, they must be properly integrated
+  * If you cannot implement a feature completely, explicitly state what's missing rather than using mock data
+  * Comments should explain complex logic or important considerations, not TODO items or placeholders
 </agent_code_implementation>
 
 <agent_pip_requirements>
