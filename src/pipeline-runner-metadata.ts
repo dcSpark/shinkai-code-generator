@@ -1,5 +1,5 @@
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4Mini } from "./ShinkaiPipeline/llm-engines.ts";
+import { getOpenAIO4Mini } from "./Engines/index.ts";
 import { emptyRequirement } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiPipelineMetadata } from "./ShinkaiPipeline/ShinkaiPipelineMeta.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";

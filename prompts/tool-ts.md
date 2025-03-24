@@ -44,6 +44,20 @@ declare async function getShinkaiNodeLocation(): Promise<string>;
  */
 declare async function getAccessToken(providerName: string): Promise<string>;
 
+/**
+ * Processes a prompt using an AI LLM: planning, reasoning, summarization, anything that an AI can do.
+ * @param params - The parameters for prompt processing
+ * @param params.prompt - The prompt to process
+ * @param params.format - Response type (only 'text' is valid)
+ * @param params.tools - Optional list of tool names or tool router keys to use with the prompt
+ * @returns Promise<{message: string}> - The LLM response
+ */
+declare async function shinkaiLlmPromptProcessor(params: {
+  prompt: string;
+  format: 'text';
+  tools?: string[];
+}): Promise<{message: string}>;
+
 ```
   </file-name=shinkai-local-support>
 

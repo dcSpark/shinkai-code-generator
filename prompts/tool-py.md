@@ -61,6 +61,23 @@ async def get_access_token(provider_name: str) -> str:
     ...
 
 
+async def shinkai_llm_prompt_processor(params: Dict[str, Any]) -> Dict[str, str]:
+    """Processes a prompt using an AI LLM: planning, reasoning, summarization, anything that an AI can do.
+    
+    Args:
+        params: Dict[str, Any]:
+            prompt: str - The prompt to process
+            format: str - Response type (only 'text' is valid)
+            tools: List[str] (optional) - Optional list of tool names or tool router keys to use with the prompt
+
+    Returns:
+        Dict[str, str]: {
+            message: str - The LLM response
+        }
+    """
+    ...
+
+
 ```
   </file-name=shinkai_local_support>
 

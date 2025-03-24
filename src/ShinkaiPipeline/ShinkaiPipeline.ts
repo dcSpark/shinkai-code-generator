@@ -1,12 +1,10 @@
-// Use relative path handling instead of external path module
-// Simple path joining function to replace path.join
-function joinPaths(...paths: string[]): string {
-  return paths.join('/').replace(/\/+/g, '/');
-}
-// Environment variables and arguments will be handled by EnvironmentService
+import { parseArgs } from "jsr:@std/cli/parse-args";
+import "jsr:@std/dotenv/load";
+import * as path from "jsr:@std/path";
 import { DependencyDoc } from "../DocumentationGenrator/index.ts";
+import { BaseEngine } from "./llm-engines.ts";
+import { Payload } from "./llm-engines.ts";
 import { FileManager } from "./FileManager.ts";
-import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
@@ -284,6 +282,60 @@ export class ShinkaiPipeline {
         this.step++;
     }
 
+    private async processPerplexitySearch() {
+        // Skip if PERPLEXITY_API_KEY is not set
+        const perplexityApiKey = this.envService.get('PERPLEXITY_API_KEY');
+        if (!perplexityApiKey) {
+            await this.fileManager.log(`[Planning Step ${this.step}] Skipping Perplexity search - API key not found`, true);
+            this.step++;
+            return;
+        }
+
+        // Check if output file exists
+        if (await this.fileManager.exists(this.step, 'c', 'perplexity.md')) {
+            await this.fileManager.log(` Step ${this.step} - Searching Perplexity for additional context `, true);
+            this.perplexityResults = await this.fileManager.load(this.step, 'c', 'perplexity.md');
+            this.step++;
+            return;
+        }
+
+        this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
+
+        // Use fetch API directly instead of getPerplexity helper
+        const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/3b-perplexity.md')).replace("{{prompt}}", this.feedback);
+        await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
+
+        try {
+            const response = await fetch('https://api.perplexity.ai/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${perplexityApiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'sonar-reasoning',
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }]
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            this.perplexityResults = data.choices[0].message.content;
+        } catch (error: unknown) {
+            await this.fileManager.log(`[Warning] Perplexity search failed: ${error instanceof Error ? error.message : String(error)}`, true);
+            this.perplexityResults = "Perplexity search failed. Continuing without additional context.";
+        }
+
+        await this.fileManager.save(this.step, 'c', this.perplexityResults, 'perplexity.md');
+        this.step++;
+    }
+
     private async processInternalTools() {
         // Check if output file exists
         if (await this.fileManager.exists(this.step, 'c', 'internal-tools.json')) {
@@ -297,7 +349,7 @@ export class ShinkaiPipeline {
 
         if (this.language === 'typescript') {
             availableTools.push(`
-NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+NOTE: The following 5 functions do not have a tool-router-key, if you need their tool-router-key skip them and do not add them to the final output.
 getMountPaths
 getAssetPaths
 getHomePath
@@ -307,7 +359,7 @@ getAccessToken
             );
         } else if (this.language === 'python') {
             availableTools.push(`
-NOTE: The following 5 functions do not have a tool-router-key, if you need thier tool-router-key, skip them and do not add them to the final output.
+NOTE: The following 5 functions do not have a tool-router-key, if you need their tool-router-key skip them and do not add them to the final output.
 get_mount_paths
 get_asset_paths
 get_home_path
@@ -372,18 +424,23 @@ get_access_token
 ${doc}
 `).join('\n\n');
 
+            // Add Perplexity search results if available
+            const perplexityDocsString = this.perplexityResults ? `
+# Perplexity Search Results
+${this.perplexityResults}
+` : '';
+
             // TODO Refetch only used libaries
             const prompt = (await this.envService.readTextFile(this.envService.getCwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
                 `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
             ).replace(
                 '<libraries_documentation>\n\n</libraries_documentation>',
-                `<libraries_documentation>\n${libraryDocsString}\n</libraries_documentation>`
+                `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
             ).replace(
                 '<internal_libraries>\n\n</internal_libraries>',
                 `<internal_libraries>\n${internalTools_Tools}\n</internal_libraries>`
-            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
-
+            ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python');
 
             await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
@@ -473,13 +530,19 @@ ${alternativeHeaders}
 `
                 );
 
-
+            //             const perplexityCode = `
+            // The reference-implementation tag section is an example on a alternative implementation, it might not be correct. 
+            // <reference-implementation>
+            // ${this.perplexityResults}
+            // </reference-implementation>
+            // `;
 
             const additionalRules = this.language === 'typescript' ? `
     * Use "Internal Libraries" with \`import { xx } from './shinkai-local-support.ts\`; 
     * Use "External Libraries" with \`import { xx } from 'npm:xx'\`;
         ` : '';
             const toolCode = `
+
 <libraries_documentation>
 ${Object.entries(this.docs).map(([library, doc]) => `
     The folling libraries_documentation tags are just for reference on how to use the libraries, and do not imply how to implement the rules below.
@@ -721,12 +784,12 @@ In the next example tag is an example of the commented script block that MUST be
             return;
         }
 
-        const srcPath = joinPaths(this.fileManager.toolDir, `src`);
+        const srcPath = path.join(this.fileManager.toolDir, `src`);
         const mcp = await this.envService.readTextFile(this.envService.getCwd() + '/templates/mcp.ts');
         const denojson = await this.envService.readTextFile(this.envService.getCwd() + '/templates/deno.json');
         // Use EnvironmentService to write files instead of Deno directly
-        this.envService.writeTextFileSync(joinPaths(srcPath, 'mcp.ts'), mcp);
-        this.envService.writeTextFileSync(joinPaths(srcPath, 'deno.json'), denojson);
+        this.envService.writeTextFileSync(path.join(srcPath, 'mcp.ts'), mcp);
+        this.envService.writeTextFileSync(path.join(srcPath, 'deno.json'), denojson);
         const mcp_name = JSON.parse(this.metadata).name.toLocaleLowerCase().replace(/[^a-z0-9_]/g, '_');
         const markdown = `
 # MCP Config
@@ -743,7 +806,7 @@ deno -A ${srcPath}/src/mcp.ts
         "command": "deno"
     }
 }
-        `;
+    `;
         console.log(JSON.stringify({ markdown }));
     }
 
@@ -763,7 +826,7 @@ deno -A ${srcPath}/src/mcp.ts
                 // Probably feedback. Let's check the current step.
                 const feedbackAnalysis = await this.processFeedbackAnalysis();
                 await this.fileManager.writeState({
-                    completed: false,
+                    // completed: false,
                     date: new Date().toISOString(),
                     feedback_expected: false,
                 });
@@ -816,6 +879,10 @@ deno -A ${srcPath}/src/mcp.ts
             await this.processLibrarySearch();
 
             // Add Perplexity Search step (from PR #6)
+            // Use both approaches for backward compatibility
+            await this.processPerplexitySearch();
+            
+            // Also use the new modular approach with PipelineExecutor
             const perplexityStep = new PerplexitySearchStep(this.test.prompt);
             steps.push(perplexityStep);
             

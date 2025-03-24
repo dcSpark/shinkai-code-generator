@@ -34,7 +34,8 @@ type StreamEvent = {
 const DEFAULT_CODE_GENERATOR_URL = 'http://localhost:8080'
 
 export default function Home() {
-  const [prompt, setPrompt] = useState("sum 1 + 1, use no libraries")
+  // const [prompt, setPrompt] = useState("generate a tool that downloads the transcript from a youtube url. it shouldnt require any api keys")
+  const [prompt, setPrompt] = useState("generate a tool that searches for the most recent papers online about a supplement. input egs: curcumin, ashwagandha and summarizes the information. it shouldnt require any api keys")
   const [language, setLanguage] = useState<Language>("typescript")
   const [toolType, setToolType] = useState<ToolType>("shinkai")
   const [isGenerating, setIsGenerating] = useState(false)
@@ -192,7 +193,15 @@ export default function Home() {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        // Try to get the error message from the response
+        let errorMessage = `Service ${CODE_GENERATOR_URL}/generate failed with status: ${response.status}`;
+        try {
+          const errorData = await response.text();
+          errorMessage += ` - ${errorData}`;
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+        }
+        throw new Error(errorMessage);
       }
 
       if (!response.body) {
@@ -420,7 +429,7 @@ export default function Home() {
       
       // Make the API call to continue without feedback
       const response = await fetch(
-        `${CODE_GENERATOR_URL}/generate?skipfeedback=false&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
+        `${CODE_GENERATOR_URL}/generate?skipfeedback=true&language=${encodeURIComponent(language)}&prompt=${encodeURIComponent(prompt)}&x_shinkai_request_uuid=${requestUuid}&tool_type=${encodeURIComponent(toolType)}`,
         {
           method: 'GET',
           headers: {

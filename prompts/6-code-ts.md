@@ -75,7 +75,11 @@ declare async function getAccessToken(providerName: string): Promise<string>;
   * If "Buffer" is used, then import it with `import { Buffer } from 'node:buffer';`
   * The code will be shared as a library, when used it run(...) function will be called.
   * The function signature MUST be: `export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT>`
-
+  * Do not include mock implementations or placeholder code - all code must be production-ready
+  * All functions must be fully implemented with real business logic
+  * If external APIs or services are needed, they must be properly integrated
+  * If you cannot implement a feature completely, explicitly state what's missing rather than using mock data
+  * Comments should explain complex logic or important considerations, not TODO items or placeholders
 </agent_code_rules>
 
 <agent_code_implementation>

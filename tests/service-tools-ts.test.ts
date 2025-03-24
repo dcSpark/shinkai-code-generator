@@ -41,7 +41,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             console.log(partialResult);
             part1 += partialResult;
             if (data?.done) break;
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
         reader1 = undefined as any;
         decoder1 = undefined as any;
@@ -77,7 +77,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             console.log(partialResult);
             part2 += partialResult;
             if (data?.done) break;
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
         reader2 = undefined as any;
         decoder2 = undefined as any;
@@ -116,7 +116,7 @@ Deno.test("POST /generate should return 200 with valid parameters", async () => 
             console.log(partialResult);
             part3 += partialResult;
             if (data?.done) break;
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
         reader3 = undefined as any;
         decoder3 = undefined as any;

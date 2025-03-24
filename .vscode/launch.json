@@ -2,13 +2,117 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Deno",
+            "name": "Deno Backend (with frontend rebuild)",
             "type": "node",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "deno",
-            "runtimeArgs": ["run", "--inspect-brk", "-A", "./src/index.ts"],
-            "port": 9229
+            "runtimeArgs": [
+                "run",
+                "--inspect-brk",
+                "-A",
+                "./src/service.ts"
+            ],
+            "attachSimplePort": 9229,
+            "program": "${workspaceFolder}/src/service.ts",
+            "outputCapture": "std",
+            "preLaunchTask": "build-frontend",
+            "sourceMaps": true,
+            "trace": true,
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**/*.ts",
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**",
+                "deno:/**"
+            ],
+            "sourceMapPathOverrides": {
+                "file:///*": "${workspaceFolder}/*",
+                "../*": "${workspaceFolder}/*",
+                "./*": "${workspaceFolder}/*",
+                "/*": "${workspaceFolder}/*"
+            }
+        },
+        {
+            "name": "Deno Backend (no rebuild)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "deno",
+            "runtimeArgs": [
+                "run",
+                "--inspect-brk",
+                "-A",
+                "./src/service.ts"
+            ],
+            "attachSimplePort": 9229,
+            "program": "${workspaceFolder}/src/service.ts",
+            "outputCapture": "std",
+            "sourceMaps": true,
+            "trace": true,
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**/*.ts",
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**",
+                "deno:/**"
+            ],
+            "sourceMapPathOverrides": {
+                "file:///*": "${workspaceFolder}/*",
+                "../*": "${workspaceFolder}/*",
+                "./*": "${workspaceFolder}/*",
+                "/*": "${workspaceFolder}/*"
+            }
+        },
+        {
+            "name": "Deno Backend (clean cache)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "sh",
+            "runtimeArgs": [
+                "-c",
+                "rm -rf cache/.execution cache/.internal && deno run --inspect-brk -A ./src/service.ts"
+            ],
+            "attachSimplePort": 9229,
+            "program": "${workspaceFolder}/src/service.ts",
+            "outputCapture": "std",
+            "sourceMaps": true,
+            "trace": true,
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**/*.ts",
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**",
+                "deno:/**"
+            ],
+            "sourceMapPathOverrides": {
+                "file:///*": "${workspaceFolder}/*",
+                "../*": "${workspaceFolder}/*",
+                "./*": "${workspaceFolder}/*",
+                "/*": "${workspaceFolder}/*"
+            }
         }
     ]
 }

@@ -2,8 +2,8 @@ import { assert } from "https://deno.land/std@0.208.0/assert/assert.ts";
 import { assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import "jsr:@std/dotenv/load";
 import { DependencyDoc } from "../src/DocumentationGenrator/index.ts";
+import { getOpenAIO4Mini } from "../src/Engines/index.ts";
 import { FileManager } from "../src/ShinkaiPipeline/FileManager.ts";
-import { getOpenAIO4Mini } from "../src/ShinkaiPipeline/llm-engines.ts";
 
 
 

@@ -18,6 +18,7 @@
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@*": "0.225.2",
     "jsr:@std/media-types@1": "1.1.0",
+    "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@1": "1.0.8",
     "npm:@modelcontextprotocol/sdk@*": "1.7.0_express@5.0.1_zod@3.24.2",
     "npm:@types/node@*": "22.5.4",
@@ -46,7 +47,7 @@
         "jsr:@std/bytes@1",
         "jsr:@std/http",
         "jsr:@std/media-types",
-        "jsr:@std/path",
+        "jsr:@std/path@1",
         "npm:path-to-regexp"
       ]
     },
