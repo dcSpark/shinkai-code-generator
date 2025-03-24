@@ -1,4 +1,5 @@
 import axios from "npm:axios";
+import { sendEvent } from "../ShinkaiPipeline/events.ts";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString } from "./index.ts";
@@ -10,104 +11,133 @@ type PerplexityResponse = any;
 export type PerplexityPayload = any;
 
 export interface PerplexityMessage {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
+  role: "system" | "user" | "assistant";
+  content: string;
 }
 
-const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
+const perplexityApiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
 export class PerplexityEngine extends BaseEngine {
-    override async run(
-        prompt: string,
-        logger: FileManager | undefined = undefined,
-        payloadHistory: PerplexityPayload | undefined = undefined,
-        thinkingAbout?: string
-    ): Promise<{ message: string, metadata: PerplexityPayload }> {
-        const start = Date.now();
+  override async run(
+    prompt: string,
+    logger: FileManager | undefined = undefined,
+    payloadHistory: PerplexityPayload | undefined = undefined,
+    thinkingAbout?: string
+  ): Promise<{ message: string; metadata: PerplexityPayload }> {
+    const start = Date.now();
 
-        if (!perplexityApiKey) throw new Error('Missing PERPLEXITY_API_KEY')
+    if (!perplexityApiKey) throw new Error("Missing PERPLEXITY_API_KEY");
 
-        const payload = {
-            model: this.name,
-            messages: [{
-                role: 'user',
-                content: prompt
-            }]
-        };
-        const payloadString = JSON.stringify(payload);
-        const tokenCount = countTokensFromMessageLlama3(payloadString);
-        const contextMessage = thinkingAbout || "Processing";
-        logger?.log(`[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`);
-        logger?.save(1000, `${new Date().toISOString()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
+    const payload = {
+      model: this.name,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    };
+    const payloadString = JSON.stringify(payload);
+    const tokenCount = countTokensFromMessageLlama3(payloadString);
+    const contextMessage = thinkingAbout || "Processing";
+    sendEvent({
+      type: "info-message",
+      payload: {
+        message: `[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`,
+      },
+    });
+    logger?.save(
+      1000,
+      `${new Date().toISOString()}-${tokenCount}`,
+      JSON.stringify(payload, null, 2),
+      "json"
+    );
+    const hashedFilename =
+      (await hashString(payloadString)) + "-" + tokenCount + ".json";
+    const cachedPayload = await logger?.loadCache(hashedFilename);
 
-        const hashedFilename = (await hashString(payloadString)) + '-' + tokenCount + '.json';
-        const cachedPayload = await logger?.loadCache(hashedFilename);
-
-        let responseData: PerplexityResponse | null = null;
-        if (cachedPayload) {
-            logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
-            responseData = JSON.parse(cachedPayload);
-        } else {
-            // NOTE: Chat history not implemented.
-            if (payloadHistory) throw new Error('payloadHistory NYI')
-            const data = {
-                url: `https://api.perplexity.ai/chat/completions`,
-                method: "POST",
-                data: payload,
-                headers: {
-                    Authorization: `Bearer ${perplexityApiKey}`,
-                }
-            };
-            const response = await axios<PerplexityResponse>(data);
-            responseData = response.data;
-            logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
-        }
-
-        const end = Date.now();
-        const time = end - start;
-        logger?.log(`[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(/\n/g, " "));
-
-        return {
-            message: responseData.choices[0].message.content,
-            metadata: responseData,
-        }
+    let responseData: PerplexityResponse | null = null;
+    if (cachedPayload) {
+      sendEvent({
+        type: "info-message",
+        payload: {
+          message: `[Cache] Found cached payload ${hashedFilename}`,
+        },
+      });
+      responseData = JSON.parse(cachedPayload);
+    } else {
+      // NOTE: Chat history not implemented.
+      if (payloadHistory) throw new Error("payloadHistory NYI");
+      const data = {
+        url: `https://api.perplexity.ai/chat/completions`,
+        method: "POST",
+        data: payload,
+        headers: {
+          Authorization: `Bearer ${perplexityApiKey}`,
+        },
+      };
+      const response = await axios<PerplexityResponse>(data);
+      responseData = response.data;
+      logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
     }
 
+    const end = Date.now();
+    const time = end - start;
+    sendEvent({
+      type: "info-message",
+      payload: {
+        message:
+          `[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(
+            /\n/g,
+            " "
+          ),
+      },
+    });
 
-    public static async fetchModels(): Promise<string[]> {
-        const response = await axios<{ models: { model: string }[] }>({
-            url: `${ollamaApiUrl}/api/tags`,
-            method: "GET",
-        });
-        return response.data.models
-            .filter((m) => !m.model.startsWith("snowflake-arctic"))
-            .map((m) => m.model);
-    }
+    return {
+      message: responseData.choices[0].message.content,
+      metadata: responseData,
+    };
+  }
 
-    // Ollama specific methods\
-    private addToOllamaPayload(prompt: string, role: OllamaMessage['role'], payload: OllamaPayload): OllamaPayload {
-        payload.messages.push({
-            "role": role,
-            "content": prompt,
-        });
-        return payload;
-    }
+  public static async fetchModels(): Promise<string[]> {
+    const response = await axios<{ models: { model: string }[] }>({
+      url: `${ollamaApiUrl}/api/tags`,
+      method: "GET",
+    });
+    return response.data.models
+      .filter((m) => !m.model.startsWith("snowflake-arctic"))
+      .map((m) => m.model);
+  }
 
-    private newOllamaPayload(prompt: string): OllamaPayload {
-        const payload: OllamaPayload = {
-            "model": this.name,
-            "messages": [
-                {
-                    "role": "system",
-                    "content":
-                        "You are a very helpful assistant. You may be provided with documents or content to analyze and answer questions about them, in that case refer to the content provided in the user message for your responses.",
-                },
-            ],
-            "options": {
-                "num_ctx": 26000,
-            },
-            "stream": false,
-        };
-        return this.addToOllamaPayload(prompt, 'user', payload);
-    }
+  // Ollama specific methods\
+  private addToOllamaPayload(
+    prompt: string,
+    role: OllamaMessage["role"],
+    payload: OllamaPayload
+  ): OllamaPayload {
+    payload.messages.push({
+      role: role,
+      content: prompt,
+    });
+    return payload;
+  }
+
+  private newOllamaPayload(prompt: string): OllamaPayload {
+    const payload: OllamaPayload = {
+      model: this.name,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a very helpful assistant. You may be provided with documents or content to analyze and answer questions about them, in that case refer to the content provided in the user message for your responses.",
+        },
+      ],
+      options: {
+        num_ctx: 26000,
+      },
+      stream: false,
+    };
+    return this.addToOllamaPayload(prompt, "user", payload);
+  }
 }

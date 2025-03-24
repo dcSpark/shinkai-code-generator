@@ -1,31 +1,27 @@
 import { OllamaEngine, OllamaPayload } from "./Ollama.ts";
-import { OpenAI, OpenAIPayload } from "./openai.ts";
+import { OpenAI, OpenAIPayload } from "./OpenAI.ts";
 import { PerplexityEngine, PerplexityPayload } from "./Perplexity.ts";
 
-
-export type Payload = OllamaPayload | OpenAIPayload | PerplexityPayload
-
+export type Payload = OllamaPayload | OpenAIPayload | PerplexityPayload;
 
 export function getPerplexity() {
-  return new PerplexityEngine('sonar-reasoning')
+  return new PerplexityEngine("sonar-reasoning");
 }
 
 export function getLlama318bInstruct() {
-  return new OllamaEngine('llama3.1:8b-instruct-q4_1');
+  return new OllamaEngine("llama3.1:8b-instruct-q4_1");
 }
 
 export function getDeepSeekR132B() {
-  return new OllamaEngine('deepseek-r1:32b');
+  return new OllamaEngine("deepseek-r1:32b");
 }
 
 export function getOpenAIO4Mini() {
-  return new OpenAI('gpt-4o-mini');
+  return new OpenAI("gpt-4o-mini");
 }
 export function getOpenAIO4() {
-  return new OpenAI('gpt-4o');
+  return new OpenAI("gpt-4o");
 }
-
-
 
 export function countTokensFromMessageLlama3(message: string): number {
   let tokenCount = 0;
@@ -70,8 +66,7 @@ export function countTokensFromMessageLlama3(message: string): number {
 // SHA-256 hash function using Web Crypto API
 export async function hashString(str: string): Promise<string> {
   const msgBuffer = new TextEncoder().encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-

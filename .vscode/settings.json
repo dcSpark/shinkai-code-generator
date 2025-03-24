@@ -1,14 +1,10 @@
 {
-    "deno.enable": true,
-    "deno.lint": true,
-    "deno.enablePaths": [
-        "./src",
-        "./mcp",
-        "./tests"
-    ],
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll": "explicit",
-        "source.organizeImports": "explicit"
-    }
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.enablePaths": ["./src", "./mcp", "./tests"],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  }
 }
