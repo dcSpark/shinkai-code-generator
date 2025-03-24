@@ -1,6 +1,6 @@
 export const selectInPageUrlsPrompt = (context: string[], possiblePages: string[], finalQuery: string) => `
-In the search we have a lot possible pages that contain documentation, there is JSON with a internet serach result for the query: "${finalQuery}"
-We have some general incomplete information about the documentation, that is in the context tag below.
+In the search we have a lot possible pages that contain documentation, there is JSON with an Internet search result for the query: "${finalQuery}"
+We have some general incomplete information about the documentation in the context tag below.
 <context>
 ${context.join('\n')}   
 </context>
