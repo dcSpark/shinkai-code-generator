@@ -958,6 +958,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 });
                 console.log("EVENT: request-feedback");
                 // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
+                await new Promise(resolve => setTimeout(resolve, 100));
                 return {
                     status: "REQUEST_FEEDBACK",
                     code: '',
@@ -965,6 +966,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 }
             } else {
                 console.log(String(e));
+                await new Promise(resolve => setTimeout(resolve, 100));
                 return {
                     status: "ERROR",
                     code: '',

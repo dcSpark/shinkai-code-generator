@@ -1,5 +1,5 @@
 import { OllamaEngine, OllamaPayload } from "./Ollama.ts";
-import { OpenAI, OpenAIPayload } from "./openai.ts";
+import { OpenAI, OpenAIPayload } from "./OpenAI.ts";
 import { PerplexityEngine, PerplexityPayload } from "./Perplexity.ts";
 
 
