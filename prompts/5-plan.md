@@ -32,7 +32,10 @@ Do not write any other output or source code.
 
 <formating>
 * do not skip any of the sections in the output tag.
-* Use the following format, inside the output tag, to output the requested document
+* do not add comments, or ideas out of the p
+* Use the format inside the output tag, to write the requested document.
+</formating>
+
 <output>
 ```markdown
 
@@ -48,5 +51,4 @@ Output: {json}
 
 ```
 </output>
-</formating>
 

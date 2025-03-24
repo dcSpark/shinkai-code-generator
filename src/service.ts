@@ -251,6 +251,7 @@ router.get("/code_execution", setCorsHeadersMiddleware, async (ctx: Context) => 
     const response = await (new ShinkaiAPI()).executeCode(
         payloadObject.code,
         payloadObject.tools,
+        payloadObject.tool_type,
         payloadObject.parameters,
         payloadObject.extra_config,
         Deno.env.get('LLM_PROVIDER') || ''

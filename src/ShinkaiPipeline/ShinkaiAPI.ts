@@ -40,6 +40,7 @@ export class ShinkaiAPI {
     public async executeCode(
         code: string,
         tools: string[] = [],
+        tool_type: "pythondynamic" | "denodynamic",
         parameters: any = {},
         config: CodeExecutionConfig = {},
         llmProvider: string = "GET_FROM_CODE"
@@ -47,12 +48,12 @@ export class ShinkaiAPI {
         const payload = {
             code,
             tools,
-            tool_type: "denodynamic",
+            tool_type,
             llm_provider: llmProvider,
             extra_config: config,
             parameters
         };
-        // console.log('[run payload]', payload);
+        console.log('[run payload]', payload);
         try {
             const response = await axios<CodeExecutionResponse>({
                 method: "POST",

@@ -190,7 +190,7 @@ export class ServiceAPIBase {
             console.log(this.metadata);
             console.log(test);
             if (runTests) {
-                const result = await api.executeCode(this.code, this.metadata.tools, test.input, test.config, 'gpt-4o-mini');
+                const result = await api.executeCode(this.code, this.metadata.tools, language === 'typescript' ? 'denodynamic' : 'pythondynamic', test.input, test.config, 'gpt-4o-mini');
                 assertObjectMatch(result, test.output);
             }
         }
