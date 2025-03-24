@@ -5,7 +5,7 @@ import { ShinkaiAPI } from "../src/ShinkaiPipeline/ShinkaiAPI.ts";
 console.log(String(router)[0]); // so that {router} get loaded
 
 // TODO All test should be in the same file for for prompt testing.
-class ServiceAPIBase {
+export class ServiceAPIBase {
     baseUrl = `http://localhost:8080`;
     uuid = new Date().getTime().toString() + '-' + Math.random().toString(36).substring(2, 15);
 
@@ -15,7 +15,7 @@ class ServiceAPIBase {
 
     constructor() { }
 
-    async startTest(prompt: string, language: "typescript" | "python") {
+    async startTest(prompt: string, language: "typescript" | "python", fileName: string, runTests: boolean = true) {
 
         {
             let response1 = await fetch(`${this.baseUrl}/generate`, {
@@ -142,17 +142,13 @@ class ServiceAPIBase {
             console.log(this.code);
             console.log(this.metadata);
             console.log(test);
-
-            const result = await api.executeCode(this.code, this.metadata.tools, test.input, test.config, 'gpt-4o-mini');
-            assertObjectMatch(result, test.output);
+            if (runTests) {
+                const result = await api.executeCode(this.code, this.metadata.tools, test.input, test.config, 'gpt-4o-mini');
+                assertObjectMatch(result, test.output);
+            }
         }
 
-        // Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'base-ts.ts', jCode.code);
-        // Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + 'base-ts.metadata.json', JSON.stringify(jMetadata.metadata, null, 2));
+        Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + (language === 'typescript' ? '.ts' : '.py'), this.code);
+        Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + '.metadata.json', JSON.stringify(this.metadata, null, 2));
     }
 }
-
-
-const serviceAPIBase = new ServiceAPIBase();
-await serviceAPIBase.startTest('sum a + b using no libraries.', 'typescript');
-// TODO save the code, metadata, requirements, plan and dependecies into to a file.
