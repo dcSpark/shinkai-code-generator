@@ -1,30 +1,74 @@
+import { DeepseekPayload, DeepseekService } from "./Deepseek.ts";
 import { OllamaEngine, OllamaPayload } from "./Ollama.ts";
 import { OpenAI, OpenAIPayload } from "./OpenAI.ts";
 import { PerplexityEngine, PerplexityPayload } from "./Perplexity.ts";
 
+export type Payload = OllamaPayload | OpenAIPayload | PerplexityPayload | DeepseekPayload
 
-export type Payload = OllamaPayload | OpenAIPayload | PerplexityPayload
 
+function getModel(model: string | undefined) {
+
+  switch (model) {
+    case 'deepseek-reasoner':
+      return getDeepSeekReasoner()
+    case 'deepseek-chat':
+      return getDeepSeekChat()
+    case 'o3-mini':
+      return getOpenAIO3Mini()
+    case 'gpt-4o-mini':
+      return getOpenAI4OMini()
+    case 'gpt-4o':
+      return getOpenAIO4()
+    case 'llama3.1':
+      return getLlama318bInstruct()
+    default:
+      throw new Error(`Unknown model: ${model}`)
+  }
+}
+
+export function getModelSmall() {
+  const model = Deno.env.get('MODEL_SMALL');
+  if (!model) {
+    throw new Error('MODEL_SMALL is not set')
+  }
+  return getModel(model);
+}
+
+export function getModelLarge() {
+  const model = Deno.env.get('MODEL_LARGE');
+  if (!model) {
+    throw new Error('MODEL_LARGE is not set')
+  }
+  return getModel(model);
+}
 
 export function getPerplexity() {
   return new PerplexityEngine('sonar-reasoning')
 }
 
-export function getLlama318bInstruct() {
+function getLlama318bInstruct() {
   return new OllamaEngine('llama3.1:8b-instruct-q4_1');
 }
 
-export function getDeepSeekR132B() {
-  return new OllamaEngine('deepseek-r1:32b');
+function getDeepSeekReasoner() {
+  return new DeepseekService({ model: 'deepseek-reasoner' });
 }
 
-export function getOpenAIO4Mini() {
+function getDeepSeekChat() {
+  return new DeepseekService({ model: 'deepseek-chat' });
+}
+
+function getOpenAIO3Mini() {
+  return new OpenAI('o3-mini');
+}
+
+function getOpenAI4OMini() {
   return new OpenAI('gpt-4o-mini');
 }
-export function getOpenAIO4() {
+
+function getOpenAIO4() {
   return new OpenAI('gpt-4o');
 }
-
 
 
 export function countTokensFromMessageLlama3(message: string): number {

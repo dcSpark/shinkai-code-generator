@@ -1,5 +1,5 @@
 import "jsr:@std/dotenv/load";
-import { getOpenAIO4Mini } from "./Engines/index.ts";
+import { getModelSmall } from "./Engines/index.ts";
 import { emptyRequirement } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiPipelineMetadata } from "./ShinkaiPipeline/ShinkaiPipelineMeta.ts";
 import { Language } from "./ShinkaiPipeline/types.ts";
@@ -31,7 +31,7 @@ if (!language || !requestUUID || !code) {
 // Run the pipeline and stream output
 const runPipeline = async () => {
     try {
-        const llmModel = getOpenAIO4Mini();
+        const llmModel = getModelSmall();
 
         console.log('EVENT: start');
         const test = emptyRequirement();

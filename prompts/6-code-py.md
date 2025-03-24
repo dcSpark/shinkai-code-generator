@@ -153,6 +153,10 @@ class OUTPUT:
 
 </agent_pip_requirements>
 
+<example_implementation>
+
+</example_implementation>
+
 <input_command>
 
 </input_command>

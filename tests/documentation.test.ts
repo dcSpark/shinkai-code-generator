@@ -2,14 +2,14 @@ import { assert } from "https://deno.land/std@0.208.0/assert/assert.ts";
 import { assertEquals, assertExists } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import "jsr:@std/dotenv/load";
 import { DependencyDoc } from "../src/DocumentationGenrator/index.ts";
-import { getOpenAIO4Mini } from "../src/Engines/index.ts";
+import { getModelSmall } from "../src/Engines/index.ts";
 import { FileManager } from "../src/ShinkaiPipeline/FileManager.ts";
 
 
 
 Deno.test("DependencyDoc.getDependencyDocumentation - basic functionality", async () => {
     // Arrange
-    const engine = getOpenAIO4Mini();
+    const engine = getModelSmall();
     const logger = new FileManager("typescript", "test", true);
     const dependencyDoc = new DependencyDoc(engine, logger);
 
