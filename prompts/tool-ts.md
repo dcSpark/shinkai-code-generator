@@ -138,5 +138,8 @@ Import these functions with the format: `import { xx } from './shinkai-local-too
 
 </input_command>
 
-Explain your thinking process step by step and then implement the code.
-
+<goal>
+  * Implement a fully functional code following the previous instructions.
+  * You can't use mockups or placeholders, the code must be fully functional.
+  * Explain your thinking process step by step and then implement the code.
+</goal>
