@@ -21,6 +21,7 @@ export class Requirement {
     public limited_language?: Language;
     public skip?: string
     public feedback?: string;
+    public plan_feedback?: string;
     public feedback_ts?: string;
     public feedback_python?: string;
     constructor(

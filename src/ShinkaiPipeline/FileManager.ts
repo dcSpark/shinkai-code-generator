@@ -2,6 +2,7 @@ import { exists } from "jsr:@std/fs/exists";
 import * as path from "jsr:@std/path";
 import { Language } from "./types.ts";
 
+type FEEDBACK_EXPECTED = 'no' | 'requirements' | 'plan';
 export class FileManager {
 
     public toolDir: string;
@@ -67,7 +68,7 @@ export class FileManager {
         if (!state.exists) {
             await this.writeState({
                 date: new Date().toISOString(),
-                feedback_expected: false,
+                feedback_expected: 'no',
             });
         }
         return filePath;
@@ -98,7 +99,7 @@ export class FileManager {
         }
         await this.writeState({
             date: new Date().toISOString(),
-            feedback_expected: false,
+            feedback_expected: 'no',
         });
     }
 
@@ -107,19 +108,19 @@ export class FileManager {
         return await exists(filePath);
     }
 
-    async writeState(config: { date: string, feedback_expected: boolean }) {
+    async writeState(config: { date: string, feedback_expected: FEEDBACK_EXPECTED }) {
         const filePath = path.join(this.toolDir, `state.json`);
         await Deno.writeTextFile(filePath, JSON.stringify(config));
     }
 
-    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string, feedback_expected: boolean, metadata: boolean }> {
+    async loadState(): Promise<{ exists: boolean, completed: boolean, date: string, feedback_expected: FEEDBACK_EXPECTED, metadata: boolean }> {
         const filePath = path.join(this.toolDir, `state.json`);
         if (!await exists(filePath)) {
             return {
                 exists: false,
                 completed: false,
                 date: new Date().toISOString(),
-                feedback_expected: false,
+                feedback_expected: 'no',
                 metadata: false,
             };
         }
@@ -133,7 +134,7 @@ export class FileManager {
         const completed = await exists(codePath1) || await exists(codePath2);
         const metadata = await exists(metadataPath1);
 
-        const state: { date: string, feedback_expected: boolean } = JSON.parse(await Deno.readTextFile(filePath));
+        const state: { date: string, feedback_expected: FEEDBACK_EXPECTED } = JSON.parse(await Deno.readTextFile(filePath));
         return {
             ...state,
             exists: true,

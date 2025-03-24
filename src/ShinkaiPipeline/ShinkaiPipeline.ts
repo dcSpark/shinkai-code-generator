@@ -26,11 +26,13 @@ export class ShinkaiPipeline {
     // State machine step
     private step: number = 0;
 
-    // Final "Requirements" with feedback
-    private feedback: string = '';
+    // "Requirements"
+    private requirements: string = '';
 
     // Used to pass the prompt history from requirements to feedback
     private promptHistory: Payload | undefined;
+    // Used to pass the prompt history from plan to feedback
+    private promptHistory2: Payload | undefined;
 
     // Feedback analysis result
     private feedbackAnalysisResult: string = '';
@@ -114,7 +116,7 @@ export class ShinkaiPipeline {
             // If skipping this was processed before, just adding into the prompt history
             await this.fileManager.log(` Step ${this.step} - Requirements & Feedback `, true);
             const existingFile = await this.fileManager.load(this.step, 'c', 'requirements.md');
-            this.feedback = existingFile;
+            this.requirements = existingFile;
             const promptHistory = await this.fileManager.load(this.step, 'x', 'promptHistory.json');
             this.promptHistory = JSON.parse(promptHistory);
             this.step++;
@@ -159,14 +161,14 @@ export class ShinkaiPipeline {
                 new RegExp("# Example Input and Output"),
             ]
         });
-        this.feedback = parsedLLMResponse;
-        await this.fileManager.save(this.step, 'c', this.feedback, 'requirements.md');
+        this.requirements = parsedLLMResponse;
+        await this.fileManager.save(this.step, 'c', this.requirements, 'requirements.md');
 
         this.step++;
 
         if (!this.skipFeedback) {
             // let's terminate the pipeline if the user feedback is not provided
-            console.log(JSON.stringify({ markdown: this.feedback }));
+            console.log(JSON.stringify({ markdown: this.requirements }));
             throw new Error('REQUEST_FEEDBACK');
         }
 
@@ -184,7 +186,7 @@ export class ShinkaiPipeline {
             // Check if output file exists
             if (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
                 await this.fileManager.log(` Step ${this.step} - User Requirements & Feedback `, true);
-                this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+                this.requirements = await this.fileManager.load(this.step, 'c', 'feedback.md');
                 this.promptHistory = JSON.parse(await this.fileManager.load(this.step, 'x', 'promptHistory.json'));
                 this.step++;
                 moreFeedback = true
@@ -220,8 +222,62 @@ export class ShinkaiPipeline {
             ]
         });
 
-        this.feedback = parsedLLMResponse;
-        await this.fileManager.save(this.step, 'c', this.feedback, 'feedback.md');
+        this.requirements = parsedLLMResponse;
+        await this.fileManager.save(this.step, 'c', this.requirements, 'feedback.md');
+        this.step++;
+    }
+
+    private async processUserPlanFeedback() {
+        const user_feedback = this.test.plan_feedback;
+        if (!user_feedback) {
+            throw new Error('missing feedback');
+        }
+
+        let moreFeedback = true;
+
+        while (moreFeedback) {
+            // Check if output file exists
+            if (await this.fileManager.exists(this.step, 'c', 'plan-feedback.md')) {
+                await this.fileManager.log(` Step ${this.step} - User Plan Feedback `, true);
+                this.requirements = await this.fileManager.load(this.step, 'c', 'plan-feedback.md');
+                this.promptHistory2 = JSON.parse(await this.fileManager.load(this.step, 'x', 'promptHistory.json'));
+                this.step++;
+                moreFeedback = true
+            } else {
+                moreFeedback = false;
+            }
+        }
+
+        let promptHistory2: Payload | undefined;
+        const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
+
+            this.fileManager.log(`[Planning Step ${this.step}] User Plan & Feedback Prompt`, true);
+
+            const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/2-feedback.md')).replace(
+                '<input_command>\n\n</input_command>',
+                `<input_command>\n${user_feedback}\n\n</input_command>`
+            );
+            await this.fileManager.save(this.step, 'a', prompt, 'plan-feedback-prompt.md');
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, this.promptHistory2, "Processing User Plan Feedback");
+            await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-plan-feedback-response.md');
+
+            promptHistory2 = llmResponse.metadata;
+
+            return llmResponse.message;
+        }, 'markdown', {
+            regex: [
+                new RegExp("# Development Plan"),
+                new RegExp("# Example Input and Output"),
+                new RegExp("# Config"),
+            ]
+        });
+
+        this.requirements = parsedLLMResponse;
+        await this.fileManager.save(this.step, 'c', this.requirements, 'plan-feedback.md');
+
+        this.promptHistory2 = promptHistory2;
+        await this.fileManager.save(this.step, 'x', JSON.stringify(this.promptHistory2, null, 2), 'promptHistory.json');
+
         this.step++;
     }
 
@@ -238,7 +294,7 @@ export class ShinkaiPipeline {
                 this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
                 const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
                     '<input_command>\n\n</input_command>',
-                    `<input_command>\n${this.feedback}\n\n</input_command>`
+                    `<input_command>\n${this.requirements}\n\n</input_command>`
                 );
                 await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
                 const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Searching for Required Libraries");
@@ -293,7 +349,7 @@ export class ShinkaiPipeline {
         this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
 
         const perplexity = getPerplexity();
-        const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity.md')).replace("{{prompt}}", this.feedback);
+        const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity.md')).replace("{{prompt}}", this.requirements);
         await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 
         const response = await perplexity.run(prompt, this.fileManager, undefined, 'Searching...');
@@ -344,7 +400,7 @@ get_access_token
             this.fileManager.log(`[Planning Step ${this.step}]Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/4-internal-tools.md')).replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.feedback}\n\n </input_command>`
+                `<input_command>\n${this.requirements}\n\n </input_command>`
             ).replace(
                 '<tool_router_key>\n\n</tool_router_key>',
                 `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
@@ -370,6 +426,7 @@ get_access_token
             await this.fileManager.log(` Step ${this.step} - Development Plan `, true);
             const existingFile = await this.fileManager.load(this.step, 'c', 'plan.md');
             this.plan = existingFile;
+            this.promptHistory2 = JSON.parse(await this.fileManager.load(this.step, 'x', 'promptHistory.json'));
             this.step++;
             return;
         }
@@ -383,6 +440,7 @@ get_access_token
             .join('\n');
 
         const internalTools_Tools = usedInternalTools + '\n\n' + this.shinkaiLocalSupport_headers;
+        let promptHistory2: Payload | undefined;
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate Development Plan`, true);
@@ -402,7 +460,7 @@ ${this.perplexityResults}
             // TODO Refetch only used libaries
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
-                `<initial_requirements>\n${this.feedback}\n\n</initial_requirements>`
+                `<initial_requirements>\n${this.requirements}\n\n</initial_requirements>`
             ).replace(
                 '<libraries_documentation>\n\n</libraries_documentation>',
                 `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
@@ -414,6 +472,7 @@ ${this.perplexityResults}
             await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-plan-response.md');
+            promptHistory2 = llmResponse.metadata;
             return llmResponse.message;
         }, 'markdown', {
             regex: [
@@ -426,7 +485,13 @@ ${this.perplexityResults}
         this.plan = parsedLLMResponse;
         console.log(JSON.stringify({ markdown: this.plan }));
         await this.fileManager.save(this.step, 'c', this.plan, 'plan.md');
+
+        this.promptHistory2 = promptHistory2;
+        await this.fileManager.save(this.step, 'x', JSON.stringify(this.promptHistory2, null, 2), 'promptHistory.json');
+
         this.step++;
+        // First time the plan is generated, request feedback
+        throw new Error('REQUEST_PLAN_FEEDBACK');
     }
 
     private async generateCode() {
@@ -685,7 +750,7 @@ In the next example tag is an example of the commented script block that MUST be
             this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/8-test.md'))
-                .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.feedback}\n</requirement>`)
+                .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.requirements}\n</requirement>`)
                 .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
 
             await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
@@ -789,14 +854,15 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     metadata: '',
                 }
             }
-            if (state.exists && state.feedback_expected) {
+            if (state.exists && state.feedback_expected === 'requirements') {
                 // Probably feedback. Let's check the current step.
                 const feedbackAnalysis = await this.processFeedbackAnalysis();
                 await this.fileManager.writeState({
                     // completed: false,
                     date: new Date().toISOString(),
-                    feedback_expected: false,
+                    feedback_expected: 'no',
                 });
+                this.test.plan_feedback = undefined;
                 if (feedbackAnalysis === 'changes-requested') {
                     this.test.feedback = this.test.prompt;
                 } else {
@@ -804,6 +870,20 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 }
             }
 
+            if (state.exists && state.feedback_expected === 'plan') {
+                const feedbackAnalysis = await this.processFeedbackAnalysis();
+                await this.fileManager.writeState({
+                    // completed: false,
+                    date: new Date().toISOString(),
+                    feedback_expected: 'no',
+                });
+                this.test.feedback = undefined;
+                if (feedbackAnalysis === 'changes-requested') {
+                    this.test.plan_feedback = this.test.prompt;
+                } else {
+                    this.test.plan_feedback = undefined;
+                }
+            }
 
             await this.initialize();
             await this.generateRequirements();
@@ -811,12 +891,12 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             if (this.test.feedback) {
                 await this.processUserFeedback();
                 if (!this.skipFeedback) {
-                    console.log(JSON.stringify({ markdown: this.feedback }));
+                    console.log(JSON.stringify({ markdown: this.requirements }));
                     throw new Error('REQUEST_FEEDBACK');
                 }
             } else {
                 while (await this.fileManager.exists(this.step, 'c', 'feedback.md')) {
-                    this.feedback = await this.fileManager.load(this.step, 'c', 'feedback.md');
+                    this.requirements = await this.fileManager.load(this.step, 'c', 'feedback.md');
 
                     console.log('EVENT: feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing feedback' }));
                     this.step++;
@@ -827,6 +907,20 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             await this.processPerplexitySearch();
             await this.processInternalTools();
             await this.generatePlan();
+
+            if (this.test.plan_feedback) {
+                await this.processUserPlanFeedback();
+                console.log(JSON.stringify({ markdown: this.requirements }));
+                throw new Error('REQUEST_PLAN_FEEDBACK');
+            } else {
+                while (await this.fileManager.exists(this.step, 'c', 'plan-feedback.md')) {
+                    this.plan = await this.fileManager.load(this.step, 'c', 'plan-feedback.md');
+
+                    console.log('EVENT: plan-feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing plan feedback' }));
+                    this.step++;
+                }
+            }
+
             await this.generateCode();
             let retries = 5;
             while (retries > 0) {
@@ -857,10 +951,10 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 metadata: this.metadata,
             }
         } catch (e) {
-            if (e instanceof Error && e.message === 'REQUEST_FEEDBACK') {
+            if (e instanceof Error && (e.message === 'REQUEST_FEEDBACK' || e.message === 'REQUEST_PLAN_FEEDBACK')) {
                 this.fileManager.writeState({
                     date: new Date().toISOString(),
-                    feedback_expected: true,
+                    feedback_expected: e.message === 'REQUEST_FEEDBACK' ? 'requirements' : 'plan',
                 });
                 console.log("EVENT: request-feedback");
                 // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);

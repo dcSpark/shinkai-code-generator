@@ -86,34 +86,27 @@ export class ServiceAPIBase {
             decoder2 = undefined as any;
             response2 = undefined as any;
 
-            assertEquals(part2.includes('event: code'), true, 'part2.includes(code)');
+            assertEquals(part2.includes('event: request-feedback'), true, 'part1.includes(request-feedback)');
 
-            const code = part2.split('event: code')[1].split('\n')[1].replace(/^data: /, '');
-            assertEquals(code.includes('export async function run'), true, 'code.includes(export async function run)');
-
-            this.code = JSON.parse(code).code;
-            assertEquals(this.code.includes('export async function run'), true, 'code.includes(export async function run)');
-
-            const tests = part2.split('event: tests')[1].split('\n')[1].replace(/^data: /, '');
-            assertEquals(tests.includes('"input"'), true, 'tests.includes("input")');
-            this.tests = JSON.parse(tests).tests;
-            assertEquals(Array.isArray(this.tests), true, 'this.tests is an array');
-            assertEquals(this.tests.length > 0, true, 'tests.length > 0');
         }
-
         {
-            let response3 = await fetch(`${this.baseUrl}/metadata`, {
+            let response3 = await fetch(`${this.baseUrl}/generate`, {
                 method: "POST",
                 headers: {
                     "accept": "text/event-stream",
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    language: "typescript",
-                    code: this.code,
+                    language,
+                    prompt: 'ok',
+                    tool_type: "shinkai",
+                    skipfeedback: "false",
                     x_shinkai_request_uuid: `test-${language === 'typescript' ? 'ts' : 'py'}-${this.uuid}`,
+                    feedback: ""
                 }),
             });
+
+            assertEquals(response3.status, 200, 'response3.status');
 
             let reader3 = response3.body?.getReader();
             let decoder3 = new TextDecoder();
@@ -129,8 +122,62 @@ export class ServiceAPIBase {
             reader3 = undefined as any;
             decoder3 = undefined as any;
             response3 = undefined as any;
-            assertEquals(part3.includes('event: metadata'), true, 'part3.includes(metadata)');
-            const metadata = part3.split('event: metadata')[1].split('\n')[1].replace(/^data: /, '');
+
+            assertEquals(part3.includes('event: code'), true, 'part3.includes(code)');
+
+            const code = part3.split('event: code')[1].split('\n')[1].replace(/^data: /, '');
+
+            if (language === 'typescript') {
+                assertEquals(code.includes('export async function run'), true, 'code.includes(export async function run)');
+            } else if (language === 'python') {
+                assertEquals(code.includes('async def run'), true, 'code.includes(async def run)');
+            }
+
+            this.code = JSON.parse(code).code;
+            if (language === 'typescript') {
+                assertEquals(this.code.includes('export async function run'), true, 'code.includes(export async function run)');
+            } else if (language === 'python') {
+                this.code = this.code.replace(/\t/g, '  ');
+                assertEquals(this.code.includes('async def run'), true, 'code.includes(async def run)');
+            }
+
+            const tests = part3.split('event: tests')[1].split('\n')[1].replace(/^data: /, '');
+            assertEquals(tests.includes('"input"'), true, 'tests.includes("input")');
+            this.tests = JSON.parse(tests).tests;
+            assertEquals(Array.isArray(this.tests), true, 'this.tests is an array');
+            assertEquals(this.tests.length > 0, true, 'tests.length > 0');
+        }
+
+        {
+            let response4 = await fetch(`${this.baseUrl}/metadata`, {
+                method: "POST",
+                headers: {
+                    "accept": "text/event-stream",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    language: "typescript",
+                    code: this.code,
+                    x_shinkai_request_uuid: `test-${language === 'typescript' ? 'ts' : 'py'}-${this.uuid}`,
+                }),
+            });
+
+            let reader4 = response4.body?.getReader();
+            let decoder4 = new TextDecoder();
+            let part4 = '';
+            while (true) {
+                const data = await reader4?.read();
+                const partialResult = decoder4.decode(data?.value);
+                console.log(partialResult);
+                part4 += partialResult;
+                if (data?.done) break;
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            reader4 = undefined as any;
+            decoder4 = undefined as any;
+            response4 = undefined as any;
+            assertEquals(part4.includes('event: metadata'), true, 'part4.includes(metadata)');
+            const metadata = part4.split('event: metadata')[1].split('\n')[1].replace(/^data: /, '');
             assertEquals(metadata.includes('name'), true, 'metadata.includes(name)');
             const jMetadata: { metadata: Record<string, any> } = JSON.parse(metadata);
             this.metadata = jMetadata.metadata;
@@ -143,7 +190,7 @@ export class ServiceAPIBase {
             console.log(this.metadata);
             console.log(test);
             if (runTests) {
-                const result = await api.executeCode(this.code, this.metadata.tools, test.input, test.config, 'gpt-4o-mini');
+                const result = await api.executeCode(this.code, this.metadata.tools, language === 'typescript' ? 'denodynamic' : 'pythondynamic', test.input, test.config, 'gpt-4o-mini');
                 assertObjectMatch(result, test.output);
             }
         }
