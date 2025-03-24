@@ -1,5 +1,5 @@
+import { BaseEngine } from '../Engines/BaseEngine.ts';
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
-import { BaseEngine } from '../ShinkaiPipeline/llm-engines.ts';
 import { LLMFormatter } from '../ShinkaiPipeline/LLMFormatter.ts';
 import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";

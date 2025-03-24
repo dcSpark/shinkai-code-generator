@@ -2,8 +2,9 @@ import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import * as path from "jsr:@std/path";
 import { DependencyDoc } from "../DocumentationGenrator/index.ts";
+import { BaseEngine } from "../Engines/BaseEngine.ts";
+import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
-import { BaseEngine, Payload } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "./ShinkaiAPI.ts";
@@ -277,12 +278,13 @@ export class ShinkaiPipeline {
         const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
         if (!perplexityApiKey) {
             await this.fileManager.log(`[Planning Step ${this.step}] Skipping Perplexity search - API key not found`, true);
+            this.step++;
             return;
         }
 
         // Check if output file exists
         if (await this.fileManager.exists(this.step, 'c', 'perplexity.md')) {
-            await this.fileManager.log(` Step ${this.step} - Perplexity Search `, true);
+            await this.fileManager.log(` Step ${this.step} - Searching Perplexity for additional context `, true);
             this.perplexityResults = await this.fileManager.load(this.step, 'c', 'perplexity.md');
             this.step++;
             return;
@@ -290,35 +292,17 @@ export class ShinkaiPipeline {
 
         this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
 
-        try {
-            const response = await fetch('https://api.perplexity.ai/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${perplexityApiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'sonar-reasoning',
-                    messages: [{
-                        role: 'user',
-                        content: `I need to implement the following functionality: ${this.test.prompt}\n\nPlease provide detailed technical information, implementation approaches, best practices, and any relevant code examples or libraries that could help implement this.`
-                    }]
-                })
-            });
+        const perplexity = getPerplexity();
+        const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity.md')).replace("{{prompt}}", this.feedback);
+        await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 
-            if (!response.ok) {
-                throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
-            }
+        const response = await perplexity.run(prompt, this.fileManager, undefined, 'Searching...');
 
-            const data = await response.json();
-            this.perplexityResults = data.choices[0].message.content;
-            await this.fileManager.save(this.step, 'c', this.perplexityResults, 'perplexity.md');
-            this.step++;
-        } catch (error: unknown) {
-            await this.fileManager.log(`[Warning] Perplexity search failed: ${error instanceof Error ? error.message : String(error)}`, true);
-            // Continue pipeline even if Perplexity search fails
-            return;
-        }
+        this.perplexityResults = response.message;
+
+        await this.fileManager.save(this.step, 'c', this.perplexityResults, 'perplexity.md');
+        this.step++;
+
     }
 
     private async processInternalTools() {
@@ -513,15 +497,21 @@ Import these functions with the format: \`import { xx } from './shinkai-local-to
 ${alternativeHeaders}
 </file-name=shinkai-local-tools>
 `
-            );
+                );
 
-
+            //             const perplexityCode = `
+            // The reference-implementation tag section is an example on a alternative implementation, it might not be correct. 
+            // <reference-implementation>
+            // ${this.perplexityResults}
+            // </reference-implementation>
+            // `;
 
             const additionalRules = this.language === 'typescript' ? `
     * Use "Internal Libraries" with \`import { xx } from './shinkai-local-support.ts\`; 
     * Use "External Libraries" with \`import { xx } from 'npm:xx'\`;
         ` : '';
             const toolCode = `
+
 <libraries_documentation>
 ${Object.entries(this.docs).map(([library, doc]) => `
     The folling libraries_documentation tags are just for reference on how to use the libraries, and do not imply how to implement the rules below.

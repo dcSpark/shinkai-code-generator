@@ -1,6 +1,6 @@
 
+import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { FileManager } from "./FileManager.ts";
-import { BaseEngine } from "./llm-engines.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";
 import { getHeaders } from "./support.ts";
