@@ -1,56 +1,112 @@
 import axios from 'npm:axios';
 
 type CONFIG = {
-    JUPITER_API_URL: string;
+  jupiterApiUrl: string;
 };
 
 type INPUTS = {
-    stablecoin: string;
+  baseAsset: string;
+  walletAddress: string;
 };
 
-type OPPORTUNITY = { pool_a: string; pool_b: string; profit: number };
+type Pool = {
+  pool: string;
+  tokenIn: string;
+  tokenOut: string;
+  otherDetails?: any; // Placeholder for other pool data
+};
+
+type SwapResult = {
+  fromPool: string;
+  toPool: string;
+  profit: number;
+  executedAmount: number;
+};
 
 type OUTPUT = {
-    opportunities: OPPORTUNITY[];
+  arbitrageOpportunities: SwapResult[];
+  message: string;
 };
 
 export async function run(config: CONFIG, inputs: INPUTS): Promise<OUTPUT> {
+  const { baseAsset } = inputs;
+  const jupiterApiUrl = config.jupiterApiUrl;
 
-    async function fetchPools(): Promise<any[]> {
-        try {
-            const response = await axios.get(config.JUPITER_API_URL);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching pools:", error);
-            return [];
-        }
+  async function fetchPools(): Promise<Pool[]> {
+    try {
+      const response = await axios.get(`${jupiterApiUrl}/pools`);
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('API Error:', error.response.data?.message || error.message);
+      } else {
+        console.error('API Error:', error);
+      }
+      return [];
     }
+  }
 
-    function filterStablecoinPools(pools: any[], stablecoin: string): any[] {
-        return pools.filter(pool => pool.tokens.includes(stablecoin));
+  function getStablecoinPools(pools: Pool[]): Pool[] {
+    const stablecoinSymbols = new Set(['USDC', 'USDT', 'SUSD']);
+    return pools.filter(pool =>
+      stablecoinSymbols.has(pool.tokenIn) && stablecoinSymbols.has(pool.tokenOut)
+    );
+  }
+
+  async function swapSimulate(pool: Pool, amount: number): Promise<number> {
+    try {
+      const response = await axios.post(`${jupiterApiUrl}/pools/${pool.pool}/swap`, {
+        tokenIn: pool.tokenIn,
+        tokenOut: pool.tokenOut,
+        amount,
+        slippageTolerance: 0.005, // 0.5% slippage tolerance
+      });
+      return response.data.amountOut;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Swap Simulation Error:', error.response.data?.message || error.message);
+      } else {
+        console.error('Swap Simulation Error:', error);
+      }
+      return 0;
     }
+  }
 
-    function analyzeArbitrageOpportunities(stablecoinPools: any[]): OUTPUT {
-        const opportunities: OPPORTUNITY[] = [];
+  async function calculateArbitrage(pools: Pool[]): Promise<SwapResult[]> {
+    const opportunities: SwapResult[] = [];
+    const swapAmount = 100; // Base amount for simulation
 
-        // Simple mechanism to illustrate potential opportunities
-        stablecoinPools.forEach(poolA => {
-            stablecoinPools.forEach(poolB => {
-                if (poolA !== poolB) {
-                    const potentialProfit = Math.random() * 10; // Dummy logic for profit computation
-                    if (poolA.tokens.includes(inputs.stablecoin) && poolB.tokens.includes(inputs.stablecoin) && potentialProfit > 0) {
-                        opportunities.push({ pool_a: poolA.id, pool_b: poolB.id, profit: potentialProfit });
-                    }
-                }
+    for (const pool1 of pools) {
+      for (const pool2 of pools) {
+        if (pool1.pool !== pool2.pool) {
+          const amountFromPool1 = await swapSimulate(pool1, swapAmount);
+          const amountFromPool2 = await swapSimulate(pool2, amountFromPool1);
+
+          const profit = (amountFromPool2 / swapAmount - 1) * 100;
+          if (profit > 0) {
+            opportunities.push({
+              fromPool: pool1.pool,
+              toPool: pool2.pool,
+              profit,
+              executedAmount: swapAmount,
             });
-        });
-
-        return { opportunities };
+          }
+        }
+      }
     }
 
-    const pools = await fetchPools();
-    const stablecoinPools = filterStablecoinPools(pools, inputs.stablecoin);
-    const arbitrageOpportunities = analyzeArbitrageOpportunities(stablecoinPools);
+    return opportunities.sort((a, b) => b.profit - a.profit);
+  }
 
-    return arbitrageOpportunities;
+  const pools = await fetchPools();
+  const stablecoinPools = getStablecoinPools(pools);
+
+  const opportunities = await calculateArbitrage(stablecoinPools);
+
+  return {
+    arbitrageOpportunities: opportunities,
+    message: opportunities.length > 0 
+      ? 'Arbitrage opportunities found'
+      : 'No arbitrage opportunities detected'
+  };
 }

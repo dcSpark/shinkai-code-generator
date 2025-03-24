@@ -1,16 +1,15 @@
 # /// script
 # dependencies = [
+#   "PyMuPDF",
 #   "requests",
-#   "pdfminer.six",
-#   "typing-extensions",
 # ]
 # ///
 
-from pdfminer.high_level import extract_text
 from typing import Dict
+import fitz  # PyMuPDF
 
 class CONFIG:
-    pass
+    output_directory: str
 
 class INPUTS:
     file_path: str
@@ -18,18 +17,29 @@ class INPUTS:
 class OUTPUT:
     text: str
 
-async def extract_text_from_pdf(file_path: str) -> Dict[str, str]:
-    try:
-        text = extract_text(file_path)
-        return {"text": text}
-    except FileNotFoundError:
-        return {"error": "File not found. Please check the file path."}
-    except Exception as e:
-        return {"error": f"An error occurred: {str(e)}"}
-
 async def run(config: CONFIG, inputs: INPUTS) -> OUTPUT:
-    result = await extract_text_from_pdf(inputs.file_path)
+    # Extract text from PDF
+    result = pdf_to_text(inputs.file_path)  
+    return OUTPUT(text=result['text'])
+
+def pdf_to_text(file_path: str) -> Dict[str, str]:
+    """
+    Extracts plain text from a PDF file and returns it in a structured format.
     
-    output = OUTPUT()
-    output.text = result.get("text", "")
-    return output
+    Args:
+        file_path (str): Path to the PDF file.
+    
+    Returns:
+        Dict[str, str]: Contains extracted text in 'text' key.
+    """
+    try:
+        with fitz.open(file_path) as doc:
+            text_list = []
+            for page_num in range(len(doc)):
+                page = doc.load_page(page_num)
+                text = page.get_text().strip()
+                text_list.append(text)
+            full_text = "\n".join(text_list)
+            return {"text": full_text}
+    except Exception as e:
+        raise ValueError(f"Failed to process PDF: {str(e)}")

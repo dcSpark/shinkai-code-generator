@@ -1,14 +1,13 @@
 {
-  "name": "YouTube Transcript Fetcher",
+  "name": "YouTube Transcript Summarizer",
   "homepage": "https://shinkai.com",
-  "description": "Fetches the summary of a YouTube video transcript based on the provided video URL.",
+  "description": "Summarizes the transcript of a YouTube video.",
   "author": "@@localhost.sep-shinkai",
   "version": "1.0.0",
   "keywords": [
     "youtube",
     "transcript",
-    "fetch",
-    "summary"
+    "summarizer"
   ],
   "runner": "any",
   "operatingSystem": [
@@ -27,7 +26,7 @@
     "properties": {
       "url": {
         "type": "string",
-        "description": "The URL of the YouTube video to fetch the transcript for."
+        "description": "The URL of the YouTube video"
       }
     },
     "required": [
@@ -39,12 +38,14 @@
     "properties": {
       "summary": {
         "type": "string",
-        "description": "The summary of the YouTube video transcript."
+        "description": "Summary of the video transcript"
+      },
+      "error": {
+        "type": "string",
+        "description": "Error message if something went wrong"
       }
     },
-    "required": [
-      "summary"
-    ]
+    "required": []
   },
   "sqlTables": [],
   "sqlQueries": [],

@@ -2,60 +2,57 @@
 # requires-python = ">=3.10,<3.12"
 # dependencies = [
 #   "requests",
-#   "yt-dlp",
-#   "transformers",
-#   "torch",
+#   "youtube_transcript_api",
 # ]
 # ///
 
-from typing import Any, Dict, Optional
-from yt_dlp import YoutubeDL
-from transformers import pipeline
-import requests
+from typing import Any, Dict
+import re
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import TranscriptsDisabled
+
+def youtube_transcript_summarizer(transcript: str) -> str:
+    return transcript[:200] + '...'
+
+def extract_video_id(url: str) -> str:
+    regex = r"v=([a-zA-Z0-9_-]{11})"
+    match = re.search(regex, url)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError("Invalid YouTube URL")
+
+def fetch_transcript(url: str) -> str:
+    try:
+        video_id = extract_video_id(url)
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript = " ".join([item['text'] for item in transcript_list])
+        return transcript
+    except TranscriptsDisabled as e:
+        return f"Error fetching transcript: {str(e)}"
+    except ValueError as e:
+        return f"Error fetching transcript: {str(e)}"
+    except Exception as e:
+        return f"Unexpected error: {str(e)}"
+
+def process_video(url: str) -> Dict[str, Any]:
+    transcript = fetch_transcript(url)
+    if "Error fetching transcript" in transcript:
+        return {"summary": transcript}
+    else:
+        summary = youtube_transcript_summarizer(transcript)
+        return {"summary": summary}
 
 class CONFIG:
     pass
 
 class INPUTS:
     url: str
-    lang: Optional[str] = None
 
 class OUTPUT:
     summary: str
 
-async def youtube_transcript_summarizer(input: Dict[str, Any]) -> Dict[str, Any]:
-    url = input.get("url")
-    lang = input.get("lang", "en")
-
-    # Fetching the transcript
-    ydl_opts = {
-        'skip_download': True,
-        'quiet': True,
-        'writesubtitles': True,
-        'subtitleslangs': [lang]
-    }
-    
-    with YoutubeDL(ydl_opts) as ydl:
-        result = ydl.extract_info(url, download=False)
-        if 'requested_formats' in result:
-            subtitles = result['requested_formats'][0].get('subtitles')
-            if subtitles and lang in subtitles:
-                transcript_url = subtitles[lang][0]['url']
-                response = requests.get(transcript_url)
-                transcript = response.text
-            else:
-                raise ValueError("Transcript not available")
-        else:
-            raise ValueError("Failed to extract video information")
-
-    # Generate summary using a language model
-    summarizer = pipeline("summarization")
-    summary = summarizer(transcript, max_length=130, min_length=30, do_sample=False)
-    
-    return {"summary": summary[0]['summary_text']}
-
-async def run(config: CONFIG, inputs: Dict[str, Any]) -> OUTPUT:
+async def run(config: CONFIG, inputs: INPUTS) -> OUTPUT:
     output = OUTPUT()
-    result = await youtube_transcript_summarizer(inputs)
-    output.summary = result['summary']
+    output.summary = process_video(inputs.url)["summary"]
     return output

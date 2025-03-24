@@ -851,9 +851,9 @@ export default function Home() {
                     />
                     <div className="flex space-x-2">
                       <Button onClick={handleFeedbackSubmit}>Send Feedback</Button>
-                      <Button variant="outline" onClick={handleContinue}>
+                      {/* <Button variant="outline" onClick={handleContinue}>
                         Continue
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>
