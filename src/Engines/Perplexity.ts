@@ -32,7 +32,13 @@ export class PerplexityEngine extends BaseEngine {
             messages: [{
                 role: 'user',
                 content: prompt
-            }]
+            }],
+            "return_related_questions": false,
+            "web_search_options": {
+                "search_context_size": "medium"
+            },
+            "stream": false,
+            "return_images": false
         };
         const payloadString = JSON.stringify(payload);
         const tokenCount = countTokensFromMessageLlama3(payloadString);
@@ -56,7 +62,7 @@ export class PerplexityEngine extends BaseEngine {
                 data: payload,
                 headers: {
                     Authorization: `Bearer ${perplexityApiKey}`,
-                }
+                },
             };
             const response = await axios<PerplexityResponse>(data);
             responseData = response.data;
