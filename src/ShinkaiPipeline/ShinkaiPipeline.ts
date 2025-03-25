@@ -169,7 +169,8 @@ export class ShinkaiPipeline {
 
         if (!this.skipFeedback) {
             // let's terminate the pipeline if the user feedback is not provided
-            console.log(JSON.stringify({ markdown: this.requirements }));
+            const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+            console.log(JSON.stringify({ markdown: req }));
             throw new Error('REQUEST_FEEDBACK');
         }
 
@@ -427,6 +428,8 @@ export class ShinkaiPipeline {
                 `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
             );
         }
+
+        prompt = prompt.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
 
         await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 
@@ -1005,7 +1008,8 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             if (this.test.feedback) {
                 await this.processUserFeedback();
                 if (!this.skipFeedback) {
-                    console.log(JSON.stringify({ markdown: this.requirements }));
+                    const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+                    console.log(JSON.stringify({ markdown: req }));
                     throw new Error('REQUEST_FEEDBACK');
                 }
             } else {
@@ -1024,7 +1028,8 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
             if (this.test.plan_feedback) {
                 await this.processUserPlanFeedback();
-                console.log(JSON.stringify({ markdown: this.requirements }));
+                const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+                console.log(JSON.stringify({ markdown: req }));
                 throw new Error('REQUEST_PLAN_FEEDBACK');
             } else {
                 while (await this.fileManager.exists(this.step, 'c', 'plan-feedback.md')) {
