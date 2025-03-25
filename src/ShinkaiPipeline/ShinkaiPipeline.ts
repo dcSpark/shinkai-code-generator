@@ -539,10 +539,11 @@ ${doc}
 ${this.perplexityResults}
 ` : '';
 
+            const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
             // TODO Refetch only used libaries
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
                 '<initial_requirements>\n\n</initial_requirements>',
-                `<initial_requirements>\n${this.requirements}\n\n</initial_requirements>`
+                `<initial_requirements>\n${req}\n\n</initial_requirements>`
             ).replace(
                 '<libraries_documentation>\n\n</libraries_documentation>',
                 `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
