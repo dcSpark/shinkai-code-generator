@@ -618,9 +618,11 @@ ${this.perplexityResults}
                 );
             }
 
+            const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+            // This used to use the plan.
             const toolCode_1 = toolPrompt.replace(
                 '<input_command>\n\n</input_command>',
-                `<input_command>\n${this.plan}\n\n</input_command>`
+                `<input_command>\n${req}\n\n</input_command>`
             );
 
 
@@ -1023,23 +1025,23 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
             await this.processInternalTools();
 
-            await this.processLibrarySearch();
+            // await this.processLibrarySearch();
             await this.processPerplexitySearch();
-            await this.generatePlan();
+            // await this.generatePlan();
 
-            if (this.test.plan_feedback) {
-                await this.processUserPlanFeedback();
-                const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
-                console.log(JSON.stringify({ markdown: req }));
-                throw new Error('REQUEST_PLAN_FEEDBACK');
-            } else {
-                while (await this.fileManager.exists(this.step, 'c', 'plan-feedback.md')) {
-                    this.plan = await this.fileManager.load(this.step, 'c', 'plan-feedback.md');
+            // if (this.test.plan_feedback) {
+            //     await this.processUserPlanFeedback();
+            //     const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+            //     console.log(JSON.stringify({ markdown: req }));
+            //     throw new Error('REQUEST_PLAN_FEEDBACK');
+            // } else {
+            //     while (await this.fileManager.exists(this.step, 'c', 'plan-feedback.md')) {
+            //         this.plan = await this.fileManager.load(this.step, 'c', 'plan-feedback.md');
 
-                    console.log('EVENT: plan-feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing plan feedback' }));
-                    this.step++;
-                }
-            }
+            //         console.log('EVENT: plan-feedback\n', JSON.stringify({ message: 'Step ' + this.step + ' - Processing plan feedback' }));
+            //         this.step++;
+            //     }
+            // }
 
             await this.generateCode();
             let retries = 5;

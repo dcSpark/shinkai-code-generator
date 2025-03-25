@@ -16,6 +16,8 @@ export class ServiceAPIBase {
     constructor() { }
 
     async startTest(prompt: string, language: "typescript" | "python", fileName: string, runTests: boolean = true) {
+        const areTestsEnabled = Deno.env.get('GENERATE_TESTS') === 'true';
+        assertEquals(areTestsEnabled, true, '.env GENERATE_TESTS should be true');
 
         {
             let response1 = await fetch(`${this.baseUrl}/generate`, {
@@ -52,43 +54,43 @@ export class ServiceAPIBase {
             response1 = undefined as any;
             assertEquals(part1.includes('event: request-feedback'), true, 'part1.includes(request-feedback)');
         }
-        {
-            let response2 = await fetch(`${this.baseUrl}/generate`, {
-                method: "POST",
-                headers: {
-                    "accept": "text/event-stream",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    language,
-                    prompt: 'ok',
-                    tool_type: "shinkai",
-                    skipfeedback: "false",
-                    x_shinkai_request_uuid: `test-${language === 'typescript' ? 'ts' : 'py'}-${this.uuid}`,
-                    feedback: ""
-                }),
-            });
+        // {
+        //     let response2 = await fetch(`${this.baseUrl}/generate`, {
+        //         method: "POST",
+        //         headers: {
+        //             "accept": "text/event-stream",
+        //             "Content-Type": "application/json",
+        //         },
+        //         body: JSON.stringify({
+        //             language,
+        //             prompt: 'ok',
+        //             tool_type: "shinkai",
+        //             skipfeedback: "false",
+        //             x_shinkai_request_uuid: `test-${language === 'typescript' ? 'ts' : 'py'}-${this.uuid}`,
+        //             feedback: ""
+        //         }),
+        //     });
 
-            assertEquals(response2.status, 200, 'response2.status');
+        //     assertEquals(response2.status, 200, 'response2.status');
 
-            let reader2 = response2.body?.getReader();
-            let decoder2 = new TextDecoder();
-            let part2 = '';
-            while (true) {
-                const data = await reader2?.read();
-                const partialResult = decoder2.decode(data?.value);
-                console.log(partialResult);
-                part2 += partialResult;
-                if (data?.done) break;
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-            reader2 = undefined as any;
-            decoder2 = undefined as any;
-            response2 = undefined as any;
+        //     let reader2 = response2.body?.getReader();
+        //     let decoder2 = new TextDecoder();
+        //     let part2 = '';
+        //     while (true) {
+        //         const data = await reader2?.read();
+        //         const partialResult = decoder2.decode(data?.value);
+        //         console.log(partialResult);
+        //         part2 += partialResult;
+        //         if (data?.done) break;
+        //         await new Promise(resolve => setTimeout(resolve, 10));
+        //     }
+        //     reader2 = undefined as any;
+        //     decoder2 = undefined as any;
+        //     response2 = undefined as any;
 
-            assertEquals(part2.includes('event: request-feedback'), true, 'part1.includes(request-feedback)');
+        //     assertEquals(part2.includes('event: request-feedback'), true, 'part2.includes(request-feedback)');
 
-        }
+        // }
         {
             let response3 = await fetch(`${this.baseUrl}/generate`, {
                 method: "POST",
