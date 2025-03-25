@@ -331,9 +331,8 @@ export class ShinkaiPipeline {
             this.step++;
         }
 
-        {
-
-
+        const KB_PHASE = Deno.env.get('KB_PHASE');
+        if (KB_PHASE === 'true') {
             const documentationURL = 'https://shinkai-agent-knowledge-base.pages.dev/';
             let parsedLLMResponse = ''
             if (await this.fileManager.exists(this.step, 'c', 'kb-library.jsonn')) {
@@ -417,6 +416,7 @@ export class ShinkaiPipeline {
         const response = await perplexity.run(prompt, this.fileManager, undefined, 'Searching...');
 
         this.perplexityResults = response.message;
+        this.perplexityResults = this.perplexityResults.replace(/<think>[\s\S]*?<\/think>/g, '');
 
         await this.fileManager.save(this.step, 'c', this.perplexityResults, 'perplexity.md');
         this.step++;
