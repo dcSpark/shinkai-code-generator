@@ -40,6 +40,7 @@ export class OllamaEngine extends BaseEngine {
             method: "POST",
             data: JSON.stringify(payload),
         });
+        await this.addCost(logger, payload.messages.map(m => m.content).join('\n'), response.data.message.content);
         const end = Date.now();
 
         const time = end - start;

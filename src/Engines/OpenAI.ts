@@ -90,10 +90,12 @@ export class OpenAI extends BaseEngine {
         if (cachedPayload) {
             logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
             responseData = JSON.parse(cachedPayload);
+            await this.addFreeCost(logger, payloadString, responseData!.choices[0].message.content);
         } else {
             const response = await axios<OpenAIResponse>(data);
             responseData = response.data;
             logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
+            await this.addCost(logger, payloadString, responseData!.choices[0].message.content);
         }
 
         const end = Date.now();

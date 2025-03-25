@@ -43,31 +43,31 @@ export function getModelLarge() {
 }
 
 export function getPerplexity() {
-  return new PerplexityEngine('sonar-reasoning')
+  return new PerplexityEngine('sonar-reasoning', 1, 5)
 }
 
 function getLlama318bInstruct() {
-  return new OllamaEngine('llama3.1:8b-instruct-q4_1');
+  return new OllamaEngine('llama3.1:8b-instruct-q4_1', 0, 0);
 }
 
 function getDeepSeekReasoner() {
-  return new DeepseekService({ model: 'deepseek-reasoner' });
+  return new DeepseekService({ model: 'deepseek-reasoner' }, 0.55, 2.19);
 }
 
 function getDeepSeekChat() {
-  return new DeepseekService({ model: 'deepseek-chat' });
+  return new DeepseekService({ model: 'deepseek-chat' }, 0.27, 1.10);
 }
 
 function getOpenAIO3Mini() {
-  return new OpenAI('o3-mini');
+  return new OpenAI('o3-mini', 1.10, 4.40);
 }
 
 function getOpenAI4OMini() {
-  return new OpenAI('gpt-4o-mini');
+  return new OpenAI('gpt-4o-mini', 0.150, 0.600);
 }
 
 function getOpenAIO4() {
-  return new OpenAI('gpt-4o');
+  return new OpenAI('gpt-4o', 2.50, 10.00);
 }
 
 

@@ -167,4 +167,20 @@ export class FileManager {
         }
         await Deno.mkdir(FileManager.basePath, { recursive: true });
     }
+
+    public async addSpending(isMock: boolean, model: string, subItem: string, tokens: number, cost: number) {
+        const filePath = path.join(this.toolDir, `spent.json`);
+        const CSVSpacer = ' ';
+        if (!await exists(filePath)) {
+            await Deno.writeTextFile(filePath, JSON.stringify({
+                items: [`${isMock ? `FREE${CSVSpacer}` : ''}${model}${CSVSpacer}${subItem}${CSVSpacer}${tokens}${CSVSpacer}${cost}`],
+                sum: cost
+            }, null, 2));
+        } else {
+            const spent = JSON.parse(await Deno.readTextFile(filePath));
+            spent.items.push(`${isMock ? `FREE${CSVSpacer}` : ''}${model}${CSVSpacer}${subItem}${CSVSpacer}${tokens}${CSVSpacer}${cost}`);
+            spent.sum += cost;
+            await Deno.writeTextFile(filePath, JSON.stringify(spent, null, 2));
+        }
+    }
 }

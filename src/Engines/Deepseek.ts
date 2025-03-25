@@ -66,8 +66,8 @@ export class DeepseekService extends BaseEngine {
     private apiUrl: string;
     private lastRequestBody: any;
 
-    constructor(config: { model: string, apiUrl?: string, systemPrompt?: string }) {
-        super(config.model || 'deepseek-coder');
+    constructor(config: { model: string, apiUrl?: string, systemPrompt?: string }, priceInputTokens: number, priceOutputTokens: number) {
+        super(config.model || 'deepseek-coder', priceInputTokens, priceOutputTokens);
         if (!Deno.env.get('DEEPSEEK_API_KEY')) {
             throw new Error('Deepseek API key is not configured');
         }
@@ -107,10 +107,12 @@ export class DeepseekService extends BaseEngine {
             if (cachedPayload) {
                 logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
                 responseData = JSON.parse(cachedPayload);
+                await this.addFreeCost(logger, payloadString, responseData!.choices[0].message.content);
             } else {
                 const response = await axios<DeepseekResponse>(data);
                 responseData = response.data;
                 logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
+                await this.addCost(logger, payloadString, responseData!.choices[0].message.content);
             }
 
             const end = Date.now();

@@ -53,6 +53,7 @@ export class PerplexityEngine extends BaseEngine {
         if (cachedPayload) {
             logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
             responseData = JSON.parse(cachedPayload);
+            await this.addFreeCost(logger, payloadString, responseData.choices[0].message.content);
         } else {
             // NOTE: Chat history not implemented.
             if (payloadHistory) throw new Error('payloadHistory NYI')
@@ -67,6 +68,7 @@ export class PerplexityEngine extends BaseEngine {
             const response = await axios<PerplexityResponse>(data);
             responseData = response.data;
             logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
+            await this.addCost(logger, payloadString, responseData.choices[0].message.content);
         }
 
         const end = Date.now();
