@@ -15,6 +15,19 @@ export class FileManager {
         );
     }
 
+    async setLanguageIfNotSet(language: Language): Promise<Language> {
+        const filePath = path.join(this.toolDir, `language.json`);
+        if (await exists(filePath)) {
+            const lang = JSON.parse(await Deno.readTextFile(filePath));
+            this.language = lang.language;
+            return this.language;
+        } else {
+            await Deno.mkdir(this.toolDir, { recursive: true });
+            await Deno.writeTextFile(filePath, JSON.stringify({ language }));
+            return language;
+        }
+    }
+
     async log(message: string, stdout: boolean = false) {
         const filePath = path.join(this.toolDir, `log.txt`);
         await Deno.mkdir(this.toolDir, { recursive: true });

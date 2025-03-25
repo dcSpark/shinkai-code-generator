@@ -42,7 +42,7 @@ declare async function getAccessToken(providerName: string): Promise<string>;
 
   Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'
   <file-name=shinkai-local-tools>
-  
+
   </file-name=shinkai-local-tools>
 
 </agent_libraries>

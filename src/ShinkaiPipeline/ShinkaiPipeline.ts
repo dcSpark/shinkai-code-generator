@@ -404,13 +404,30 @@ export class ShinkaiPipeline {
 
         this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
 
+        const usedInternalTools = this.shinkaiLocalTools_toolRouterKeys
+            .filter(trk => this.internalToolsJSON.includes(trk.toolRouterKey))
+            .map(trk => trk.code)
+            .join('\n');
+
+
         const perplexity = getPerplexity();
         let prompt = '';
         if (this.language === 'typescript') {
-            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-ts.md')).replace("{{prompt}}", this.requirements);
+            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-ts.md'));
+            prompt = prompt.replace("{{prompt}}", this.requirements);
+            prompt = prompt.replace(
+                '<file-name=shinkai-local-tools>\n\n  </file-name=shinkai-local-tools>',
+                `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
+            );
         } else if (this.language === 'python') {
-            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-py.md')).replace("{{prompt}}", this.requirements);
+            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-py.md'));
+            prompt = prompt.replace("{{prompt}}", this.requirements);
+            prompt = prompt.replace(
+                '<file-name=shinkai_local_tools>\n\n  </file-name=shinkai_local_tools>',
+                `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
+            );
         }
+
         await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 
         const response = await perplexity.run(prompt, this.fileManager, undefined, 'Searching...');
@@ -940,6 +957,8 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
     public async run() {
         try {
+            this.language = await this.fileManager.setLanguageIfNotSet(this.language);
+
             const state = await this.fileManager.loadState();
             if (state.exists && state.completed) {
                 console.log('EVENT: progress\n', JSON.stringify({ message: 'Already completed' }));
@@ -997,10 +1016,10 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                     this.step++;
                 }
             }
+            await this.processInternalTools();
 
             await this.processLibrarySearch();
             await this.processPerplexitySearch();
-            await this.processInternalTools();
             await this.generatePlan();
 
             if (this.test.plan_feedback) {
