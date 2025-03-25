@@ -429,7 +429,16 @@ export class ShinkaiPipeline {
             );
         }
 
-        prompt = prompt.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
+        prompt = prompt.replace(
+            /# External Libraries[\s\S]*?# Example Input and Output/,
+            `# External Libraries
+* Search for ${this.language === 'typescript' ? 'npmjs.com/' : 'pypi.org'} libraries.
+            
+# Example Input and Output`
+        );
+        if (this.language === 'typescript') {
+            prompt = prompt.replace(/deno/ig, 'typescript');
+        }
 
         await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 

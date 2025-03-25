@@ -110,6 +110,9 @@ declare async function getAccessToken(providerName: string): Promise<string>;
   </deno>
 </agent_libraries_documentation>
 
+
+The example_implementation is written in TS for "node.js", it is important to use/convert into "Deno".
+For example, use Deno.{read|write}{Text}File instead of fs, and other Deno 2.* constraints.  
 <example_implementation>
 
 </example_implementation>
