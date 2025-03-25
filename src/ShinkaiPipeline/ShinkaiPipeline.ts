@@ -345,10 +345,11 @@ export class ShinkaiPipeline {
 
                 const documentation = await fetch(documentationURL);
                 const documentationHTML = await documentation.text();
-
+                const turndownService = new TurndownService.default()
+                const documentationMarkdown = turndownService.turndown(documentationHTML)
                 parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                     let documentationFile = Deno.readTextFileSync(Deno.cwd() + '/prompts/3a-fetch-library.md');
-                    documentationFile = documentationFile.replace('<web>\n\n</web>', `<web>\n${documentationHTML}\n</web>`);
+                    documentationFile = documentationFile.replace('<web>\n\n</web>', `<web>\n${documentationMarkdown}\n</web>`);
                     documentationFile = documentationFile.replace('<requirements>\n\n</requirements>', `<requirements>\n${this.requirements}\n</requirements>`);
                     await this.fileManager.save(this.step, 'a', documentationFile, 'kb-library-prompt.md');
 
@@ -405,7 +406,12 @@ export class ShinkaiPipeline {
         this.fileManager.log(`[Planning Step ${this.step}] Searching Perplexity for additional context`, true);
 
         const perplexity = getPerplexity();
-        const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity.md')).replace("{{prompt}}", this.requirements);
+        let prompt = '';
+        if (this.language === 'typescript') {
+            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-ts.md')).replace("{{prompt}}", this.requirements);
+        } else if (this.language === 'python') {
+            prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-py.md')).replace("{{prompt}}", this.requirements);
+        }
         await this.fileManager.save(this.step, 'a', prompt, 'perplexity-prompt.md');
 
         const response = await perplexity.run(prompt, this.fileManager, undefined, 'Searching...');
@@ -847,6 +853,34 @@ In the next example tag is an example of the commented script block that MUST be
         const user_prompt = this.test.prompt;
         if (user_prompt === "") return 'no-changes';
         if (!user_prompt) return 'no-changes';
+
+        const positive_responses = [
+            "yes", "sure", "si",
+            'Continue',
+            'Cont',
+            "C",
+            'Go on',
+            'Proceed',
+            'Carry on',
+            'Keep going',
+            'Next',
+            "N",
+            'Yes',
+            'OK',
+            'Affirm',
+            'Go ahead',
+            'Press on',
+            'Alright',
+            'Affirm',
+            'Go ahead',
+            'Press on',
+            'Resume',
+            'Move forward',
+            'All good'];
+        if (positive_responses.includes(user_prompt.toLowerCase())) {
+            return 'changes-requested';
+        }
+
 
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
