@@ -44,7 +44,7 @@ export class PerplexityEngine extends BaseEngine {
         const tokenCount = countTokensFromMessageLlama3(payloadString);
         const contextMessage = thinkingAbout || "Processing";
         logger?.log(`[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`);
-        logger?.save(1000, `${new Date().toISOString()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
+        logger?.save(1000, `${new Date().getTime()}-${tokenCount}`, JSON.stringify(payload, null, 2), 'json');
 
         const hashedFilename = (await hashString(payloadString)) + '-' + tokenCount + '.json';
         const cachedPayload = await logger?.loadCache(hashedFilename);

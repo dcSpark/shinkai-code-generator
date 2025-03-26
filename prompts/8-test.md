@@ -24,6 +24,8 @@
 </example>
 
 <formatting>
+* Do not add inline or block comments.
+* If only required use null instead of undefined, as it must be valid JSON. 
 * Generate a valid JSON Array of Objects.
 * Return exacty 3 Objects in the Array.
 * Each Object has a 'input', 'config' and 'output'.
