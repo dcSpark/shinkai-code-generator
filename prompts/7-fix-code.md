@@ -11,7 +11,7 @@ Focus on:
 
 Provide ONLY the entire fixed code without any explanations.
 This program is for {RUNTIME}
-{LANG-RULES}
+{LANG_RULES}
 </rules>
 
 {WARNINGS}
