@@ -33,9 +33,7 @@ Do not write any other output or code.
     * We will use {RUNTIME}.
 </system-requirements>
 
-<internal-libraries>
-
-</internal-libraries>
+{INTERNAL_LIBRARIES}
 
 <formating>
 * Use the folling format for to respond the three actions.
@@ -63,7 +61,5 @@ Output: {json}
 ```
 </formating>
 
-<input_command>
-
-</input_command>
+{INPUT_COMMAND}
 

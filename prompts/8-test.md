@@ -1,7 +1,4 @@
-<external-libraries>
-
-</external-libraries>
-
+{EXTERNAL_LIBRARIES}
 
 <rules>
 * Given the program description in the requierement tag.
@@ -12,13 +9,9 @@
 * We will run these examples in the with the code provided to check if they will work.
 </rules>
 
-<requirement>
+{REQUIREMENT}
 
-</requirement>
-
-<code>
-
-</code>
+{CODE}
 
 <example>
 ```json

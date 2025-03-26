@@ -56,7 +56,7 @@ ${testData}
     `;
 
     const serviceAPIBase = new ServiceAPIBase();
-    await serviceAPIBase.startTest(prompt, 'typescript', `jupiter-${index}`, true, {
+    await serviceAPIBase.startTest(prompt, 'typescript', `jupiter-${index}`, false, {
         feedback: (feedbackString: string) => {
             assertEquals(feedbackString.includes('https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/'), true, 'feedbackString.includes documentation url');
         }

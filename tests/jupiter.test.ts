@@ -1,10 +1,10 @@
 import { ServiceAPIBase } from "./service-api-base.ts";
 
 
-const prompt = `
+const prompt = ` 
 For Jupiter DEX create a tool that retrieves detailed token information by address or symbol.
 
-Requirements:
+Requirements: 
 - Support lookup by both mint address and symbol
 - Return comprehensive token metadata
 - Handle non-existent token errors

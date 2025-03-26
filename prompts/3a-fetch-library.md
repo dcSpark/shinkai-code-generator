@@ -4,13 +4,9 @@
 * Find the related URLs required to implement the requirements. 
 </rules>
 
-<requirements>
+{REQUIREMENTS}
 
-</requirements>
-
-<web>
-
-</web>
+{WEB_PAGE}
 
 <formatting>
 * The output should be a valid JSON Array of URLs.

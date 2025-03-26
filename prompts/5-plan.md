@@ -1,14 +1,8 @@
-<libraries_documentation>
+{LIBRARIES_DOCUMENTATION}
 
-</libraries_documentation>
+{INTERNAL_LIBRARIES}
 
-<internal_libraries>
-
-</internal_libraries>
-
-<initial_requirements>
-
-</initial_requirements>
+{INITIAL_REQUIREMENTS}
 
 <rules>
 * The libraries_documentation tag is referencial so you have understanding of the capabitlity of the libraries.

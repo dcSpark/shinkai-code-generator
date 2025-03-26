@@ -25,6 +25,4 @@
 * Respond with a valid JSON Object as in option1 or option2 only.
 </formatting>
 
-<feedback>
-
-</feedback>
+{FEEDBACK}

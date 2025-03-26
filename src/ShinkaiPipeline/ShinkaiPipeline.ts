@@ -142,12 +142,12 @@ export class ShinkaiPipeline {
             }
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/1-initial-requirements.md')).replace(
-                '<input_command>\n\n</input_command>',
+                '{INPUT_COMMAND}',
                 `<input_command>\n${user_prompt}\n\n</input_command>`
             )
                 .replace(/\{LANGUAGE\}/g, this.language)
                 .replace(/\{RUNTIME\}/g, this.language === 'typescript' ? 'Deno' : 'Python')
-                .replace("<internal-libraries>\n\n</internal-libraries>", `<internal-libraries>\n${headers}\n</internal-libraries>`)
+                .replace("{INTERNAL_LIBRARIES}", `<internal-libraries>\n${headers}\n</internal-libraries>`)
             await this.fileManager.save(this.step, 'a', prompt, 'requirements-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Analyzing Requirements & Generating Feedback");
             await this.fileManager.save(this.step, 'x', JSON.stringify(llmResponse.metadata), 'promptHistory.json');
@@ -172,6 +172,7 @@ export class ShinkaiPipeline {
             // let's terminate the pipeline if the user feedback is not provided
             const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
             console.log(JSON.stringify({ markdown: req }));
+            await new Promise(resolve => setTimeout(resolve, 200));
             throw new Error('REQUEST_FEEDBACK');
         }
 
@@ -204,7 +205,7 @@ export class ShinkaiPipeline {
             this.fileManager.log(`[Planning Step ${this.step}] User Requirements & Feedback Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/2-feedback.md')).replace(
-                '<input_command>\n\n</input_command>',
+                '{INPUT_COMMAND}',
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-prompt.md');
@@ -257,7 +258,7 @@ export class ShinkaiPipeline {
             this.fileManager.log(`[Planning Step ${this.step}] User Plan & Feedback Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/2-feedback.md')).replace(
-                '<input_command>\n\n</input_command>',
+                '{INPUT_COMMAND}',
                 `<input_command>\n${user_feedback}\n\n</input_command>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'plan-feedback-prompt.md');
@@ -297,7 +298,7 @@ export class ShinkaiPipeline {
                 parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                     this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
                     const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
-                        '<input_command>\n\n</input_command>',
+                        '{INPUT_COMMAND}',
                         `<input_command>\n${this.requirements}\n\n</input_command>`
                     );
                     await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
@@ -350,8 +351,8 @@ export class ShinkaiPipeline {
                 const documentationMarkdown = turndownService.turndown(documentationHTML)
                 parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                     let documentationFile = Deno.readTextFileSync(Deno.cwd() + '/prompts/3a-fetch-library.md');
-                    documentationFile = documentationFile.replace('<web>\n\n</web>', `<web>\n${documentationMarkdown}\n</web>`);
-                    documentationFile = documentationFile.replace('<requirements>\n\n</requirements>', `<requirements>\n${this.requirements}\n</requirements>`);
+                    documentationFile = documentationFile.replace('{WEB_PAGE}', `<web>\n${documentationMarkdown}\n</web>`);
+                    documentationFile = documentationFile.replace('{REQUIREMENTS}', `<requirements>\n${this.requirements}\n</requirements>`);
                     await this.fileManager.save(this.step, 'a', documentationFile, 'kb-library-prompt.md');
 
                     const llmResponse = await this.llmModel.run(documentationFile, this.fileManager, undefined, "Fetching Documentation");
@@ -422,15 +423,15 @@ export class ShinkaiPipeline {
             prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-ts.md'));
             prompt = prompt.replace("{{prompt}}", this.requirements);
             prompt = prompt.replace(
-                '<file-name=shinkai-local-tools>\n\n  </file-name=shinkai-local-tools>',
+                '{FILE_SHINKAI_LOCAL_TOOLS}',
                 `<external-references>${libraryDocsString}</external-references>\n\n<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
             );
         } else if (this.language === 'python') {
             prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-py.md'));
             prompt = prompt.replace("{{prompt}}", this.requirements);
             prompt = prompt.replace(
-                '<file-name=shinkai_local_tools>\n\n  </file-name=shinkai_local_tools>',
-                `<external-references>${libraryDocsString}</external-references>\n\n<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
+                '{FILE_SHINKAI_LOCAL_TOOLS}',
+                `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
             );
         }
 
@@ -498,11 +499,12 @@ get_access_token
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}]Internal Libraries Prompt`, true);
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/4-internal-tools.md')).replace(
-                '<input_command>\n\n</input_command>',
+                '{INPUT_COMMAND}',
                 `<input_command>\n${this.requirements}\n\n </input_command>`
             ).replace(
-                '<tool_router_key>\n\n</tool_router_key>',
-                `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`)
+                '{TOOL_ROUTER_KEY}',
+                `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`
+            );
             await this.fileManager.save(this.step, 'a', prompt, 'internal-tools-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Identifying Required Internal Tools");
             await this.fileManager.save(this.step, 'b', llmResponse.message, 'raw-internal-tools-response.md');
@@ -559,13 +561,13 @@ ${this.perplexityResults}
             const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
             // TODO Refetch only used libaries
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
-                '<initial_requirements>\n\n</initial_requirements>',
+                '{INITIAL_REQUIREMENTS}',
                 `<initial_requirements>\n${req}\n\n</initial_requirements>`
             ).replace(
-                '<libraries_documentation>\n\n</libraries_documentation>',
+                '{LIBRARIES_DOCUMENTATION}',
                 `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
             ).replace(
-                '<internal_libraries>\n\n</internal_libraries>',
+                '{INTERNAL_LIBRARIES}',
                 `<internal_libraries>\n${internalTools_Tools}\n</internal_libraries>`
             ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python');
 
@@ -624,13 +626,13 @@ ${this.perplexityResults}
             if (this.language === 'typescript') {
                 toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-ts.md');
                 toolPrompt = toolPrompt.replace(
-                    '<file-name=shinkai-local-tools>\n\n</file-name=shinkai-local-tools>',
+                    '{FILE_NAME_SHINKAI_LOCAL_TOOL}',
                     `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
                 );
             } else if (this.language === 'python') {
                 toolPrompt = Deno.readTextFileSync(Deno.cwd() + '/prompts/6-code-py.md');
                 toolPrompt = toolPrompt.replace(
-                    '<file-name=shinkai_local_tools>\n\n</file-name=shinkai_local_tools>',
+                    '{FILE_NAME_SHINKAI_LOCAL_TOOL}',
                     `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
                 );
             }
@@ -638,7 +640,7 @@ ${this.perplexityResults}
             const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
             // This used to use the plan.
             const toolCode_1 = toolPrompt.replace(
-                '<input_command>\n\n</input_command>',
+                '{INPUT_COMMAND}',
                 `<input_command>\n${req}\n\n</input_command>`
             );
 
@@ -654,17 +656,33 @@ ${this.perplexityResults}
                 }
             }
 
-            const toolCode_2 = toolCode_1
-                .replace("Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'", '')
-                .replace(/<file-name=shinkai-local-tools>[\s\S]*?<\/file-name=shinkai-local-tools>/g, '')
-                .replace(/<\/file-name=shinkai-local-support>/, `</file-name=shinkai-local-support>
+
+            let toolCode_2 = '';
+            if (this.language === 'typescript') {
+                toolCode_2 = toolCode_1
+                    .replace("Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'", '')
+                    .replace(/<file-name=shinkai-local-tools>[\s\S]*?<\/file-name=shinkai-local-tools>/g, '')
+                    .replace(/<\/file-name=shinkai-local-support>/, `</file-name=shinkai-local-support>
 
 Import these functions with the format: \`import { xx } from './shinkai-local-tools.ts'\`
 <file-name=shinkai-local-tools>
 ${alternativeHeaders}
 </file-name=shinkai-local-tools>
 `
-                );
+                    );
+            } else if (this.language === 'python') {
+                toolCode_2 = toolCode_1
+                    .replace("Import these functions with the format: `from shinkai_local_tools import xx`", '')
+                    .replace(/<file-name=shinkai_local_tools>[\s\S]*?<\/file-name=shinkai_local_tools>/g, '')
+                    .replace(/<\/file-name=shinkai_local_support>/, `</file-name=shinkai_local_support>
+
+Import these functions with the format: \`from shinkai_local_tools import xx\`
+<file-name=shinkai_local_tools>
+${alternativeHeaders}
+</file-name=shinkai_local_tools>
+`
+                    );
+            }
 
             //             const perplexityCode = `
             // The reference-implementation tag section is an example on a alternative implementation, it might not be correct. 
@@ -699,7 +717,7 @@ ${additionalRules}
             );
 
             const toolCodeWithReferenceImplementation = toolCode.replace(
-                '<example_implementation>\n\n</example_implementation>',
+                '{EXAMPLE_IMPLEMENTATION}',
                 `<example_implementation>\n${this.perplexityResults}\n</example_implementation>`
             );
             await this.fileManager.save(this.step, 'a', toolCodeWithReferenceImplementation, 'code-prompt.md');
@@ -780,8 +798,8 @@ ${additionalRules}
                 }
                 // Read the fix-code prompt
                 const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/7-fix-code.md'))
-                    .replace('<warnings>\n\n</warnings>', `<warnings>\n${warningString}\n</warnings>`)
-                    .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
+                    .replace('{WARNINGS}', `<warnings>\n${warningString}\n</warnings>`)
+                    .replace('{CODE}', `<code>\n${this.code}\n</code>`)
                     .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
                     .replace('{LANG-RULES}', this.language === 'typescript' ? `
 All libraries must be imported at the start of the code as either:
@@ -863,15 +881,16 @@ In the next example tag is an example of the commented script block that MUST be
                         `).join('\n\n');
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/8-test.md'))
-                .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.requirements}\n</requirement>`)
-                .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
-                .replace('<external-libraries>\n\n</external-libraries>', `<external-libraries>\n${libraryDocsString}\n</external-libraries>`);
+                .replace('{REQUIREMENT}', `<requirement>\n${this.requirements}\n</requirement>`)
+                .replace('{CODE}', `<code>\n${this.code}\n</code>`)
+                .replace('{EXTERNAL_LIBRARIES}', `<external-libraries>\n${libraryDocsString}\n</external-libraries>`);
 
             await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Generating Test Cases");
             const promptResponse = llmResponse.message;
             await this.fileManager.save(this.step, 'b', promptResponse, 'raw-test-response.md');
-            return promptResponse;
+
+            return promptResponse.replace('undefined,', 'null,');
         }, 'json', {
             isJSONArray: true,
             // Regex asumes its a string...
@@ -937,7 +956,7 @@ In the next example tag is an example of the commented script block that MUST be
             this.fileManager.log(`[Planning Step ${this.step}] Feedback Analysis Prompt`, true);
 
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-feedback_analysis.md')).replace(
-                '<feedback>\n\n</feedback>',
+                '{FEEDBACK}',
                 `<feedback>\n${user_prompt}\n</feedback>`
             );
             await this.fileManager.save(this.step, 'a', prompt, 'feedback-analysis-prompt.md');
@@ -1041,6 +1060,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 if (!this.skipFeedback) {
                     const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
                     console.log(JSON.stringify({ markdown: req }));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                     throw new Error('REQUEST_FEEDBACK');
                 }
             } else {

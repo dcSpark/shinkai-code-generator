@@ -8,9 +8,7 @@
 * In the final list there must be only names of the exact "external-libraries" provided and/or the "exact URLs".
 </rules>
 
-<input_command>
-
-</input_command>
+{INPUT_COMMAND}
 
 <formatting>
 * The output should be a single `string[]`

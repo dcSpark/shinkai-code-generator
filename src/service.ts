@@ -50,7 +50,7 @@ const sseStream = () => new TransformStream({
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
 
-            if (line.startsWith('EVENT: ')) {
+            if (line.match(/^EVENT: (.*)$/i)) {
                 // If we have a previous event stored, send it
                 if (currentEvent !== null) {
                     const data = currentData.length > 0 ? currentData.join('\n') : '{}';

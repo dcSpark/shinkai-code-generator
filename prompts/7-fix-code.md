@@ -14,12 +14,8 @@ This program is for {RUNTIME}
 {LANG-RULES}
 </rules>
 
-<warnings>
-
-</warnings>
+{WARNINGS}
 
 The full contents of /index.ts inside the code tag
-<code>
-
-</code>
+{CODE}
 

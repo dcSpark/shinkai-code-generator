@@ -8,13 +8,9 @@
 * In the query must only contain the name of the exact internal-library corresponding tool-router-key.
 </rules>
 
-<tool_router_key>
+{TOOL_ROUTER_KEY}
 
-</tool_router_key>
-
-<input_command>
-
-</input_command>
+{INPUT_COMMAND}
 
 <formatting>
 * The output should be a single `string[]`

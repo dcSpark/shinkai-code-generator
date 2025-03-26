@@ -5,6 +5,4 @@
 * If the input_command is empty, or just acknowleges the preview response, print the last output verbatim.
 </rules>
 
-<input_command>
-
-</input_command>
+{INPUT_COMMAND}
