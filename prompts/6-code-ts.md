@@ -41,7 +41,7 @@ declare async function getAccessToken(providerName: string): Promise<string>;
   </file-name=shinkai-local-support>
 
   Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'
-  {FILE_NAME_SHINKAI_LOCAL_TOOL}
+  {{FILE_NAME_SHINKAI_LOCAL_TOOL}}
 
 </agent_libraries>
 
@@ -111,9 +111,9 @@ declare async function getAccessToken(providerName: string): Promise<string>;
 
 The example_implementation is written in TS for "node.js", it is important to use/convert into "Deno".
 For example, use Deno.{read|write}{Text}File instead of fs, and other Deno 2.* constraints.  
-{EXAMPLE_IMPLEMENTATION}
+{{EXAMPLE_IMPLEMENTATION}}
 
-{INPUT_COMMAND}
+{{INPUT_COMMAND}}
 
 Explain your thinking process step by step and then implement the code.
 

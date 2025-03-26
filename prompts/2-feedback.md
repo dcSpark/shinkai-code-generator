@@ -5,4 +5,4 @@
 * If the input_command is empty, or just acknowleges the preview response, print the last output verbatim.
 </rules>
 
-{INPUT_COMMAND}
+{{INPUT_COMMAND}}

@@ -143,10 +143,10 @@ export class ShinkaiPipeline {
             }
 
             const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/1-initial-requirements.md', [
-                ['{INPUT_COMMAND}', `<input_command>\n${user_prompt}\n\n</input_command>`],
+                ['{{INPUT_COMMAND}}', `<input_command>\n${user_prompt}\n\n</input_command>`],
                 [/\{LANGUAGE\}/g, this.language],
                 [/\{RUNTIME\}/g, this.language === 'typescript' ? 'Deno' : 'Python'],
-                ['{INTERNAL_LIBRARIES}', `<internal-libraries>\n${headers}\n</internal-libraries>`]
+                ['{{INTERNAL_LIBRARIES}}', `<internal-libraries>\n${headers}\n</internal-libraries>`]
             ]);
             return await promptGenerator.generatePrompt();
         })();
@@ -206,7 +206,7 @@ export class ShinkaiPipeline {
 
         const prompt = await (async () => {
             const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/2-feedback.md', [
-                ['{INPUT_COMMAND}', `<input_command>\n${user_feedback}\n\n</input_command>`]
+                ['{{INPUT_COMMAND}}', `<input_command>\n${user_feedback}\n\n</input_command>`]
             ]);
             return await promptGenerator.generatePrompt();
         })();
@@ -262,7 +262,7 @@ export class ShinkaiPipeline {
 
         const prompt = await (async () => {
             const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/2-feedback.md', [
-                ['{INPUT_COMMAND}', `<input_command>\n${user_feedback}\n\n</input_command>`]
+                ['{{INPUT_COMMAND}}', `<input_command>\n${user_feedback}\n\n</input_command>`]
             ]);
             return await promptGenerator.generatePrompt();
         })();
@@ -308,7 +308,7 @@ export class ShinkaiPipeline {
                 parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
                     this.fileManager.log(`[Planning Step ${this.step}] Library Search Prompt`, true);
                     const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3-library.md')).replace(
-                        '{INPUT_COMMAND}',
+                        '{{INPUT_COMMAND}}',
                         `<input_command>\n${this.requirements}\n\n</input_command>`
                     );
                     await this.fileManager.save(this.step, 'a', prompt, 'library-prompt.md');
@@ -362,8 +362,8 @@ export class ShinkaiPipeline {
 
                 const prompt = await (async () => {
                     const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/3a-fetch-library.md', [
-                        ['{WEB_PAGE}', `<web>\n${documentationMarkdown}\n</web>`],
-                        ['{REQUIREMENTS}', `<requirements>\n${this.requirements}\n</requirements>`]
+                        ['{{WEB_PAGE}}', `<web>\n${documentationMarkdown}\n</web>`],
+                        ['{{REQUIREMENTS}}', `<requirements>\n${this.requirements}\n</requirements>`]
                     ]);
                     return await promptGenerator.generatePrompt();
                 })();
@@ -439,7 +439,7 @@ export class ShinkaiPipeline {
             if (this.language === 'typescript') {
                 r.push(
                     ['{{prompt}}', this.requirements],
-                    ['{FILE_SHINKAI_LOCAL_TOOLS}', `
+                    ['{{FILE_SHINKAI_LOCAL_TOOLS}}', `
                         <external-references>${libraryDocsString}</external-references>
                         
                         <file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`]
@@ -447,7 +447,7 @@ export class ShinkaiPipeline {
             } else if (this.language === 'python') {
                 r.push(
                     ['{{prompt}}', this.requirements],
-                    ['{FILE_SHINKAI_LOCAL_TOOLS}', `
+                    ['{{FILE_SHINKAI_LOCAL_TOOLS}}', `
                         <external-references>${libraryDocsString}</external-references>
 
                         <file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`]
@@ -530,8 +530,8 @@ get_access_token
             }
 
             const r: [(string | RegExp), string][] = [
-                ['{INPUT_COMMAND}', `<input_command>\n${this.requirements}\n\n </input_command>`],
-                ['{TOOL_ROUTER_KEY}', `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`]
+                ['{{INPUT_COMMAND}}', `<input_command>\n${this.requirements}\n\n </input_command>`],
+                ['{{TOOL_ROUTER_KEY}}', `<tool_router_key>\n${availableTools.join('\n')}\n</tool_router_key>`]
             ];
 
             const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/4-internal-tools.md', r);
@@ -596,15 +596,15 @@ get_access_token
     //             const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
     //             // TODO Refetch only used libaries
     //             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/5-plan.md')).replace(
-    //                 '{INITIAL_REQUIREMENTS}',
+    //                 '{{INITIAL_REQUIREMENTS}}',
     //                 `<initial_requirements>\n${req}\n\n</initial_requirements>`
     //             ).replace(
-    //                 '{LIBRARIES_DOCUMENTATION}',
+    //                 '{{LIBRARIES_DOCUMENTATION}}',
     //                 `<libraries_documentation>\n${libraryDocsString}\n${perplexityDocsString}\n</libraries_documentation>`
     //             ).replace(
-    //                 '{INTERNAL_LIBRARIES}',
+    //                 '{{INTERNAL_LIBRARIES}}',
     //                 `<internal_libraries>\n${internalTools_Tools}\n</internal_libraries>`
-    //             ).replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python');
+    //             ).replace('{{RUNTIME}}', this.language === 'typescript' ? 'Deno' : 'Python');
 
     //             await this.fileManager.save(this.step, 'a', prompt, 'plan-prompt.md');
     //             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Creating Development Plan");
@@ -663,12 +663,12 @@ get_access_token
 
             if (this.language === 'typescript') {
                 r.push([
-                    '{FILE_NAME_SHINKAI_LOCAL_TOOL}',
+                    '{{FILE_NAME_SHINKAI_LOCAL_TOOL}}',
                     `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
                 ]);
             } else if (this.language === 'python') {
                 r.push([
-                    '{FILE_NAME_SHINKAI_LOCAL_TOOL}',
+                    '{{FILE_NAME_SHINKAI_LOCAL_TOOL}}',
                     `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
                 ]);
             }
@@ -679,7 +679,7 @@ get_access_token
             const req = this.requirements.replace(/# External Libraries[\s\S]*?# Example Input and Output/, '# Example Input and Output');
             // This used to use the plan.
             const toolCode_1 = toolPrompt.replace(
-                '{INPUT_COMMAND}',
+                '{{INPUT_COMMAND}}',
                 `<input_command>\n${req}\n\n</input_command>`
             );
 
@@ -756,7 +756,7 @@ ${additionalRules}
             );
 
             const toolCodeWithReferenceImplementation = toolCode.replace(
-                '{EXAMPLE_IMPLEMENTATION}',
+                '{{EXAMPLE_IMPLEMENTATION}}',
                 `<example_implementation>\n${this.perplexityResults}\n</example_implementation>`
             );
             // TODO: Implement this with the prompt generator
@@ -855,10 +855,10 @@ ${additionalRules}
                 }
                 // Read the fix-code prompt
                 const fixCodePrompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/7-fix-code.md'))
-                    .replace('{WARNINGS}', `<warnings>\n${warningString}\n</warnings>`)
-                    .replace('{CODE}', `<code>\n${this.code}\n</code>`)
-                    .replace('{RUNTIME}', this.language === 'typescript' ? 'Deno' : 'Python')
-                    .replace('{LANG_RULES}', this.language === 'typescript' ? `
+                    .replace('{{WARNINGS}}', `<warnings>\n${warningString}\n</warnings>`)
+                    .replace('{{CODE}}', `<code>\n${this.code}\n</code>`)
+                    .replace('{{RUNTIME}}', this.language === 'typescript' ? 'Deno' : 'Python')
+                    .replace('{{LANG_RULES}}', this.language === 'typescript' ? `
 All libraries must be imported at the start of the code as either:
 \`import { xx } from './shinkai-local-support.ts\`; 
 \`import { xx } from 'npm:yyy'\`;
@@ -945,9 +945,9 @@ ${doc}
 
 
             const r: [(string | RegExp), string][] = [];
-            r.push([/{REQUIREMENT}/, `<requirement>\n${this.requirements}\n</requirement>`]);
-            r.push([/{CODE}/, `<code>\n${this.code}\n</code>`]);
-            r.push([/{EXTERNAL_LIBRARIES}/, `<external-libraries>\n${libraryDocsString}\n</external-libraries>`]);
+            r.push([/{{REQUIREMENT}}/, `<requirement>\n${this.requirements}\n</requirement>`]);
+            r.push([/{{CODE}}/, `<code>\n${this.code}\n</code>`]);
+            r.push([/{{EXTERNAL_LIBRARIES}}/, `<external-libraries>\n${libraryDocsString}\n</external-libraries>`]);
             const file = '/prompts/8-test.md';
             const promptGenerator = new PromptGenerator(Deno.cwd() + file, r);
             return await promptGenerator.generatePrompt();
@@ -1025,7 +1025,7 @@ ${doc}
 
         const prompt = await (async () => {
             const r: [(string | RegExp), string][] = [];
-            r.push([/{FEEDBACK}/, `<feedback>\n${user_prompt}\n</feedback>`]);
+            r.push([/{{FEEDBACK}}/, `<feedback>\n${user_prompt}\n</feedback>`]);
             const file = this.language === 'typescript' ? '/prompts/3-feedback_analysis.md' : '/prompts/3-feedback_analysis-py.md';
             const promptGenerator = new PromptGenerator(Deno.cwd() + file, r);
             return await promptGenerator.generatePrompt();

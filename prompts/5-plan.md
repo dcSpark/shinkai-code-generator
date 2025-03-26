@@ -1,8 +1,8 @@
-{LIBRARIES_DOCUMENTATION}
+{{LIBRARIES_DOCUMENTATION}}
 
-{INTERNAL_LIBRARIES}
+{{INTERNAL_LIBRARIES}}
 
-{INITIAL_REQUIREMENTS}
+{{INITIAL_REQUIREMENTS}}
 
 <rules>
 * The libraries_documentation tag is referencial so you have understanding of the capabitlity of the libraries.
@@ -20,7 +20,7 @@ Do not write any other output or source code.
 </rules>
 
 <system-initial_requirements>
-    * We will use {RUNTIME}.
+    * We will use {{RUNTIME}}.
 </system-initial_requirements>
 
 

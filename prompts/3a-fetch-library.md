@@ -4,9 +4,9 @@
 * Find the related URLs required to implement the requirements. 
 </rules>
 
-{REQUIREMENTS}
+{{REQUIREMENTS}}
 
-{WEB_PAGE}
+{{WEB_PAGE}}
 
 <formatting>
 * The output should be a valid JSON Array of URLs.

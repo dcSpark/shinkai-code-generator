@@ -9,7 +9,7 @@ The context of the implementation is a server-side function called "run," which 
 Then do the following 6 actions:
 
 1. Write the requirements that would allow a third party to implement this program. Describe them as a list.
-2. Identify which {LANGUAGE} standard libraries (i.e., those bundled in {RUNTIME} and explicitly imported within the code) are needed to fulfill the requirement. If none, write NONE.
+2. Identify which {{LANGUAGE}} standard libraries (i.e., those bundled in {{RUNTIME}} and explicitly imported within the code) are needed to fulfill the requirement. If none, write NONE.
 3. Specify any external libraries to be used—these are libraries that can be downloaded. Present them as `name : description`, where "name" is the package name. If none, write NONE.
 4. Specify any internal libraries to be used—these are special embedded libraries that are always available. If none, write NONE.
 5. Show an example of the input and output.
@@ -30,10 +30,10 @@ Do not write any other output or code.
 </rules>
 
 <system-requirements>
-    * We will use {RUNTIME}.
+    * We will use {{RUNTIME}}.
 </system-requirements>
 
-{INTERNAL_LIBRARIES}
+{{INTERNAL_LIBRARIES}}
 
 <formating>
 * Use the folling format for to respond the three actions.
@@ -61,5 +61,5 @@ Output: {json}
 ```
 </formating>
 
-{INPUT_COMMAND}
+{{INPUT_COMMAND}}
 

@@ -8,7 +8,7 @@
 * In the final list there must be only names of the exact "external-libraries" provided and/or the "exact URLs".
 </rules>
 
-{INPUT_COMMAND}
+{{INPUT_COMMAND}}
 
 <formatting>
 * The output should be a single `string[]`

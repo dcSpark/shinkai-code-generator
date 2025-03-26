@@ -56,7 +56,7 @@ async def get_access_token(provider_name: str) -> str:
   </file-name=shinkai_local_support>
 
 Import these functions with the format: `from shinkai_local_tools import xx`
-  {FILE_NAME_SHINKAI_LOCAL_TOOL}
+  {{FILE_NAME_SHINKAI_LOCAL_TOOL}}
 
 
 </agent_libraries>
@@ -151,9 +151,9 @@ class OUTPUT:
 
 </agent_pip_requirements>
 
-{EXAMPLE_IMPLEMENTATION}
+{{EXAMPLE_IMPLEMENTATION}}
 
-{INPUT_COMMAND}
+{{INPUT_COMMAND}}
 
 Explain your thinking process step by step and then implement the code.
 

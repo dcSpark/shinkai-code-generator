@@ -10,12 +10,12 @@ Focus on:
 3. Following best practices for the language
 
 Provide ONLY the entire fixed code without any explanations.
-This program is for {RUNTIME}
-{LANG_RULES}
+This program is for {{RUNTIME}}
+{{LANG_RULES}}
 </rules>
 
-{WARNINGS}
+{{WARNINGS}}
 
 The full contents of /index.ts inside the code tag
-{CODE}
+{{CODE}}
 

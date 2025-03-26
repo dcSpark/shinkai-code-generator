@@ -46,7 +46,7 @@ async def get_shinkai_node_location() -> str:
   </file-name=shinkai_local_support>
 
 Import these functions with the format: `from shinkai_local_tools import xx`
-  {FILE_SHINKAI_LOCAL_TOOLS}
+  {{FILE_SHINKAI_LOCAL_TOOLS}}
 
 
 </agent_libraries>

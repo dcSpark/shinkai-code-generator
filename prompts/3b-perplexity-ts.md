@@ -35,7 +35,7 @@ declare async function getShinkaiNodeLocation(): Promise<string>;
   </file-name=shinkai-local-support>
 
   Import these functions with the format: `import { xx } from './shinkai-local-tools.ts'
-{FILE_SHINKAI_LOCAL_TOOLS}
+{{FILE_SHINKAI_LOCAL_TOOLS}}
 
 </agent_libraries>
 
