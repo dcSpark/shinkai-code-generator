@@ -3,6 +3,7 @@ import "jsr:@std/dotenv/load";
 import * as path from "jsr:@std/path";
 // import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import * as TurndownService from "npm:turndown";
+import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
@@ -314,7 +315,7 @@ export class ShinkaiPipeline {
 
             const libQueries = JSON.parse(parsedLLMResponse) as string[];
 
-            // const docManager = new DependencyDoc(this.llmModel, this.fileManager);
+            const docManager = new DependencyDoc(this.llmModel, this.fileManager);
             for (const [index, library] of libQueries.entries()) {
                 const safeLibraryName = library.replace(/[^a-zA-Z0-9]/g, '_').toLocaleLowerCase();
                 if (!FORCE_DOCS_GENERATION && await this.fileManager.exists(this.step, codes[index % codes.length], safeLibraryName + '-dependency-doc.md')) {
@@ -323,7 +324,7 @@ export class ShinkaiPipeline {
                     this.docs[library] = existingFile;
                 } else {
                     this.fileManager.log(`[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`, true);
-                    const dependencyDoc = ''; // await docManager.getDependencyDocumentation(library, this.language);
+                    const dependencyDoc = await docManager.getDependencyDocumentation(library, this.language);
                     this.docs[library] = dependencyDoc;
                     await this.fileManager.save(this.step, codes[index % codes.length], dependencyDoc, safeLibraryName + '-dependency-doc.md');
                 }
@@ -412,22 +413,29 @@ export class ShinkaiPipeline {
 
 
         const perplexity = getPerplexity();
+        const libraryDocsString = Object.entries(this.docs).map(([library, doc]) => `
+        # ${library}
+        ${doc}
+        `).join('\n\n');
         let prompt = '';
         if (this.language === 'typescript') {
             prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-ts.md'));
             prompt = prompt.replace("{{prompt}}", this.requirements);
             prompt = prompt.replace(
                 '<file-name=shinkai-local-tools>\n\n  </file-name=shinkai-local-tools>',
-                `<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
+                `<external-references>${libraryDocsString}</external-references>\n\n<file-name=shinkai-local-tools>\n${usedInternalTools}\n</file-name=shinkai-local-tools>`
             );
         } else if (this.language === 'python') {
             prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/3b-perplexity-py.md'));
             prompt = prompt.replace("{{prompt}}", this.requirements);
             prompt = prompt.replace(
                 '<file-name=shinkai_local_tools>\n\n  </file-name=shinkai_local_tools>',
-                `<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
+                `<external-references>${libraryDocsString}</external-references>\n\n<file-name=shinkai_local_tools>\n${usedInternalTools}\n</file-name=shinkai_local_tools>`
             );
         }
+
+
+
 
         prompt = prompt.replace(
             /# External Libraries[\s\S]*?# Example Input and Output/,
@@ -1034,7 +1042,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
             await this.processInternalTools();
 
-            // await this.processLibrarySearch();
+            await this.processLibrarySearch();
             await this.processPerplexitySearch();
             // await this.generatePlan();
 

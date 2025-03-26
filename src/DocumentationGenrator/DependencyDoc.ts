@@ -113,6 +113,10 @@ export class DependencyDoc {
             urls = await this.scrape.getURLsFromScrape([libraryName], 'Exact URL: ' + libraryName, file, folders);
             query = 'Exact URL: ' + libraryName;
         } else {
+            // Disable web search 
+            if (true) {
+                return '';
+            }
 
             query = `${libraryName} - ${language} documentation`;
             const searchResponse = await this.search.search(query);
