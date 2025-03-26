@@ -856,9 +856,16 @@ In the next example tag is an example of the commented script block that MUST be
         const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(async () => {
             this.fileManager.log(`[Planning Step ${this.step}] Generate test cases`, true);
 
+            // Create a documentation string from all the library docs
+            const libraryDocsString = Object.entries(this.docs).map(([library, doc]) => `
+                        # ${library}
+                        ${doc}
+                        `).join('\n\n');
+
             const prompt = (await Deno.readTextFile(Deno.cwd() + '/prompts/8-test.md'))
                 .replace('<requirement>\n\n</requirement>', `<requirement>\n${this.requirements}\n</requirement>`)
-                .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`);
+                .replace('<code>\n\n</code>', `<code>\n${this.code}\n</code>`)
+                .replace('<external-libraries>\n\n</external-libraries>', `<external-libraries>\n${libraryDocsString}\n</external-libraries>`);
 
             await this.fileManager.save(this.step, 'a', prompt, 'test-prompt.md');
             const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Generating Test Cases");
@@ -895,7 +902,10 @@ In the next example tag is an example of the commented script block that MUST be
         if (!user_prompt) return 'no-changes';
 
         const positive_responses = [
-            "yes", "sure", "si",
+            "",
+            "yes",
+            "sure",
+            "si",
             'Continue',
             'Cont',
             "C",
@@ -916,9 +926,10 @@ In the next example tag is an example of the commented script block that MUST be
             'Press on',
             'Resume',
             'Move forward',
-            'All good'];
+            'All good'
+        ].map(r => r.toLowerCase());
         if (positive_responses.includes(user_prompt.toLowerCase())) {
-            return 'changes-requested';
+            return 'no-changes';
         }
 
 

@@ -1,3 +1,8 @@
+<external-libraries>
+
+</external-libraries>
+
+
 <rules>
 * Given the program description in the requierement tag.
 * And Given the program code in the code tag.

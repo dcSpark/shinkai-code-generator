@@ -2,7 +2,7 @@ import { ServiceAPIBase } from "./service-api-base.ts";
 
 
 const prompt = `
-Create a tool that retrieves detailed token information by address or symbol.
+For Jupiter DEX create a tool that retrieves detailed token information by address or symbol.
 
 Requirements:
 - Support lookup by both mint address and symbol
@@ -11,6 +11,8 @@ Requirements:
 - Include token statistics if available
 
 For documentation: https://station.jup.ag/docs/api/token-api/token-information 
+
+For testing use ETH (wrapped) address: 7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs
 `;
 
 const serviceAPIBase = new ServiceAPIBase();
