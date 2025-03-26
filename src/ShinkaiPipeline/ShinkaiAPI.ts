@@ -70,9 +70,24 @@ export class ShinkaiAPI {
 
             return response.data;
         } catch (error: any) {
-            console.error('Error executing code:', error);
-            const e = error?.response?.data?.message || error?.message || error;
-            return { success: false, error: String(JSON.stringify(e)) };
+            const statusCode = error?.response?.status;
+            const errorMessage = error?.response?.data?.message || error?.message;
+            const errorDetails = error?.response?.data?.details || error?.response?.data;
+
+            console.error('Code execution failed:', {
+                status: statusCode,
+                message: errorMessage,
+                details: errorDetails
+            });
+
+            return {
+                success: false,
+                error: JSON.stringify({
+                    status: statusCode,
+                    message: errorMessage,
+                    details: errorDetails
+                })
+            };
         }
     }
 

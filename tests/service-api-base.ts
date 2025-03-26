@@ -15,7 +15,14 @@ export class ServiceAPIBase {
 
     constructor() { }
 
-    async startTest(prompt: string, language: "typescript" | "python", fileName: string, runTests: boolean = true) {
+    async startTest(
+        prompt: string,
+        language: "typescript" | "python",
+        fileName: string,
+        runTests: boolean = true,
+        additionalChecks: {
+            feedback?: (feedbackString: string) => void;
+        } = {}) {
         const areTestsEnabled = Deno.env.get('GENERATE_TESTS') === 'true';
         assertEquals(areTestsEnabled, true, '.env GENERATE_TESTS should be true');
 
@@ -53,6 +60,20 @@ export class ServiceAPIBase {
             decoder1 = undefined as any;
             response1 = undefined as any;
             assertEquals(part1.includes('event: request-feedback'), true, 'part1.includes(request-feedback)');
+            assertEquals(part1.includes('data: {"message":"{\\"markdown\\"'), true, 'part1.includes(data: {"message":)');
+
+            let feedbackLine = part1.match(/data: {"message".*markdown.*/g)?.[0];
+            feedbackLine = feedbackLine!.replace('data: ', '');
+            assertEquals(!!feedbackLine, true, 'feedbackLine is not null');
+            const upackMessage = JSON.parse(feedbackLine.replace('data: ', '')).message;
+            const feedback = JSON.parse(upackMessage).markdown;
+            console.log('=======================')
+            console.log(feedback);
+            console.log('=======================')
+            assertEquals(feedback.includes('# Requirements'), true, 'feedback.includes("# Requirements")');
+            if (additionalChecks.feedback) {
+                additionalChecks.feedback(feedback);
+            }
         }
         // {
         //     let response2 = await fetch(`${this.baseUrl}/generate`, {

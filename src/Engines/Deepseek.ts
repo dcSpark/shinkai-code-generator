@@ -21,6 +21,7 @@ interface DeepseekMessage {
 export interface DeepseekPayload {
     model: string;
     messages: DeepseekMessage[];
+    temperature: number;
     // stream: boolean;
     reasoning_effort?: string;
 }
@@ -195,6 +196,7 @@ export class DeepseekService extends BaseEngine {
     private newDeepseekPayload(prompt: string): DeepseekPayload {
         const payload: DeepseekPayload = {
             model: this.name,
+            temperature: 0.5, // default is 1.0
             messages: [{
                 role: 'system',
                 content:

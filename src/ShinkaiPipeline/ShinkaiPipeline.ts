@@ -1102,13 +1102,13 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
             }
         } catch (e) {
             if (e instanceof Error && (e.message === 'REQUEST_FEEDBACK' || e.message === 'REQUEST_PLAN_FEEDBACK')) {
-                this.fileManager.writeState({
+                await this.fileManager.writeState({
                     date: new Date().toISOString(),
                     feedback_expected: e.message === 'REQUEST_FEEDBACK' ? 'requirements' : 'plan',
                 });
                 console.log("EVENT: request-feedback");
                 // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 250));
                 return {
                     status: "REQUEST_FEEDBACK",
                     code: '',
@@ -1116,7 +1116,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
                 }
             } else {
                 console.log(String(e));
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 250));
                 return {
                     status: "ERROR",
                     code: '',

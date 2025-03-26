@@ -281,6 +281,27 @@ export class Scrape {
             throw new Error('URL is required');
         }
 
+
+        const isCompressedFile = options.url.match(/\.(zip|tar|gz|bz2|rar|7z|iso)$/);
+        const isBinaryFile = options.url.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|dmg|pkg|deb|rpm|msi|exe|app|exe|app|pkg|rpm|deb|msi)$/);
+        const isImageFile = options.url.match(/\.(jpg|jpeg|png|gif|svg|webp)$/);
+        const isVideoFile = options.url.match(/\.(mp4|mov|avi|wmv|flv|mpeg|mpg|m4v|webm|mkv)$/);
+        const isAudioFile = options.url.match(/\.(mp3|wav|ogg|m4a|aac|flac|wma|m4b|m4p|m4r|m4b|m4p|m4r)$/);
+
+        if (isCompressedFile || isBinaryFile || isImageFile || isVideoFile || isAudioFile) {
+            return {
+                success: false,
+                data: {
+                    markdown: '',
+                    html: '',
+                    metadata: {
+                        statusCode: 400,
+                        sourceURL: options.url,
+                    }
+                }
+            }
+        }
+
         const { folders, file } = this.cache.toSafeFilename('scrape_' + options.url, 'json', 'scrape');
         if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
             return JSON.parse(await this.cache.load(file, folders)) as ScrapeResponse;
