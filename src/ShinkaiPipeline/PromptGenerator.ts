@@ -13,16 +13,16 @@ export class PromptGenerator {
         }
         for (const [search, _] of this.replacements) {
             if (!prompt.match(search)) {
-                console.log('PARTIAL PROMPT', prompt);
+                console.log('PARTIAL PROMPT. Missing:', search, '@', prompt.substring(0, 10000));
                 throw new Error(`Replacement ${search} not found in ${this.filePath}`);
             }
         }
         for (const [search, replace] of this.replacements) {
             prompt = prompt.replace(search, replace);
         }
-        const matches = prompt.match(/\{[A-Z_]+\}/g);
+        const matches = prompt.match(/\{{[A-Z_]+\}}/g);
         if (matches && showErrors) {
-            console.log('PARTIAL PROMPT', prompt);
+            console.log('PARTIAL PROMPT. Not replaced:', matches[0], '@', prompt.substring(0, 10000));
             throw new Error(`Prompt contains placeholder ${matches[0]}`);
         }
 
@@ -30,11 +30,13 @@ export class PromptGenerator {
     }
 
     postProcessPrompt(prompt: string, replacements: [(string | RegExp), string][]): string {
-        const matches = prompt.match(/\{[A-Z_]+\}/g);
-        if (matches) {
-            console.log('PARTIAL PROMPT', prompt);
-            throw new Error(`Prompt contains placeholder ${matches[0]}`);
+        for (const [search, _] of replacements) {
+            if (!prompt.match(search)) {
+                console.log('PARTIAL PROMPT. Missing:', search, '@', prompt.substring(0, 10000));
+                throw new Error(`Replacement ${search} not found in ${this.filePath}`);
+            }
         }
+
         for (const [search, replace] of replacements) {
             prompt = prompt.replace(search, replace);
         }
