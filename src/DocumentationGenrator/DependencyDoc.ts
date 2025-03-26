@@ -98,7 +98,7 @@ export class DependencyDoc {
 
     public async getDependencyDocumentation(libraryName: string, language: Language): Promise<string> {
         const isURL = libraryName.match(/https?:\/\//);
-        let urls = [];
+        let urls: string[] = [];
         let query = ''
 
         const { folders, file } = this.cache.toSafeFilename('doc_postprocess_' + libraryName, 'md', 'processed');
@@ -108,10 +108,15 @@ export class DependencyDoc {
 
 
         if (isURL) {
-            // const scrape = await this.scrapeWebsite({ url: libraryName, formats: ['markdown'] });
+            const using_exact_url = true;
             const { folders, file } = this.cache.toSafeFilename('exact_url_' + libraryName, 'json', 'exact_url');
-            urls = await this.scrape.getURLsFromScrape([libraryName], 'Exact URL: ' + libraryName, file, folders);
             query = 'Exact URL: ' + libraryName;
+
+            if (using_exact_url) {
+                urls = [libraryName];
+            } else {
+                urls = await this.scrape.getURLsFromScrape([libraryName], 'Exact URL: ' + libraryName, file, folders);
+            }
         } else {
             // Disable web search 
             if (true) {

@@ -10,7 +10,9 @@ Requirements:
 - Handle non-existent token errors
 - Include token statistics if available
 
-For documentation: https://station.jup.ag/docs/api/token-api/token-information 
+IMPORTANT: For documentation use https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/ 
+
+JUPITER_API_URL: https://api.jup.ag
 
 For testing use ETH (wrapped) address: 7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs
 `;
