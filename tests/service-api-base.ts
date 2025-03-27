@@ -226,7 +226,9 @@ export class ServiceAPIBase {
                     const result = await api.executeCode(this.code, this.metadata.tools, language === 'typescript' ? 'denodynamic' : 'pythondynamic', test.input, test.config, 'gpt-4o-mini');
                     console.log("RUN RESULT", result);
                     Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + '-' + index + '.result.json', JSON.stringify({
+                        prompt: prompt,
                         code: this.code,
+                        test: test,
                         metadata: this.metadata,
                         execution: result,
                         expected: test.output,
@@ -234,6 +236,10 @@ export class ServiceAPIBase {
                 } catch (e) {
                     console.log("ERROR", e);
                     Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + '-' + index + '.result.json', JSON.stringify({
+                        prompt: prompt,
+                        code: this.code,
+                        test: test,
+                        metadata: this.metadata,
                         error: String(e)
                     }, null, 2));
                 }
