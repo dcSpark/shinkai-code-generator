@@ -455,7 +455,8 @@ export class ShinkaiPipeline {
             }
 
 
-            const promptGenerator = new PromptGenerator(Deno.cwd() + '/prompts/3b-perplexity-ts.md', r);
+            const file = this.language === 'typescript' ? '/prompts/3b-perplexity-ts.md' : '/prompts/3b-perplexity-py.md';
+            const promptGenerator = new PromptGenerator(Deno.cwd() + file, r);
 
             const r2: [(string | RegExp), string][] = [];
             r2.push([

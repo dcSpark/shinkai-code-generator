@@ -36,6 +36,7 @@ interface DeepseekResponse {
             role: string;
             content: string;
             refusal: null;
+            reasoning_content?: string;
         };
         logprobs: null;
         finish_reason: string;
@@ -108,12 +109,14 @@ export class DeepseekService extends BaseEngine {
             if (cachedPayload) {
                 logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
                 responseData = JSON.parse(cachedPayload);
-                await this.addFreeCost(logger, payloadString, responseData!.choices[0].message.content);
+                const allOutput = responseData!.choices[0].message.content + (responseData!.choices[0].message.reasoning_content || '');
+                await this.addFreeCost(logger, payloadString, allOutput);
             } else {
                 const response = await axios<DeepseekResponse>(data);
                 responseData = response.data;
                 logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
-                await this.addCost(logger, payloadString, responseData!.choices[0].message.content);
+                const allOutput = responseData!.choices[0].message.content + (responseData!.choices[0].message.reasoning_content || '');
+                await this.addCost(logger, payloadString, allOutput);
             }
 
             const end = Date.now();
