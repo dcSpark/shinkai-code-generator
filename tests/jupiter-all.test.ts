@@ -56,7 +56,7 @@ ${testData}
     `;
 
     const serviceAPIBase = new ServiceAPIBase();
-    const testName = 'jupiter-' + (test.match(/.+?\./)?.[1] || String(index)).toLocaleLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const testName = 'jupiter-' + String(index) + '-' + (test.match(/(.+?)\./)?.[1] || '').toLocaleLowerCase().replace(/[^a-z0-9-]/g, '-');
     await serviceAPIBase.startTest(prompt, 'typescript', testName, true, {
         feedback: (feedbackString: string) => {
             assertEquals(feedbackString.includes('https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/'), true, 'feedbackString.includes documentation url');
