@@ -53,7 +53,7 @@ export class ShinkaiAPI {
             extra_config: config,
             parameters
         };
-        console.log('[run payload]', payload);
+        // console.log('[run payload]', payload);
         try {
             const response = await axios<CodeExecutionResponse>({
                 method: "POST",

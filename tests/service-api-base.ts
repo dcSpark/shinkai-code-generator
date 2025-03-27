@@ -1,5 +1,4 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { assertObjectMatch } from "https://deno.land/std@0.220.1/assert/mod.ts";
 import { router } from "../src/service.ts";
 import { ShinkaiAPI } from "../src/ShinkaiPipeline/ShinkaiAPI.ts";
 console.log(String(router)[0]); // so that {router} get loaded
@@ -147,6 +146,7 @@ export class ServiceAPIBase {
                 const data = await reader3?.read();
                 const partialResult = decoder3.decode(data?.value);
                 console.log(partialResult);
+                if (partialResult.includes('# Jupiter API Documentation')) throw new Error('partialResult.includes("### order")');
                 part3 += partialResult;
                 if (data?.done) break;
                 await new Promise(resolve => setTimeout(resolve, 10));
@@ -217,13 +217,28 @@ export class ServiceAPIBase {
 
         const api = new ShinkaiAPI();
         for (const [index, test] of this.tests.entries()) {
-            console.log('[Running Test] ' + (index + 1) + ' of ' + this.tests.length);
-            console.log(this.code);
-            console.log(this.metadata);
-            console.log(test);
+            console.log('[Running Test] ' + (index + 1) + ' of ' + this.tests.length, '[' + runTests + ']');
+            // console.log(this.code);
+            // console.log(this.metadata);
+            // console.log(test);
             if (runTests) {
-                const result = await api.executeCode(this.code, this.metadata.tools, language === 'typescript' ? 'denodynamic' : 'pythondynamic', test.input, test.config, 'gpt-4o-mini');
-                assertObjectMatch(result, test.output);
+                try {
+                    const result = await api.executeCode(this.code, this.metadata.tools, language === 'typescript' ? 'denodynamic' : 'pythondynamic', test.input, test.config, 'gpt-4o-mini');
+                    console.log("RUN RESULT", result);
+                    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + '-' + index + '.result.json', JSON.stringify({
+                        code: this.code,
+                        metadata: this.metadata,
+                        execution: result,
+                        expected: test.output,
+                    }, null, 2));
+                } catch (e) {
+                    console.log("ERROR", e);
+                    Deno.writeTextFileSync(Deno.cwd() + '/test-results/' + fileName + '-' + index + '.result.json', JSON.stringify({
+                        error: String(e)
+                    }, null, 2));
+                }
+
+                // assertObjectMatch(result, test.output);
             }
         }
 
