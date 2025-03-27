@@ -157,8 +157,13 @@ export class SambanovaDeepseekService extends BaseEngine {
         "assistant",
         payload
       );
+
+      const message = responseData!.choices[0].message.content?.replace(
+        /<think>[\s\S]*?<\/think>/g,
+        ""
+      );
       return {
-        message: responseData!.choices[0].message.content,
+        message,
         metadata: payload,
       };
     } catch (error) {
