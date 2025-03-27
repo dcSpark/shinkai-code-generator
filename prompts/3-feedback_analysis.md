@@ -3,7 +3,7 @@
 * You have to decide either if the user meant to either
   * Changes Requested: The user wants his message to be applied
   * No Changes: The user wants to continue without feedback.
-* Example for no-changes: 'ok', 'continue', 'go', 'its ok', and any other sentence or word that could be understood as an acknowlegment.
+* Example for no-changes: 'ok', 'continue', 'go', 'its ok', and any other sentence or word that could be understood as an acknowledgment.
 * Examples for changes: 'do {this}', 'update {this}', 'change {this}', or any sentence that could be understood as a command or change.
 </rules>
 

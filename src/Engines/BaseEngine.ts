@@ -63,21 +63,20 @@ export abstract class BaseEngine {
         return Math.floor(tokenCount / 30) + 1;
     }
 
-    protected async addFreeCost(logger: FileManager | undefined, inputString: string, outputString: string) {
+    protected async addSpending(isFree: boolean, logger: FileManager | undefined, inputString: string, outputString: string) {
         const inputTokens = this.countTokensFromMessageLlama3(inputString);
         const outputTokens = this.countTokensFromMessageLlama3(outputString);
         const pricePerTokenInput = this.priceInputTokens / 1_000_000;
         const pricePerTokenOutput = this.priceOutputTokens / 1_000_000;
-        await logger?.addSpending(true, this.name, 'input', inputTokens, inputTokens * pricePerTokenInput);
-        await logger?.addSpending(true, this.name, 'output', outputTokens, outputTokens * pricePerTokenOutput);
+        await logger?.addSpending(isFree, this.name, 'input', inputTokens, inputTokens * pricePerTokenInput);
+        await logger?.addSpending(isFree, this.name, 'output', outputTokens, outputTokens * pricePerTokenOutput);
+    }
+
+    protected async addFreeCost(logger: FileManager | undefined, inputString: string, outputString: string) {
+        await this.addSpending(true, logger, inputString, outputString);
     }
 
     protected async addCost(logger: FileManager | undefined, inputString: string, outputString: string) {
-        const inputTokens = this.countTokensFromMessageLlama3(inputString);
-        const outputTokens = this.countTokensFromMessageLlama3(outputString);
-        const pricePerTokenInput = this.priceInputTokens / 1_000_000;
-        const pricePerTokenOutput = this.priceOutputTokens / 1_000_000;
-        await logger?.addSpending(false, this.name, 'input', inputTokens, inputTokens * pricePerTokenInput);
-        await logger?.addSpending(false, this.name, 'output', outputTokens, outputTokens * pricePerTokenOutput);
+        await this.addSpending(false, logger, inputString, outputString);
     }
 }
