@@ -45,7 +45,7 @@ declare async function getShinkaiNodeLocation(): Promise<string>;
 declare async function getAccessToken(providerName: string): Promise<string>;
 
 /**
- * Processes a prompt using an AI LLM: planning, reasoning, summarization, anything that an AI can do.
+ * Processes a prompt using an AI LLM: planning, reasoning, summarizing, anything that an AI can do.
  * @param params - The parameters for prompt processing
  * @param params.prompt - The prompt to process
  * @param params.format - Response type (only 'text' is valid)
@@ -140,6 +140,6 @@ Import these functions with the format: `import { xx } from './shinkai-local-too
 
 <goal>
   * Implement a fully functional code following the previous instructions.
-  * You can't use mockups or placeholders, the code must be fully functional.
+  * You can't use mock-ups or placeholders, the code must be fully functional.
   * Explain your thinking process step by step and then implement the code.
 </goal>

@@ -21,7 +21,7 @@ standard-libraries > internal-libraries > external-libraries.
 When considering internal libraries:
 1. Only include file-handling libraries (getMountPaths, getAssetPaths, getHomePath) if the task specifically requires file operations
 2. Only include OAuth libraries (getAccessToken) if the task requires OAuth access
-3. If you need summarization or using an AI to process something, most likely you need the internal library (shinkaiLlmPromptProcessor)
+3. If you need summarizing or using an AI to process something, most likely you need the internal library (shinkaiLlmPromptProcessor)
 4. If the task can be accomplished without internal libraries, use NONE
 
 If the input_command includes any URLs, keep them in the requirement section as a source for the libraries. 
@@ -36,7 +36,7 @@ Do not write any other output or code.
 {{INTERNAL_LIBRARIES}}
 
 <formating>
-* Use the folling format for to respond the three actions.
+* Use the following format for to respond the three actions.
 ```markdown
 # Requirements
 {Requirements}

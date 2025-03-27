@@ -1,7 +1,7 @@
 {{EXTERNAL_LIBRARIES}}
 
 <rules>
-* Given the program description in the requierement tag.
+* Given the program description in the requirement tag.
 * And Given the program code in the code tag.
 * A example is given to showcase the run(...) output.
 * Extract the input and output example.
@@ -25,9 +25,9 @@
 
 <formatting>
 * Do not add inline or block comments.
-* If only required use null instead of undefined, as it must be valid JSON. 
+* If required use null instead of undefined, because you must produce valid JSON.
 * Generate a valid JSON Array of Objects.
-* Return exacty 3 Objects in the Array.
+* Return exactly 3 Objects in the Array.
 * Each Object has a 'input', 'config' and 'output'.
 * Your JSON Array response must be inside a fenced triple tick json block.
 </formating>
