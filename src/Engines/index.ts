@@ -70,11 +70,11 @@ function getDeepSeekChat() {
 }
 
 function getSambanovaDeepSeekR1() {
-  return new SambanovaDeepseekService({ model: "DeepSeek-R1" }, 0.55, 2.19);
+  return new SambanovaDeepseekService({ model: "DeepSeek-R1" }, 5, 7);
 }
 
 function getSambanovaDeepSeekV3() {
-  return new SambanovaDeepseekService({ model: "DeepSeek-V3-0324" }, 0.27, 1.1);
+  return new SambanovaDeepseekService({ model: "DeepSeek-V3-0324" }, 1, 1.5);
 }
 
 function getOpenAIO3Mini() {
