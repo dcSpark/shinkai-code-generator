@@ -1,0 +1,6 @@
+{
+  "name": "@scope/code-generation",
+  "exports": {
+    ".": "./src/mod.ts"
+  }
+}

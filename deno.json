@@ -2,6 +2,11 @@
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.4"
   },
+  "workspace": [
+    "projects/code-generation-api",
+    "projects/code-generation",
+    "projects/shinkai-api"
+  ],
   "tasks": {
     "check:local-index": "deno check src/local-index.ts",
     "check:service": "deno check src/service.ts",

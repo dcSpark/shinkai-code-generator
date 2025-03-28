@@ -1,4 +1,4 @@
-import { BaseEngine } from "../Engines/BaseEngine.ts";
+import { BaseEngine } from "../../../../src/Engines/BaseEngine.ts";
 import { FileManager } from "./FileManager.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { Requirement } from "./Requirement.ts";

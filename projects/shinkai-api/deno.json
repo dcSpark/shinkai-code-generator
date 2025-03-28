@@ -1,0 +1,6 @@
+{
+  "name": "@scope/shinkai-api",
+  "exports": {
+    ".": "./src/mod.ts"
+  }
+}
