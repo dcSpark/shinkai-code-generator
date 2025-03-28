@@ -10,25 +10,19 @@ export interface DeepseekConfig {
   apiUrl?: string;
 }
 
-interface DeepseekMessage {
+interface Message {
   role: "system" | "user" | "assistant";
-  content: (
-    | {
-        type: "text";
-        text: string;
-      }
-    | string
-  )[];
+  content: string;
 }
 
-export interface DeepseekPayload {
+export interface SambanovaDeepseekPayload {
   model: string;
-  messages: DeepseekMessage[];
+  messages: Message[];
   temperature: number;
   // stream: boolean;
   reasoning_effort?: string;
 }
-interface DeepseekResponse {
+interface SambanovaDeepseekResponse {
   id: string;
   object: string;
   created: number;
@@ -63,7 +57,7 @@ interface DeepseekResponse {
   system_fingerprint: string;
 }
 
-export class DeepseekService extends BaseEngine {
+export class SambanovaDeepseekService extends BaseEngine {
   private apiKey: string;
   private systemPrompt: string;
   private apiUrl: string;
@@ -75,20 +69,19 @@ export class DeepseekService extends BaseEngine {
     priceOutputTokens: number
   ) {
     super(
-      config.model || "deepseek-coder",
+      config.model || "DeepSeek-V3-0324",
       priceInputTokens,
       priceOutputTokens
     );
-    if (!Deno.env.get("DEEPSEEK_API_KEY")) {
-      throw new Error("Deepseek API key is not configured");
+    if (!Deno.env.get("SAMBANOVA_API_KEY")) {
+      throw new Error("Sambanova API key is not configured");
     }
-    this.apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
-    // this.model = 'deepseek-coder';
+    this.apiKey = Deno.env.get("SAMBANOVA_API_KEY") || "";
     this.systemPrompt =
       config.systemPrompt ||
       "You are a helpful code generator. Provide only code without explanation unless requested.";
     this.apiUrl =
-      config.apiUrl || "https://api.deepseek.com/v1/chat/completions";
+      config.apiUrl || "https://api.sambanova.ai/v1/chat/completions";
   }
 
   getLastRequestBody(): any {
@@ -132,7 +125,7 @@ export class DeepseekService extends BaseEngine {
       const hashedFilename =
         (await hashString(payloadString)) + "-" + tokenCount + ".json";
       const cachedPayload = await logger?.loadCache(hashedFilename);
-      let responseData: DeepseekResponse | null = null;
+      let responseData: SambanovaDeepseekResponse | null = null;
       if (cachedPayload) {
         logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
         responseData = JSON.parse(cachedPayload);
@@ -141,7 +134,7 @@ export class DeepseekService extends BaseEngine {
           (responseData!.choices[0].message.reasoning_content || "");
         await this.addFreeCost(logger, payloadString, allOutput);
       } else {
-        const response = await axios<DeepseekResponse>(data);
+        const response = await axios<SambanovaDeepseekResponse>(data);
         responseData = response.data;
         logger?.saveCache(
           hashedFilename,
@@ -164,29 +157,15 @@ export class DeepseekService extends BaseEngine {
         "assistant",
         payload
       );
+
+      const message = responseData!.choices[0].message.content?.replace(
+        /<think>[\s\S]*?<\/think>/g,
+        ""
+      );
       return {
-        message: responseData!.choices[0].message.content,
+        message,
         metadata: payload,
       };
-
-      // // Save the request body
-      // this.lastRequestBody = requestBody;
-
-      // const response = await axios.post(
-      //     this.apiUrl,
-      //     requestBody,
-      //     {
-      //         headers: {
-      //             'Content-Type': 'application/json',
-      //             'Authorization': `Bearer ${this.apiKey}`,
-      //         },
-      //     }
-      // );
-
-      // return {
-      //     message: response.data.choices[0]?.message?.content || '',
-      //     metadata: response.data,
-      // }
     } catch (error) {
       console.error("Error generating code with Deepseek:", error);
 
@@ -247,31 +226,24 @@ export class DeepseekService extends BaseEngine {
 
   private addToDeepseekPayload(
     prompt: string,
-    role: DeepseekMessage["role"],
-    payload: DeepseekPayload
-  ): DeepseekPayload {
+    role: Message["role"],
+    payload: SambanovaDeepseekPayload
+  ): SambanovaDeepseekPayload {
     payload.messages.push({
       role: role,
-      content: [{ type: "text", text: prompt }],
-      // content: prompt
+      content: prompt,
     });
     return payload;
   }
 
-  private newDeepseekPayload(prompt: string): DeepseekPayload {
-    const payload: DeepseekPayload = {
+  private newDeepseekPayload(prompt: string): SambanovaDeepseekPayload {
+    const payload: SambanovaDeepseekPayload = {
       model: this.name,
       temperature: 0.5, // default is 1.0
       messages: [
         {
           role: "system",
-          content: [
-            {
-              type: "text",
-              text: this.systemPrompt,
-              // "You are a very helpful assistant. You may be provided with documents or content to analyze and answer questions about them, in that case refer to the content provided in the user message for your responses.",
-            },
-          ],
+          content: this.systemPrompt,
         },
       ],
       // stream: false,
