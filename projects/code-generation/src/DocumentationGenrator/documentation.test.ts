@@ -4,9 +4,9 @@ import {
   assertExists,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import "jsr:@std/dotenv/load";
-import { DependencyDoc } from "../projects/code-generation/src/DocumentationGenrator/index.ts";
-import { getModelSmall } from "../projects/code-generation/src/Engines/index.ts";
-import { FileManager } from "../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
+import { getModelSmall } from "../Engines/index.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { DependencyDoc } from "./index.ts";
 
 Deno.test(
   "DependencyDoc.getDependencyDocumentation - basic functionality",

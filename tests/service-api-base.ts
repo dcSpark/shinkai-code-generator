@@ -1,6 +1,6 @@
+import { router } from "@scope/code-generation-api";
 import { ShinkaiAPI } from "@scope/shinkai-api";
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { router } from "../projects/code-generation-api/src/main.ts";
 console.log(String(router)[0]); // so that {router} get loaded
 
 // TODO All test should be in the same file for for prompt testing.

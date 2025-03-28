@@ -7,5 +7,8 @@
     "projects/code-generation",
     "projects/shinkai-api"
   ],
-  "tasks": {}
+  "tasks": {
+    "start:code-generation-api": "deno run -A --env-file projects/code-generation-api/src/main.ts",
+    "start:code-generation": "deno test -A --env-file projects/code-generation/src/mod.test.ts"
+  }
 }

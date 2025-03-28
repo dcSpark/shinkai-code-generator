@@ -1,11 +1,11 @@
+import { FileManager, type Language } from "@scope/code-generation";
 import { ShinkaiAPI } from "@scope/shinkai-api";
 import { Application } from "jsr:@oak/oak/application";
-import { Context } from "jsr:@oak/oak/context";
-import { Next } from "jsr:@oak/oak/middleware";
+import type { Context } from "jsr:@oak/oak/context";
+import type { Next } from "jsr:@oak/oak/middleware";
 import { Router } from "jsr:@oak/oak/router";
 import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
-import { FileManager, Language } from "../../code-generation/src/mod.ts";
 import { IPLimits } from "./IPLimits.ts";
 
 const router = new Router();
@@ -427,7 +427,7 @@ async function runGenerate(
       const args = [
         "run",
         "--allow-all", // You might want to restrict permissions in production
-        "src/pipeline-runner-code.ts", // We'll create this file to run the pipeline
+        import.meta.dirname + "/pipeline-runner-code.ts", // Reference pipeline runner dynamically from current folder
         "language=" + language,
         "request-uuid=" + requestUUID,
         "prompt=" + delimiter + encodeURIComponent(prompt || "") + delimiter,
