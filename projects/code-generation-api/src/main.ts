@@ -8,7 +8,7 @@ import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
 import { IPLimits } from "./IPLimits.ts";
 
-const router = new Router();
+const router: Router = new Router();
 
 const limitRequestMiddleware = async (ctx: Context, next: Next) => {
   const ip = ctx.request.ip;
@@ -686,7 +686,7 @@ router.get("/(.*)", async (ctx: Context) => {
   }
 });
 
-const app = new Application();
+const app: Application = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.listen({ port: 8080 });
