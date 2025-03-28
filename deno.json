@@ -1,5 +1,10 @@
 {
   "imports": {
     "@oak/oak": "jsr:@oak/oak@^17.1.4"
+  },
+  "tasks": {
+    "check:local-index": "deno check src/local-index.ts",
+    "check:service": "deno check src/service.ts",
+    "check": "deno run check:local-index && deno run check:service"
   }
 }
