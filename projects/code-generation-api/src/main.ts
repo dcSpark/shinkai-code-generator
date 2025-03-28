@@ -5,7 +5,6 @@ import { Next } from "jsr:@oak/oak/middleware";
 import { Router } from "jsr:@oak/oak/router";
 import { send } from "jsr:@oak/oak/send";
 import "jsr:@std/dotenv/load";
-import { ReadableStream } from "npm:stream/web";
 import { FileManager, Language } from "../../code-generation/src/mod.ts";
 import { IPLimits } from "./IPLimits.ts";
 
@@ -49,7 +48,7 @@ const setCorsHeadersMiddleware = async (ctx: Context, next: Next) => {
 // Transform the raw stdout stream into properly formatted SSE events
 const sseStream = () =>
   new TransformStream({
-    transform: async (chunk, controller) => {
+    transform: (chunk, controller) => {
       const text = new TextDecoder().decode(chunk);
       const lines = text.split("\n");
 
@@ -120,11 +119,11 @@ async function generateMetadata(
   ctx.response.headers.set("Content-Type", "text/event-stream");
 
   // Function to run pipeline in a separate process and return a readable stream
-  const runPipelineInProcess = async (
+  const runPipelineInProcess = (
     language: Language,
     requestUUID: string,
     code: string
-  ): Promise<ReadableStream<Uint8Array>> => {
+  ): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>> => {
     // Create a new process to run the pipeline
     try {
       const delimiter = `"#|#"`;
@@ -154,7 +153,6 @@ async function generateMetadata(
 
       // Handle stdout
       (async () => {
-        const decoder = new TextDecoder();
         for await (const chunk of process.stdout) {
           await writer.write(chunk);
         }
@@ -186,7 +184,7 @@ async function generateMetadata(
         await writer.close();
       })();
 
-      return readable as any;
+      return Promise.resolve(readable);
     } catch (error) {
       console.log(">>>error");
       console.error(error);
@@ -197,6 +195,7 @@ async function generateMetadata(
   const processStream = await runPipelineInProcess(language, requestUUID, code);
 
   // Stream the transformed events to the client
+  // deno-lint-ignore no-explicit-any
   ctx.response.body = processStream.pipeThrough(sseStream() as any);
 }
 
@@ -414,14 +413,14 @@ async function runGenerate(
   }
 
   // Function to run pipeline in a separate process and return a readable stream
-  const runPipelineInProcess = async (
+  const runPipelineInProcess = (
     language: Language,
     requestUUID: string,
     prompt: string,
     feedback: string,
     skipfeedback: "true" | "false",
     toolType: string = "shinkai"
-  ): Promise<ReadableStream<Uint8Array>> => {
+  ): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>> => {
     // Create a new process to run the pipeline
     try {
       const delimiter = `"#|#"`;
@@ -457,7 +456,6 @@ async function runGenerate(
 
       // Handle stdout
       (async () => {
-        const decoder = new TextDecoder();
         for await (const chunk of process.stdout) {
           await writer.write(chunk);
         }
@@ -489,7 +487,7 @@ async function runGenerate(
         await writer.close();
       })();
 
-      return readable as any;
+      return Promise.resolve(readable);
     } catch (error) {
       console.log(">>>error");
       console.error(error);
@@ -507,7 +505,10 @@ async function runGenerate(
   );
 
   // Stream the transformed events to the client
-  ctx.response.body = processStream.pipeThrough(sseStream() as any);
+  ctx.response.body = processStream.pipeThrough(
+    // deno-lint-ignore no-explicit-any
+    sseStream() as any
+  );
 }
 
 router.post(

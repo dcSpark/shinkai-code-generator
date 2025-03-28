@@ -1,3 +1,4 @@
+import { assert } from "https://deno.land/std@0.220.1/assert/assert.ts";
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import "jsr:@std/dotenv/load";
 import { getModelSmall } from "./Engines/index.ts";
@@ -6,13 +7,13 @@ import { getTests } from "./ShinkaiPipeline/Requirement.ts";
 import { ShinkaiPipeline } from "./ShinkaiPipeline/ShinkaiPipeline.ts";
 import type { Language } from "./ShinkaiPipeline/types.ts";
 
-const flags = parseArgs(Deno.args, {
-  boolean: ["keepcache", "force-docs"],
-});
-const KEEP_CACHE = flags.keepcache || flags["force-docs"];
-const FORCE_DOCS_GENERATION = flags["force-docs"];
+Deno.test("test", async () => {
+  const flags = parseArgs(Deno.args, {
+    boolean: ["keepcache", "force-docs"],
+  });
+  const KEEP_CACHE = flags.keepcache || flags["force-docs"];
+  const FORCE_DOCS_GENERATION = flags["force-docs"];
 
-async function start() {
   if (!KEEP_CACHE) {
     await FileManager.clearFolder();
   }
@@ -30,10 +31,9 @@ async function start() {
           true,
           "shinkai"
         );
-        await pipeline.run();
+        const result = await pipeline.run();
+        assert(result.status === "COMPLETED");
       }
     }
   }
-}
-
-start();
+});

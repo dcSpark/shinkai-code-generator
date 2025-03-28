@@ -1,5 +1,5 @@
 import axios from "npm:axios";
-import { FileManager } from "../../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 
 const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");

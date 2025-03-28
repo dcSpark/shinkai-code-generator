@@ -1,8 +1,8 @@
 import { exists } from "jsr:@std/fs/exists";
 import axios from "npm:axios";
-import { FileManager } from "../../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
-import { LLMFormatter } from "../../projects/code-generation/src/ShinkaiPipeline/LLMFormatter.ts";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { LLMFormatter } from "../ShinkaiPipeline/LLMFormatter.ts";
 import { Cache } from "./Cache.ts";
 import { selectInPageUrlsPrompt } from "./prompts/select-in-page-urls.ts";
 import { selectSearchUrlsPrompt } from "./prompts/select-serach-urls.ts";

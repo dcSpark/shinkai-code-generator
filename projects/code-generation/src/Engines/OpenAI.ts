@@ -1,5 +1,5 @@
 import axios from "npm:axios";
-import { FileManager } from "../../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString } from "./index.ts";
 const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");

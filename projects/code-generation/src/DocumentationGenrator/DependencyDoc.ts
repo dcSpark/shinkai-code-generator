@@ -1,7 +1,7 @@
-import { FileManager } from "../../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
-import { LLMFormatter } from "../../projects/code-generation/src/ShinkaiPipeline/LLMFormatter.ts";
-import { Language } from "../../projects/code-generation/src/ShinkaiPipeline/types.ts";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { LLMFormatter } from "../ShinkaiPipeline/LLMFormatter.ts";
+import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";
 import { mapReducePrompt } from "./prompts/map-reduce.ts";
 import { Scrape } from "./Scrape.ts";

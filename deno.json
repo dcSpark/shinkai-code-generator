@@ -7,9 +7,5 @@
     "projects/code-generation",
     "projects/shinkai-api"
   ],
-  "tasks": {
-    "check:local-index": "deno check src/local-index.ts",
-    "check:service": "deno check src/service.ts",
-    "check": "deno run check:local-index && deno run check:service"
-  }
+  "tasks": {}
 }

@@ -1,4 +1,4 @@
-import { FileManager } from "../../projects/code-generation/src/ShinkaiPipeline/FileManager.ts";
+import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { Payload } from "./index.ts";
 
 export abstract class BaseEngine {

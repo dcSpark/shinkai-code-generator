@@ -1,8 +1,11 @@
 import "jsr:@std/dotenv/load";
-import { Requirement } from "../projects/code-generation/src/ShinkaiPipeline/Requirement.ts";
-import { ShinkaiPipeline } from "../projects/code-generation/src/ShinkaiPipeline/ShinkaiPipeline.ts";
-import { Language } from "../projects/code-generation/src/ShinkaiPipeline/types.ts";
-import { getModelLarge, getModelSmall } from "./Engines/index.ts";
+import {
+  getModelLarge,
+  getModelSmall,
+} from "../../code-generation/src/Engines/index.ts";
+import { Requirement } from "../../code-generation/src/ShinkaiPipeline/Requirement.ts";
+import { ShinkaiPipeline } from "../../code-generation/src/ShinkaiPipeline/ShinkaiPipeline.ts";
+import { Language } from "../../code-generation/src/ShinkaiPipeline/types.ts";
 
 // Parse command line arguments in the format key=value
 const args = Deno.args;

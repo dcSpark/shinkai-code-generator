@@ -4,9 +4,9 @@ import * as path from "jsr:@std/path";
 // import { DependencyDoc } from "../DocumentationGenrator/index.ts";
 import { CheckCodeResponse, ShinkaiAPI } from "@scope/shinkai-api";
 import * as TurndownService from "npm:turndown";
-import { DependencyDoc } from "../../../../src/DocumentationGenrator/index.ts";
-import { BaseEngine } from "../../../../src/Engines/BaseEngine.ts";
-import { getPerplexity, Payload } from "../../../../src/Engines/index.ts";
+import { DependencyDoc } from "../DocumentationGenrator/index.ts";
+import { BaseEngine } from "../Engines/BaseEngine.ts";
+import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
 import { PromptGenerator } from "./PromptGenerator.ts";
@@ -1717,7 +1717,11 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
     console.log(JSON.stringify({ markdown }));
   }
 
-  public async run() {
+  public async run(): Promise<{
+    status: "COMPLETED" | "REQUEST_FEEDBACK" | "ERROR";
+    code: string;
+    metadata: string;
+  }> {
     try {
       this.language = await this.fileManager.setLanguageIfNotSet(this.language);
 
@@ -1848,6 +1852,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
 
       return {
         code: this.code,
+        status: "COMPLETED",
         metadata: this.metadata,
       };
     } catch (e) {
