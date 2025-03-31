@@ -134,7 +134,12 @@ export class SambanovaDeepseekService extends BaseEngine {
           (responseData!.choices[0].message.reasoning_content || "");
         await this.addFreeCost(logger, payloadString, allOutput);
       } else {
+        const timer = setInterval(() => {
+          const elapsed = (Date.now() - start) / 1000 | 0;
+          logger?.log(`Still thinking... ${elapsed}s`);
+        }, 5000);
         const response = await axios<SambanovaDeepseekResponse>(data);
+        clearInterval(timer);
         responseData = response.data;
         logger?.saveCache(
           hashedFilename,

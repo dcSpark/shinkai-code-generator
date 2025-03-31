@@ -36,11 +36,17 @@ export class OllamaEngine extends BaseEngine {
     const contextMessage = thinkingAbout || "Processing";
     logger?.log(`[Thinking] AI Thinking About ${contextMessage}`);
 
+    const timer = setInterval(() => {
+      const elapsed = (Date.now() - start) / 1000 | 0;
+      logger?.log(`Still thinking... ${elapsed}s`);
+    }, 5000);
+
     const response = await axios({
       url: `${ollamaApiUrl}/api/chat`,
       method: "POST",
       data: JSON.stringify(payload),
     });
+    clearInterval(timer);
     await this.addCost(
       logger,
       payload.messages.map((m) => m.content).join("\n"),

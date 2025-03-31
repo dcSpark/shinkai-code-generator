@@ -71,6 +71,10 @@ export class PerplexityEngine extends BaseEngine {
     } else {
       // NOTE: Chat history not implemented.
       if (payloadHistory) throw new Error("payloadHistory NYI");
+      const timer = setInterval(() => {
+        const elapsed = (Date.now() - start) / 1000 | 0;
+        logger?.log(`Still thinking... ${elapsed}s`);
+      }, 5000);
       const data = {
         url: `https://api.perplexity.ai/chat/completions`,
         method: "POST",
@@ -80,6 +84,7 @@ export class PerplexityEngine extends BaseEngine {
         },
       };
       const response = await axios<PerplexityResponse>(data);
+      clearInterval(timer);
       responseData = response.data;
       logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
       await this.addCost(

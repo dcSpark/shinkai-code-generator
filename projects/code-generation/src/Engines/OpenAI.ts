@@ -105,7 +105,12 @@ export class OpenAI extends BaseEngine {
         responseData!.choices[0].message.content
       );
     } else {
+      const timer = setInterval(() => {
+        const elapsed = (Date.now() - start) / 1000 | 0;
+        logger?.log(`Still thinking... ${elapsed}s`);
+      }, 5000);
       const response = await axios<OpenAIResponse>(data);
+      clearInterval(timer);
       responseData = response.data;
       logger?.saveCache(hashedFilename, JSON.stringify(responseData, null, 2));
       await this.addCost(

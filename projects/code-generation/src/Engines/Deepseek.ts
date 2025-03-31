@@ -141,8 +141,15 @@ export class DeepseekService extends BaseEngine {
           (responseData!.choices[0].message.reasoning_content || "");
         await this.addFreeCost(logger, payloadString, allOutput);
       } else {
+        const timer = setInterval(() => {
+          const elapsed = (Date.now() - start) / 1000 | 0;
+          logger?.log(`Still thinking... ${elapsed}s`);
+        }, 5000);
+
         const response = await axios<DeepseekResponse>(data);
         responseData = response.data;
+
+        clearInterval(timer);
         logger?.saveCache(
           hashedFilename,
           JSON.stringify(responseData, null, 2)
