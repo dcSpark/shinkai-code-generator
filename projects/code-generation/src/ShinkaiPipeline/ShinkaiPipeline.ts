@@ -793,9 +793,8 @@ export class ShinkaiPipeline {
       r2.push([
         /# External Libraries[\s\S]*?# Example Input and Output/,
         `# External Libraries
-    * Search for ${
-      this.language === "typescript" ? "npmjs.com/" : "pypi.org"
-    } libraries.
+    * Search for ${this.language === "typescript" ? "npmjs.com/" : "pypi.org"
+        } libraries.
                 
     # Example Input and Output`,
       ]);
@@ -1175,8 +1174,8 @@ ${alternativeHeaders}
 
 <libraries_documentation>
 ${Object.entries(this.docs)
-  .map(
-    ([library, doc]) => `
+          .map(
+            ([library, doc]) => `
     The folling libraries_documentation tags are just for reference on how to use the libraries, and do not imply how to implement the rules below.
     <library_documentation=${library}>
     # ${library}
@@ -1185,8 +1184,8 @@ ${Object.entries(this.docs)
     The libraries_documentation ended, everything before if for reference only.
     Now, the prompt begins:
 `
-  )
-  .join("\n")}
+          )
+          .join("\n")}
 </libraries_documentation>
         ` +
         toolCode_2.replace(
@@ -1627,17 +1626,14 @@ ${doc}
       "Move forward",
       "All good",
     ].map((r) => r.toLowerCase());
-    if (positive_responses.includes(user_prompt.toLowerCase())) {
+    if (positive_responses.includes(user_prompt.toLowerCase().trim())) {
       return "no-changes";
     }
 
     const prompt = await (async () => {
       const r: [string | RegExp, string][] = [];
       r.push([/{{FEEDBACK}}/, `<feedback>\n${user_prompt}\n</feedback>`]);
-      const file =
-        this.language === "typescript"
-          ? "/prompts/3-feedback_analysis.md"
-          : "/prompts/3-feedback_analysis-py.md";
+      const file = "/prompts/3-feedback_analysis.md"
       const promptGenerator = new PromptGenerator(Deno.cwd() + file, r);
       return await promptGenerator.generatePrompt();
     })();
