@@ -58,7 +58,7 @@ export class OpenAI extends BaseEngine {
     logger: FileManager | undefined,
     payloadHistory: OpenAIPayload | undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: OpenAIPayload }> {
+  ): Promise<{ message: string; metadata: OpenAIPayload, cacheFilePath: string }> {
     const start = Date.now();
     let payload = payloadHistory
       ? this.addToOpenAIPayload(prompt, "user", payloadHistory)
@@ -127,6 +127,7 @@ export class OpenAI extends BaseEngine {
     return {
       message: responseData!.choices[0].message.content,
       metadata: payload,
+      cacheFilePath: hashedFilename,
     };
   }
 

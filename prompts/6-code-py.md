@@ -124,7 +124,7 @@ class OUTPUT:
   * Do not output, notes, ideas, explanations or examples.
   * Write only valid python code, so the complete printed code can be directly executed.
   * Only if required any additional notes, comments or explanation lines should be prefixed with # character.
-  * Write a single implementation file, only one typescript code block.
+  * Write a single implementation file, only one python code block.
   * Implements the code in python for the following input_command tag
   * All functions must be fully implemented with real business logic
   * If external APIs or services are needed, they must be properly integrated

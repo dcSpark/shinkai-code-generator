@@ -97,6 +97,7 @@ export class DependencyDoc {
     const chunks = this.chunkDocumentation(documentation);
     const cleanChunks = [];
     for (const [index, chunk] of chunks.entries()) {
+      let llmCacheFilePath = "";
       const partialDoc = await new LLMFormatter(this.logger).retryUntilSuccess(
         async () => {
           const prompt = mapReducePrompt(library, chunk);
@@ -104,11 +105,16 @@ export class DependencyDoc {
             prompt,
             this.logger,
             undefined,
-            `Processing documentation chunk ${index + 1}/${
-              chunks.length
+            `Processing documentation chunk ${index + 1}/${chunks.length
             } for "${library}"`
           );
+          llmCacheFilePath = response.cacheFilePath;
           return response.message;
+        },
+        async () => {
+          if (llmCacheFilePath) {
+            await this.logger?.deleteCache(llmCacheFilePath);
+          }
         },
         "none",
         {}

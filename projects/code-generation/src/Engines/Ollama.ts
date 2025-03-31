@@ -24,7 +24,7 @@ export class OllamaEngine extends BaseEngine {
     logger: FileManager | undefined = undefined,
     payloadHistory: OllamaPayload | undefined = undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: OllamaPayload }> {
+  ): Promise<{ message: string; metadata: OllamaPayload, cacheFilePath: string }> {
     const start = Date.now();
     let payload = payloadHistory
       ? this.addToOllamaPayload(prompt, "user", payloadHistory)
@@ -63,6 +63,7 @@ export class OllamaEngine extends BaseEngine {
     return {
       message: response.data.message.content,
       metadata: payload,
+      cacheFilePath: "",
     };
   }
 

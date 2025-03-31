@@ -20,7 +20,7 @@ export abstract class BaseEngine {
     logger: FileManager | undefined,
     payloadHistory: Payload | undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: Payload }>;
+  ): Promise<{ message: string; metadata: Payload, cacheFilePath: string }>;
 
   protected countTokensFromMessageLlama3(message: string): number {
     let tokenCount = 0;

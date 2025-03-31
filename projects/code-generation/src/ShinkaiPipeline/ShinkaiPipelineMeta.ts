@@ -151,6 +151,7 @@ export class ShinkaiPipelineMetadata {
       return;
     }
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -196,6 +197,7 @@ export class ShinkaiPipelineMetadata {
           undefined,
           "Generating Tool Metadata"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         const promptResponse = llmResponse.message;
         await this.fileManager.save(
           this.step,
@@ -210,6 +212,11 @@ export class ShinkaiPipelineMetadata {
           "raw-metadata-response.md"
         );
         return promptResponse;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "json",
       {

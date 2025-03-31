@@ -14,9 +14,9 @@ interface DeepseekMessage {
   role: "system" | "user" | "assistant";
   content: (
     | {
-        type: "text";
-        text: string;
-      }
+      type: "text";
+      text: string;
+    }
     | string
   )[];
 }
@@ -100,7 +100,7 @@ export class DeepseekService extends BaseEngine {
     logger: FileManager | undefined,
     payloadHistory: Payload | undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: Payload }> {
+  ): Promise<{ message: string; metadata: Payload, cacheFilePath: string }> {
     try {
       const start = Date.now();
       let payload = payloadHistory
@@ -167,6 +167,7 @@ export class DeepseekService extends BaseEngine {
       return {
         message: responseData!.choices[0].message.content,
         metadata: payload,
+        cacheFilePath: hashedFilename,
       };
 
       // // Save the request body
@@ -217,8 +218,7 @@ export class DeepseekService extends BaseEngine {
               );
             default:
               throw new Error(
-                `Deepseek API error (${status}): ${
-                  data?.error || error.message
+                `Deepseek API error (${status}): ${data?.error || error.message
                 }`
               );
           }

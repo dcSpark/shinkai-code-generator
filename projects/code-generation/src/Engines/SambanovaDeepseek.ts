@@ -93,7 +93,7 @@ export class SambanovaDeepseekService extends BaseEngine {
     logger: FileManager | undefined,
     payloadHistory: Payload | undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: Payload }> {
+  ): Promise<{ message: string; metadata: Payload, cacheFilePath: string }> {
     try {
       const start = Date.now();
       let payload = payloadHistory
@@ -165,6 +165,7 @@ export class SambanovaDeepseekService extends BaseEngine {
       return {
         message,
         metadata: payload,
+        cacheFilePath: hashedFilename,
       };
     } catch (error) {
       console.error("Error generating code with Deepseek:", error);
@@ -196,8 +197,7 @@ export class SambanovaDeepseekService extends BaseEngine {
               );
             default:
               throw new Error(
-                `Deepseek API error (${status}): ${
-                  data?.error || error.message
+                `Deepseek API error (${status}): ${data?.error || error.message
                 }`
               );
           }

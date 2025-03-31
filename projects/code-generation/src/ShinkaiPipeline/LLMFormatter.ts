@@ -8,10 +8,11 @@ type Rules = {
 };
 
 export class LLMFormatter {
-  constructor(private logger: FileManager | undefined) {}
+  constructor(private logger: FileManager | undefined) { }
 
   public async retryUntilSuccess(
     fn: () => Promise<string>,
+    cleanup: () => Promise<void>,
     extractor: Extractor,
     expected: Rules
   ): Promise<string> {
@@ -38,8 +39,7 @@ export class LLMFormatter {
               `extraction_${extractIndex}`,
               `Failed extraction ${extractIndex} : ${String(
                 e
-              )}\n\nOriginal Content:\n${
-                lastFile || "No last file"
+              )}\n\nOriginal Content:\n${lastFile || "No last file"
               }\n\nExtracted Content:\n${partialResult}\n\nFunction Code:\n${fn.toString()}`,
               "error.txt"
             );
@@ -47,6 +47,7 @@ export class LLMFormatter {
           }
         }
       } catch (e) {
+        await cleanup();
         await this.logger?.save(
           10000 + retries,
           "retry",
@@ -83,8 +84,7 @@ export class LLMFormatter {
       "failed_after_retries.json"
     );
     throw new Error(
-      `Failed to extract content after 3 retries.\nExtractor type: ${extractor}\nLast attempt content length: ${
-        lastFile?.length || 0
+      `Failed to extract content after 3 retries.\nExtractor type: ${extractor}\nLast attempt content length: ${lastFile?.length || 0
       } chars\nExpected format rules: ${JSON.stringify(
         expected
       )}\nCheck logs for detailed error information in failed_after_retries.json`

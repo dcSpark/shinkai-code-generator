@@ -22,7 +22,7 @@ export class PerplexityEngine extends BaseEngine {
     logger: FileManager | undefined = undefined,
     payloadHistory: PerplexityPayload | undefined = undefined,
     thinkingAbout?: string
-  ): Promise<{ message: string; metadata: PerplexityPayload }> {
+  ): Promise<{ message: string; metadata: PerplexityPayload, cacheFilePath: string }> {
     const start = Date.now();
 
     if (!perplexityApiKey) throw new Error("Missing PERPLEXITY_API_KEY");
@@ -101,6 +101,7 @@ export class PerplexityEngine extends BaseEngine {
     return {
       message: responseData.choices[0].message.content,
       metadata: responseData,
+      cacheFilePath: hashedFilename,
     };
   }
 

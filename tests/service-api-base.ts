@@ -19,7 +19,7 @@ export class ServiceAPIBase {
   }[] = [];
   metadata: Record<string, any> = {};
 
-  constructor() {}
+  constructor() { }
 
   async startTest(
     prompt: string,
@@ -45,9 +45,8 @@ export class ServiceAPIBase {
           prompt: prompt,
           tool_type: "shinkai",
           skipfeedback: "false",
-          x_shinkai_request_uuid: `test-${
-            language === "typescript" ? "ts" : "py"
-          }-${this.uuid}`,
+          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+            }-${this.uuid}`,
           feedback: "",
         }),
       });
@@ -93,6 +92,7 @@ export class ServiceAPIBase {
         console.log("=======================");
         console.log(feedback);
         console.log("=======================");
+        additionalChecks.feedback?.(feedback);
       } catch (e) {
         console.log("THIS IS A KNOWN ERROR. BUT NOT KNOWN FIX.");
         console.log(e);
@@ -147,9 +147,8 @@ export class ServiceAPIBase {
           prompt: "ok",
           tool_type: "shinkai",
           skipfeedback: "false",
-          x_shinkai_request_uuid: `test-${
-            language === "typescript" ? "ts" : "py"
-          }-${this.uuid}`,
+          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+            }-${this.uuid}`,
           feedback: "",
         }),
       });
@@ -230,9 +229,8 @@ export class ServiceAPIBase {
         body: JSON.stringify({
           language: "typescript",
           code: this.code,
-          x_shinkai_request_uuid: `test-${
-            language === "typescript" ? "ts" : "py"
-          }-${this.uuid}`,
+          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+            }-${this.uuid}`,
         }),
       });
 
@@ -286,11 +284,11 @@ export class ServiceAPIBase {
           console.log("RUN RESULT", result);
           Deno.writeTextFileSync(
             Deno.cwd() +
-              "/test-results/" +
-              fileName +
-              "-" +
-              index +
-              ".result.json",
+            "/test-results/" +
+            fileName +
+            "-" +
+            index +
+            ".result.json",
             JSON.stringify(
               {
                 prompt: prompt,
@@ -308,11 +306,11 @@ export class ServiceAPIBase {
           console.log("ERROR", e);
           Deno.writeTextFileSync(
             Deno.cwd() +
-              "/test-results/" +
-              fileName +
-              "-" +
-              index +
-              ".result.json",
+            "/test-results/" +
+            fileName +
+            "-" +
+            index +
+            ".result.json",
             JSON.stringify(
               {
                 prompt: prompt,
@@ -333,13 +331,13 @@ export class ServiceAPIBase {
 
     Deno.writeTextFileSync(
       Deno.cwd() +
-        "/test-results/" +
-        fileName +
-        (language === "typescript" ? ".ts" : ".py"),
+      "/test-results/" +
+      fileName +
+      (language === "typescript" ? ".ts" : ".py"),
       this.code
     );
     Deno.writeTextFileSync(
-      Deno.cwd() + "/test-results/" + fileName + ".metadata.json",
+      Deno.cwd() + "/test-results/" + fileName + (language === "typescript" ? ".ts" : ".py") + ".metadata.json",
       JSON.stringify(this.metadata, null, 2)
     );
   }

@@ -217,6 +217,7 @@ export class ShinkaiPipeline {
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -235,6 +236,7 @@ export class ShinkaiPipeline {
           undefined,
           "Analyzing Requirements & Generating Feedback"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
           this.step,
           "x",
@@ -249,6 +251,11 @@ export class ShinkaiPipeline {
           "raw-requirements-response.md"
         );
         return llmResponse.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "markdown",
       {
@@ -326,6 +333,7 @@ export class ShinkaiPipeline {
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -344,6 +352,7 @@ export class ShinkaiPipeline {
           this.promptHistory,
           "Processing User Feedback"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
           this.step,
           "b",
@@ -360,6 +369,11 @@ export class ShinkaiPipeline {
         );
 
         return llmResponse.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "markdown",
       {
@@ -428,6 +442,7 @@ export class ShinkaiPipeline {
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -447,6 +462,7 @@ export class ShinkaiPipeline {
           this.promptHistory2,
           "Processing User Plan Feedback"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
           this.step,
           "b",
@@ -457,6 +473,11 @@ export class ShinkaiPipeline {
         promptHistory2 = llmResponse.metadata;
 
         return llmResponse.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "markdown",
       {
@@ -504,6 +525,7 @@ export class ShinkaiPipeline {
         parsedLLMResponse = existingLibraryJson;
         // Load existing dependency docs
       } else {
+        let llmCacheFilePath = "";
         parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
           async () => {
             this.fileManager.log(
@@ -528,6 +550,7 @@ export class ShinkaiPipeline {
               undefined,
               "Searching for Required Libraries"
             );
+            llmCacheFilePath = llmResponse.cacheFilePath;
             const promptResponse = llmResponse.message;
             await this.fileManager.save(
               this.step,
@@ -536,6 +559,11 @@ export class ShinkaiPipeline {
               "raw-library-response.md"
             );
             return promptResponse;
+          },
+          async () => {
+            if (llmCacheFilePath) {
+              await this.fileManager.deleteCache(llmCacheFilePath);
+            }
           },
           "json",
           {
@@ -636,6 +664,7 @@ export class ShinkaiPipeline {
           return await promptGenerator.generatePrompt();
         })();
 
+        let llmCacheFilePath = "";
         parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
           async () => {
             await this.fileManager.save(
@@ -650,6 +679,7 @@ export class ShinkaiPipeline {
               undefined,
               "Fetching Documentation"
             );
+            llmCacheFilePath = llmResponse.cacheFilePath;
             await this.fileManager.save(
               this.step,
               "b",
@@ -658,6 +688,11 @@ export class ShinkaiPipeline {
             );
 
             return llmResponse.message;
+          },
+          async () => {
+            if (llmCacheFilePath) {
+              await this.fileManager.deleteCache(llmCacheFilePath);
+            }
           },
           "json",
           {
@@ -894,6 +929,7 @@ get_access_token
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -912,6 +948,7 @@ get_access_token
           undefined,
           "Identifying Required Internal Tools"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
           this.step,
           "b",
@@ -919,6 +956,11 @@ get_access_token
           "raw-internal-tools-response.md"
         );
         return llmResponse.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "json",
       {
@@ -1205,6 +1247,7 @@ ${additionalRules}
       return toolCodeWithReferenceImplementation;
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -1219,6 +1262,7 @@ ${additionalRules}
           undefined,
           "Generating Tool Code"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         const promptResponse = llmResponse.message;
 
         await this.fileManager.save(
@@ -1228,6 +1272,11 @@ ${additionalRules}
           "raw-code-response.md"
         );
         return promptResponse;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       this.language,
       {
@@ -1425,6 +1474,7 @@ In the next example tag is an example of the commented script block that MUST be
         return fixCodePrompt;
       })();
 
+      let llmCacheFilePath = "";
       const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
         async () => {
           await this.fileManager.save(
@@ -1441,6 +1491,7 @@ In the next example tag is an example of the commented script block that MUST be
             undefined,
             "Fixing Code Warnings"
           );
+          llmCacheFilePath = llmResponse.cacheFilePath;
           await this.fileManager.save(
             this.step,
             "c",
@@ -1448,6 +1499,11 @@ In the next example tag is an example of the commented script block that MUST be
             "raw-fix-code-response.md"
           );
           return llmResponse.message;
+        },
+        async () => {
+          if (llmCacheFilePath) {
+            await this.fileManager.deleteCache(llmCacheFilePath);
+          }
         },
         this.language,
         {
@@ -1531,6 +1587,7 @@ ${doc}
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -1545,6 +1602,7 @@ ${doc}
           undefined,
           "Generating Test Cases"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         const promptResponse = llmResponse.message;
         await this.fileManager.save(
           this.step,
@@ -1554,6 +1612,11 @@ ${doc}
         );
 
         return promptResponse.replace("undefined,", "null,");
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "json",
       {
@@ -1638,6 +1701,7 @@ ${doc}
       return await promptGenerator.generatePrompt();
     })();
 
+    let llmCacheFilePath = "";
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
@@ -1656,6 +1720,7 @@ ${doc}
           undefined,
           "Analyzing User Feedback"
         );
+        llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
           this.step,
           "b",
@@ -1663,6 +1728,11 @@ ${doc}
           "raw-feedback-analysis-response.md"
         );
         return llmResponse.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.fileManager.deleteCache(llmCacheFilePath);
+        }
       },
       "json",
       {

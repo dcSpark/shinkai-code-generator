@@ -70,6 +70,13 @@ export class FileManager {
     return await Deno.readTextFile(filePath);
   }
 
+  async deleteCache(fileName: string): Promise<void> {
+    const filePath = path.join(Deno.cwd(), "cache", ".internal", fileName);
+    if (await exists(filePath)) {
+      await Deno.remove(filePath);
+    }
+  }
+
   async save(
     step: number,
     substep: string,
@@ -209,8 +216,7 @@ export class FileManager {
       ? JSON.parse(await Deno.readTextFile(filePath))
       : { items: [], sum: 0 };
     spent.items.push(
-      `${
-        isMock ? `FREE${CSVSpacer}` : ""
+      `${isMock ? `FREE${CSVSpacer}` : ""
       }${model}${CSVSpacer}${subItem}${CSVSpacer}${tokens}${CSVSpacer}${cost}`
     );
     spent.sum += cost;

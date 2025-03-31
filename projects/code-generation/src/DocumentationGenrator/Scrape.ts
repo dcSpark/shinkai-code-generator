@@ -105,7 +105,7 @@ export class Scrape {
     private llm: BaseEngine,
     private logger: FileManager | undefined,
     private cache: Cache
-  ) {}
+  ) { }
 
   public async getURLsFromSearch(
     searchResponse: SearchResponse,
@@ -133,6 +133,7 @@ export class Scrape {
       throw new Error("No URL found");
     }
 
+    let llmCacheFilePath = "";
     const urlsString = await new LLMFormatter(this.logger).retryUntilSuccess(
       async () => {
         const prompt = selectSearchUrlsPrompt(searchResponse, finalQuery);
@@ -142,7 +143,13 @@ export class Scrape {
           undefined,
           `Analyzing search results for "${finalQuery}"`
         );
+        llmCacheFilePath = response.cacheFilePath;
         return response.message;
+      },
+      async () => {
+        if (llmCacheFilePath) {
+          await this.logger?.deleteCache(llmCacheFilePath);
+        }
       },
       "json",
       { regex: [/^https?:\/\/.*$/], isJSONArray: true }
@@ -174,6 +181,7 @@ export class Scrape {
       possiblePages.push(...map.slice(0, limit));
     }
 
+    let llmCacheFilePath2 = "";
     const urlsString2 = await new LLMFormatter(this.logger).retryUntilSuccess(
       async () => {
         const prompt = selectInPageUrlsPrompt(
@@ -187,7 +195,13 @@ export class Scrape {
           undefined,
           `Finding documentation pages for "${finalQuery}"`
         );
+        llmCacheFilePath2 = response.cacheFilePath;
         return response.message;
+      },
+      async () => {
+        if (llmCacheFilePath2) {
+          await this.logger?.deleteCache(llmCacheFilePath2);
+        }
       },
       "json",
       { regex: [/^https?:\/\/.*$/], isJSONArray: true }
