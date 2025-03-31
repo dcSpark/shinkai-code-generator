@@ -1019,7 +1019,7 @@ ${doc}
             'Move forward',
             'All good'
         ].map(r => r.toLowerCase());
-        if (positive_responses.includes(user_prompt.toLowerCase())) {
+        if (positive_responses.includes(user_prompt.toLowerCase().trim())) {
             return 'no-changes';
         }
 
@@ -1027,7 +1027,7 @@ ${doc}
         const prompt = await (async () => {
             const r: [(string | RegExp), string][] = [];
             r.push([/{{FEEDBACK}}/, `<feedback>\n${user_prompt}\n</feedback>`]);
-            const file = this.language === 'typescript' ? '/prompts/3-feedback_analysis.md' : '/prompts/3-feedback_analysis-py.md';
+            const file = '/prompts/3-feedback_analysis.md';
             const promptGenerator = new PromptGenerator(Deno.cwd() + file, r);
             return await promptGenerator.generatePrompt();
         })();
