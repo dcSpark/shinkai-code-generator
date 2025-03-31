@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 RUN cd projects/shinkai-tool-generator && npm ci && npm run build
-COPY projects/shinkai-tool-generator/out ./public
+# COPY projects/shinkai-tool-generator/out ./public
 
 FROM denoland/deno:2.2.3 AS runtime
 # Copy required files and folders
