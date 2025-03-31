@@ -689,6 +689,7 @@ router.get("/(.*)", async (ctx: Context) => {
 const app: Application = new Application();
 app.use(router.routes());
 app.use(router.allowedMethods());
-app.listen({ port: 8080 });
-
+const port = parseInt(Deno.env.get("PORT") || "8080");
+app.listen({ port });
+console.log("Server is running on port", port);
 export { app, router };
