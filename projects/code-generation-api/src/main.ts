@@ -130,7 +130,7 @@ async function generateMetadata(
       const args = [
         "run",
         "--allow-all", // You might want to restrict permissions in production
-        "src/pipeline-runner-metadata.ts", // We'll create this file to run the pipeline
+        import.meta.dirname + "/pipeline-runner-metadata.ts", // We'll create this file to run the pipeline
         "language=" + language,
         "request-uuid=" + requestUUID,
         "code=" + delimiter + encodeURIComponent(code) + delimiter,
@@ -432,9 +432,9 @@ async function runGenerate(
         "request-uuid=" + requestUUID,
         "prompt=" + delimiter + encodeURIComponent(prompt || "") + delimiter,
         "feedback=" +
-          delimiter +
-          encodeURIComponent(feedback || "") +
-          delimiter,
+        delimiter +
+        encodeURIComponent(feedback || "") +
+        delimiter,
         "tool_type=" + toolType,
         "skipfeedback=" + skipfeedback,
       ];
