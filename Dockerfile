@@ -11,6 +11,8 @@ RUN touch ./public/index.html
 FROM denoland/deno:2.2.3 AS runtime
 # Copy required files and folders
 COPY . .
+# Copy the public directory from build stage
+COPY --from=build /app/public ./public
 
 # Expose the port
 EXPOSE 8080
