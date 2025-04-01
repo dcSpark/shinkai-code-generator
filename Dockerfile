@@ -9,6 +9,8 @@ RUN mkdir -p ./public
 RUN touch ./public/index.html
 
 FROM denoland/deno:2.2.3 AS runtime
+WORKDIR /app
+
 # Copy required files and folders
 COPY . .
 # Copy the public directory from build stage
