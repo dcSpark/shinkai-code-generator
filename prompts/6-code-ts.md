@@ -86,6 +86,7 @@ declare async function getAccessToken(providerName: string): Promise<string>;
   * Only if required any additional notes, comments or explanation should be included in /* ... */ blocks.
   * Write a single implementation file, only one typescript code block.
   * Implements the code in typescript for the following input_command tag.
+  * Use code inside the example_implementation as a guide function names and structure
 </agent_code_implementation>
 
 <agent_libraries_documentation>

@@ -117,7 +117,6 @@ class OUTPUT:
   * Do not implement __init__ or __new__ methods for CONFIG, INPUTS or OUTPUT.
   * The code will be shared as a library, when used it run(...) function will be called.
   * The function signature MUST be: `async def run(config: CONFIG, inputs: INPUTS) -> OUTPUT`
-
 </agent_code_rules>
 
 <agent_code_implementation>
@@ -129,7 +128,9 @@ class OUTPUT:
   * All functions must be fully implemented with real business logic
   * If external APIs or services are needed, they must be properly integrated
   * If you cannot implement a feature completely, explicitly state what's missing rather than using mock data
+  * When building the return OUTPUT, assign fields with dots as `output = OUTPUT()\nouput.key1 = value1` because the OUTPUT class does not have a constructor.
   * Comments should explain complex logic or important considerations, not TODO items or placeholders
+  * Use code inside the example_implementation as a guide function names and structure
 </agent_code_implementation>
 
 <agent_pip_requirements>
