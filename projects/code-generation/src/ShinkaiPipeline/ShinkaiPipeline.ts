@@ -1918,6 +1918,8 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
       // await this.generateMCP();
       await this.logCompletion();
 
+      await this.processSpending();
+      await new Promise((resolve) => setTimeout(resolve, 250));
       return {
         code: this.code,
         status: "COMPLETED",
@@ -1936,6 +1938,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
         });
         console.log("EVENT: request-feedback");
         // console.log(`EVENT: feedback\n${ JSON.stringify({ feedback: this.feedback }) }`);
+        await this.processSpending();
         await new Promise((resolve) => setTimeout(resolve, 250));
         return {
           status: "REQUEST_FEEDBACK",
@@ -1944,6 +1947,7 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
         };
       } else {
         console.log(String(e));
+        await this.processSpending();
         await new Promise((resolve) => setTimeout(resolve, 250));
         return {
           status: "ERROR",
@@ -1953,4 +1957,38 @@ deno -A ${path.normalize(srcPath)}/src/mcp.ts
       }
     }
   }
+
+  private async processSpending() {
+    const spending = await this.fileManager.getSpending();
+    let inputPrice = 0;
+    let outputPrice = 0;
+    spending.items.forEach((item) => {
+      const list = item.split(/ /);
+      if (list.length === 4) {
+        const inout: 'input' | 'output' = list[1] as 'input' | 'output';
+        const cost = parseFloat(list[3]);
+        if (inout === 'input') {
+          inputPrice += cost;
+        } else {
+          outputPrice += cost;
+        }
+      } else if (list.length === 5) {
+        const inout: 'input' | 'output' = list[2] as 'input' | 'output';
+        const cost = parseFloat(list[4]);
+        if (inout === 'input') {
+          inputPrice += cost;
+        } else {
+          outputPrice += cost;
+        }
+      }
+    });
+    inputPrice = Math.round(inputPrice * 1_000_000);
+    outputPrice = Math.round(outputPrice * 1_000_000);
+    console.log('EVENT: spending\n', JSON.stringify({
+      input_tokens: inputPrice,
+      output_tokens: outputPrice,
+      total_tokens: inputPrice + outputPrice,
+    }));
+  }
+
 }

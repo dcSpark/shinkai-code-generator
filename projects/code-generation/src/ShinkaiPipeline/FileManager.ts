@@ -223,4 +223,12 @@ export class FileManager {
     spent.sum += cost;
     await Deno.writeTextFile(filePath, JSON.stringify(spent, null, 2));
   }
+
+  public async getSpending(): Promise<{ items: string[], sum: number }> {
+    const filePath = path.join(this.toolDir, `spent.json`);
+    const spent = (await exists(filePath))
+      ? JSON.parse(await Deno.readTextFile(filePath))
+      : { items: [], sum: 0 };
+    return spent;
+  }
 }
