@@ -310,7 +310,7 @@ export default function Home() {
 
         case 'request-feedback':
           console.log('Event: request-feedback', data)
-          setEvents(prev => [...prev, { type: 'feedback', content: data.message || 'Feedback requested. Please provide your thoughts.' }])
+          setEvents(prev => [...prev, { type: 'feedback', content: data.message || 'Please provide feedback on the requirements or just say ok to confirm' }])
           setShowFeedback(true)
           break
 
