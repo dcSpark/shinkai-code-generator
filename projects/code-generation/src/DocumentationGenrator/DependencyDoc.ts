@@ -1,6 +1,7 @@
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { LLMFormatter } from "../ShinkaiPipeline/LLMFormatter.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { Language } from "../ShinkaiPipeline/types.ts";
 import { Cache } from "./Cache.ts";
 import { mapReducePrompt } from "./prompts/map-reduce.ts";
@@ -85,14 +86,16 @@ export class DependencyDoc {
       this.cache.toSafeFilename("doc_original_" + library, "md", "original");
     await this.cache.save(fileOriginal, documentation, foldersOriginal);
 
+    const postProcess = false;
+    if (!postProcess) {
+      return documentation;
+    }
+
     const { folders, file } = this.cache.toSafeFilename(
       "doc_postprocess_" + library,
       "md",
       "processed"
     );
-    // if (await exists(Deno.cwd() + '/' + folders.join('/') + '/' + file)) {
-    //     return await this.cache.load(file, folders);
-    // }
 
     const chunks = this.chunkDocumentation(documentation);
     const cleanChunks = [];
@@ -177,10 +180,10 @@ export class DependencyDoc {
 
       query = `${libraryName} - ${language} documentation`;
       const searchResponse = await this.search.search(query);
-      await this.logger?.log(`[Web Search] query: ${query}`);
+      await this.logger?.log(new Message(MessageType.MESSAGE, `Searching for ${query}`));
       for (const [index, result] of searchResponse.web.results.entries()) {
         await this.logger?.log(
-          `[Possible Sites] (#${index + 1}) ${result.title} - ${result.url}`
+          new Message(MessageType.MESSAGE, `[Possible Sites] (#${index + 1}) ${result.title} - ${result.url}`)
         );
       }
 
@@ -189,7 +192,7 @@ export class DependencyDoc {
 
     const pages: string[] = [];
     for (const url of urls) {
-      await this.logger?.log(`[Reading] ${url}`, true);
+      await this.logger?.log(new Message(MessageType.MESSAGE, `Reading ${url}`), true);
       const scrape = await this.scrape.scrapeWebsite({
         url,
         formats: ["markdown"],

@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "npm:axios";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString, Payload } from "./index.ts";
 
@@ -10,14 +11,14 @@ export interface DeepseekConfig {
   apiUrl?: string;
 }
 
-interface Message {
+interface SambanovaDeepseekMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
 export interface SambanovaDeepseekPayload {
   model: string;
-  messages: Message[];
+  messages: SambanovaDeepseekMessage[];
   temperature: number;
   // stream: boolean;
   reasoning_effort?: string;
@@ -103,9 +104,8 @@ export class SambanovaDeepseekService extends BaseEngine {
       const tokenCount = countTokensFromMessageLlama3(JSON.stringify(payload));
 
       const contextMessage = thinkingAbout || "Processing";
-      logger?.log(
-        `[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`
-      );
+      logger?.log(new Message(MessageType.THINKING, contextMessage));
+      logger?.log(new Message(MessageType.DEBUG, `${tokenCount}[tokens]`));
       const data = {
         url: this.apiUrl,
         method: "POST",
@@ -127,7 +127,7 @@ export class SambanovaDeepseekService extends BaseEngine {
       const cachedPayload = await logger?.loadCache(hashedFilename);
       let responseData: SambanovaDeepseekResponse | null = null;
       if (cachedPayload) {
-        logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
+        logger?.log(new Message(MessageType.CACHE, `Found AI response ${hashedFilename}`));
         responseData = JSON.parse(cachedPayload);
         const allOutput =
           responseData!.choices[0].message.content +
@@ -136,7 +136,7 @@ export class SambanovaDeepseekService extends BaseEngine {
       } else {
         const timer = setInterval(() => {
           const elapsed = (Date.now() - start) / 1000 | 0;
-          logger?.log(`Still thinking... ${elapsed}s`);
+          logger?.log(new Message(MessageType.LOADING, `${elapsed}s`));
         }, 5000);
         const response = await axios<SambanovaDeepseekResponse>(data);
         clearInterval(timer);
@@ -154,9 +154,7 @@ export class SambanovaDeepseekService extends BaseEngine {
       const end = Date.now();
       const time = end - start;
       // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-      logger?.log(
-        `[Thinking] AI took ${time}[ms] to process ${contextMessage}`
-      );
+      logger?.log(new Message(MessageType.MESSAGE, `AI took ${(time / 1000) | 0}[s] to process ${contextMessage}`));
       payload = this.addToDeepseekPayload(
         responseData!.choices[0].message.content,
         "assistant",
@@ -231,7 +229,7 @@ export class SambanovaDeepseekService extends BaseEngine {
 
   private addToDeepseekPayload(
     prompt: string,
-    role: Message["role"],
+    role: SambanovaDeepseekMessage["role"],
     payload: SambanovaDeepseekPayload
   ): SambanovaDeepseekPayload {
     payload.messages.push({

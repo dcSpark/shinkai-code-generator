@@ -1,4 +1,3 @@
-import { assertEquals } from "https://deno.land/std@0.220.1/assert/assert_equals.ts";
 import { ServiceAPIBase } from "./service-api-base.ts";
 
 const tests = [
@@ -41,16 +40,14 @@ JUPITER_API_URL: https://api.jup.ag
 </test-data>
 `;
 
-const documentation = `
-IMPORTANT ADD TO REQUIREMENTS: For documentation use the content of the following URL: https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/ 
-`;
+// const documentation = `
+// IMPORTANT ADD TO REQUIREMENTS: For documentation use the content of the following URL: https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/ 
+// `;
 
 for (const [index, test] of tests.entries()) {
     const prompt = `
 For Jupiter DEX create a tool that exactly does the following, and nothing else:
 ${test}
-
-${documentation}
 
 ${testData}
     `;
@@ -62,7 +59,7 @@ ${testData}
 
     await serviceAPIBase.startTest(prompt, language, testName, true, {
         feedback: (feedbackString: string) => {
-            assertEquals(feedbackString.includes('https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/'), true, 'feedbackString.includes documentation url');
+            // assertEquals(feedbackString.includes('https://shinkai-agent-knowledge-base.pages.dev/protocols/jupiter/'), true, 'feedbackString.includes documentation url');
         }
     });
 }

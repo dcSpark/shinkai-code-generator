@@ -1,5 +1,6 @@
 import axios from "npm:axios";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 
 const ollamaApiUrl = Deno.env.get("OLLAMA_API_URL");
@@ -33,12 +34,14 @@ export class OllamaEngine extends BaseEngine {
       throw new Error("OLLAMA_API_URL is not set");
     }
 
+    const tokenCount = this.countTokensFromMessageLlama3(JSON.stringify(payload));
     const contextMessage = thinkingAbout || "Processing";
-    logger?.log(`[Thinking] AI Thinking About ${contextMessage}`);
+    logger?.log(new Message(MessageType.THINKING, contextMessage));
+    logger?.log(new Message(MessageType.DEBUG, `${tokenCount}[tokens]`));
 
     const timer = setInterval(() => {
       const elapsed = (Date.now() - start) / 1000 | 0;
-      logger?.log(`Still thinking... ${elapsed}s`);
+      logger?.log(new Message(MessageType.LOADING, `${elapsed}s`));
     }, 5000);
 
     const response = await axios({
@@ -56,10 +59,7 @@ export class OllamaEngine extends BaseEngine {
 
     const time = end - start;
     logger?.log(
-      `[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(
-        /\n/g,
-        " "
-      )
+      new Message(MessageType.MESSAGE, `AI took ${(time / 1000) | 0}[s] to process ${contextMessage}`)
     );
     payload = this.addToOllamaPayload(
       response.data.message.content,

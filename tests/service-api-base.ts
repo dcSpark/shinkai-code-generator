@@ -45,7 +45,7 @@ export class ServiceAPIBase {
           prompt: prompt,
           tool_type: "shinkai",
           skipfeedback: "false",
-          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+          x_shinkai_request_uuid: `@@test-shinkai.test-${language === "typescript" ? "ts" : "py"
             }-${this.uuid}`,
           feedback: "",
         }),
@@ -94,7 +94,7 @@ export class ServiceAPIBase {
         console.log("=======================");
         additionalChecks.feedback?.(feedback);
       } catch (e) {
-        console.log("THIS IS A KNOWN ERROR. BUT NOT KNOWN FIX.");
+        console.log("IF YOU DONT SEE THE '# REQUIREMENTS' ABOVE -> THIS IS A KNOWN ERROR. BUT NOT KNOWN FIX.");
         console.log(e);
       }
     }
@@ -147,7 +147,7 @@ export class ServiceAPIBase {
           prompt: "ok",
           tool_type: "shinkai",
           skipfeedback: "false",
-          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+          x_shinkai_request_uuid: `@@test-shinkai.test-${language === "typescript" ? "ts" : "py"
             }-${this.uuid}`,
           feedback: "",
         }),
@@ -229,7 +229,7 @@ export class ServiceAPIBase {
         body: JSON.stringify({
           language: "typescript",
           code: this.code,
-          x_shinkai_request_uuid: `test-${language === "typescript" ? "ts" : "py"
+          x_shinkai_request_uuid: `@@test-shinkai.test-${language === "typescript" ? "ts" : "py"
             }-${this.uuid}`,
         }),
       });

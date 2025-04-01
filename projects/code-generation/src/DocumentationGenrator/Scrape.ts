@@ -3,6 +3,7 @@ import axios from "npm:axios";
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
 import { LLMFormatter } from "../ShinkaiPipeline/LLMFormatter.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { Cache } from "./Cache.ts";
 import { selectInPageUrlsPrompt } from "./prompts/select-in-page-urls.ts";
 import { selectSearchUrlsPrompt } from "./prompts/select-serach-urls.ts";
@@ -229,20 +230,14 @@ export class Scrape {
           (retries >= 3 && retries < 24 && retries % 3 === 0) ||
           (retries >= 24 && retries % 5 === 0)
         ) {
-          await this.logger?.log(
-            `Polling status: ${statusData.status}, retry #${retries}`,
-            true
-          );
+          await this.logger?.log(new Message(MessageType.MESSAGE, `Polling status: ${statusData.status}, retry #${retries}`), true);
         }
 
         if (statusData.status === "completed") {
           return statusData;
         }
       } catch (error) {
-        await this.logger?.log(
-          `Polling error on retry #${retries}, continuing...`,
-          true
-        );
+        await this.logger?.log(new Message(MessageType.MESSAGE, `Polling error on retry #${retries}, continuing...`), true);
       }
 
       retries++;
@@ -273,7 +268,7 @@ export class Scrape {
           options.url + " - URL must start with http:// or https://"
         );
       } else {
-        await this.logger?.log("Crawling " + options.url, true);
+        await this.logger?.log(new Message(MessageType.MESSAGE, `Crawling ${options.url}`), true);
       }
       const response = await axios.post(
         FIRECRAWL_API_URL + "/v1/crawl",
@@ -441,9 +436,11 @@ export class Scrape {
       if (scrapeResponse.data.metadata.statusCode > 399) {
         scrapeResponse.data.markdown = "";
         scrapeResponse.data.html = "";
-        await this.logger?.log(
-          `Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`,
-          true
+        await this.logger?.log(new Message(MessageType.MESSAGE, `Scrape failed ${scrapeResponse.data.metadata.statusCode} - ${options.url}`), true);
+        await this.cache.save(
+          file,
+          JSON.stringify(scrapeResponse, null, 2),
+          folders
         );
       } else {
         await this.cache.save(
@@ -454,7 +451,8 @@ export class Scrape {
       }
       return scrapeResponse;
     } catch (error: unknown) {
-      console.log(`INTERNAL ERROR @ scrapeWebsite`, options.url);
+      await this.logger?.log(new Message(MessageType.MESSAGE, `Scrape failed ${error} - ${options.url}`), true);
+
       return {
         success: false,
         data: {

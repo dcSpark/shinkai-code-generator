@@ -1,5 +1,6 @@
 import axios from "npm:axios";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString } from "./index.ts";
 import { OllamaMessage, OllamaPayload } from "./Ollama.ts";
@@ -45,9 +46,8 @@ export class PerplexityEngine extends BaseEngine {
     const payloadString = JSON.stringify(payload);
     const tokenCount = countTokensFromMessageLlama3(payloadString);
     const contextMessage = thinkingAbout || "Processing";
-    logger?.log(
-      `[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`
-    );
+    logger?.log(new Message(MessageType.THINKING, contextMessage));
+    logger?.log(new Message(MessageType.DEBUG, `${tokenCount}[tokens]`));
     logger?.save(
       1000,
       `${new Date().getTime()}-${tokenCount}`,
@@ -61,7 +61,7 @@ export class PerplexityEngine extends BaseEngine {
 
     let responseData: PerplexityResponse | null = null;
     if (cachedPayload) {
-      logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
+      logger?.log(new Message(MessageType.CACHE, `Found AI response ${hashedFilename}`));
       responseData = JSON.parse(cachedPayload);
       await this.addFreeCost(
         logger,
@@ -73,7 +73,7 @@ export class PerplexityEngine extends BaseEngine {
       if (payloadHistory) throw new Error("payloadHistory NYI");
       const timer = setInterval(() => {
         const elapsed = (Date.now() - start) / 1000 | 0;
-        logger?.log(`Still thinking... ${elapsed}s`);
+        logger?.log(new Message(MessageType.LOADING, `${elapsed}s`));
       }, 5000);
       const data = {
         url: `https://api.perplexity.ai/chat/completions`,
@@ -96,12 +96,7 @@ export class PerplexityEngine extends BaseEngine {
 
     const end = Date.now();
     const time = end - start;
-    logger?.log(
-      `[Thinking] Ollama took ${time}ms to process ${contextMessage}`.replace(
-        /\n/g,
-        " "
-      )
-    );
+    logger?.log(new Message(MessageType.MESSAGE, `AI took ${(time / 1000) | 0}[s] to process ${contextMessage}`));
 
     return {
       message: responseData.choices[0].message.content,

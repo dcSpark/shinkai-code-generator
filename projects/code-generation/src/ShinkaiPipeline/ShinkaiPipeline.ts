@@ -9,6 +9,7 @@ import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { getPerplexity, Payload } from "../Engines/index.ts";
 import { FileManager } from "./FileManager.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
+import { Message, MessageType } from "./Message.ts";
 import { PromptGenerator } from "./PromptGenerator.ts";
 import { Requirement } from "./Requirement.ts";
 import { ShinkaiPipelineMetadata } from "./ShinkaiPipelineMeta.ts";
@@ -149,10 +150,19 @@ export class ShinkaiPipeline {
     // this.shinkaiPrompts = completeShinkaiPrompts[this.language];
     // this.availableTools = completeShinkaiPrompts.availableTools;
     // await this.fileManager.log(`=========================================================`, true);
+
     await this.fileManager.log(
-      `🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language} (Tool Type: ${this.toolType})`,
+      new Message(MessageType.START, String(this.test.code)),
       true
     );
+
+    if (Deno.env.get("DEBUG")) {
+      await this.fileManager.log(
+        new Message(MessageType.DEBUG, `code: ${this.test.code} language: ${this.language} toolType: ${this.toolType}`),
+        true
+      );
+    }
+
   }
 
   private async generateRequirements() {
@@ -162,10 +172,10 @@ export class ShinkaiPipeline {
       (await this.fileManager.exists(this.step, "x", "promptHistory.json"))
     ) {
       // If skipping this was processed before, just adding into the prompt history
-      await this.fileManager.log(
-        ` Step ${this.step} - Requirements & Feedback `,
-        true
-      );
+      // await this.fileManager.log(
+      //   new Message(MessageType.TITLE, `Requirements & Feedback`),
+      //   true
+      // );
       const existingFile = await this.fileManager.load(
         this.step,
         "c",
@@ -221,7 +231,7 @@ export class ShinkaiPipeline {
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] System Requirements & Feedback Prompt`,
+          new Message(MessageType.TITLE, `Program Requirements`),
           true
         );
         await this.fileManager.save(
@@ -234,7 +244,7 @@ export class ShinkaiPipeline {
           prompt,
           this.fileManager,
           undefined,
-          "Analyzing Requirements & Generating Feedback"
+          "Analyzing Requirements"
         );
         llmCacheFilePath = llmResponse.cacheFilePath;
         await this.fileManager.save(
@@ -301,10 +311,10 @@ export class ShinkaiPipeline {
     while (moreFeedback) {
       // Check if output file exists
       if (await this.fileManager.exists(this.step, "c", "feedback.md")) {
-        await this.fileManager.log(
-          ` Step ${this.step} - User Requirements & Feedback `,
-          true
-        );
+        // await this.fileManager.log(
+        //   ` Step ${this.step} - User Requirements & Feedback `,
+        //   true
+        // );
         this.requirements = await this.fileManager.load(
           this.step,
           "c",
@@ -337,7 +347,7 @@ export class ShinkaiPipeline {
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] User Requirements & Feedback Prompt`,
+          new Message(MessageType.TITLE, `Requirements Analysis`),
           true
         );
         await this.fileManager.save(
@@ -408,10 +418,10 @@ export class ShinkaiPipeline {
     while (moreFeedback) {
       // Check if output file exists
       if (await this.fileManager.exists(this.step, "c", "plan-feedback.md")) {
-        await this.fileManager.log(
-          ` Step ${this.step} - User Plan Feedback `,
-          true
-        );
+        // await this.fileManager.log(
+        //   ` Step ${this.step} - User Plan Feedback `,
+        //   true
+        // );
         this.requirements = await this.fileManager.load(
           this.step,
           "c",
@@ -446,7 +456,7 @@ export class ShinkaiPipeline {
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] User Plan & Feedback Prompt`,
+          new Message(MessageType.TITLE, `User Plan & Feedback`),
           true
         );
 
@@ -513,10 +523,10 @@ export class ShinkaiPipeline {
     {
       let parsedLLMResponse = "";
       if (await this.fileManager.exists(this.step, "c", "library.json")) {
-        await this.fileManager.log(
-          ` Step ${this.step} - Library Search `,
-          true
-        );
+        // await this.fileManager.log(
+        //   ` Step ${this.step} - Library Search `,
+        //   true
+        // );
         const existingLibraryJson = await this.fileManager.load(
           this.step,
           "c",
@@ -529,7 +539,7 @@ export class ShinkaiPipeline {
         parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
           async () => {
             this.fileManager.log(
-              `[Planning Step ${this.step}] Library Search Prompt`,
+              new Message(MessageType.TITLE, `Library Analysis`),
               true
             );
             const prompt = (
@@ -594,10 +604,10 @@ export class ShinkaiPipeline {
             safeLibraryName + "-dependency-doc.md"
           ))
         ) {
-          await this.fileManager.log(
-            ` Step ${this.step} - Dependency Doc `,
-            true
-          );
+          // await this.fileManager.log(
+          //   ` Step ${this.step} - Dependency Doc `,
+          //   true
+          // );
           const existingFile = await this.fileManager.load(
             this.step,
             codes[index % codes.length],
@@ -606,7 +616,7 @@ export class ShinkaiPipeline {
           this.docs[library] = existingFile;
         } else {
           this.fileManager.log(
-            `[Planning Step ${this.step}] Dependency Doc Prompt : ${library}`,
+            new Message(MessageType.DEBUG, `Checking library: ${library}`),
             true
           );
           const dependencyDoc = await docManager.getDependencyDocumentation(
@@ -629,13 +639,13 @@ export class ShinkaiPipeline {
     const KB_PHASE = Deno.env.get("KB_PHASE");
     if (KB_PHASE === "true") {
       const documentationURL =
-        "https://shinkai-agent-knowledge-base.pages.dev/";
+        "https://shinkai-agent-knowledge-base.pages.dev/intro";
       let parsedLLMResponse = "";
       if (await this.fileManager.exists(this.step, "c", "kb-library.jsonn")) {
-        await this.fileManager.log(
-          ` Step ${this.step} - KB Library Search `,
-          true
-        );
+        // await this.fileManager.log(
+        //   ` Step ${this.step} - KB Library Search `,
+        //   true
+        // );
         const existingLibraryJson = await this.fileManager.load(
           this.step,
           "c",
@@ -712,37 +722,37 @@ export class ShinkaiPipeline {
         const safeLibraryName = url
           .replace(/[^a-zA-Z0-9]/g, "_")
           .toLocaleLowerCase();
-        if (
-          await this.fileManager.exists(
-            this.step,
-            codes[index % codes.length],
-            safeLibraryName + "-kb-dependency-doc.md"
-          )
-        ) {
-          await this.fileManager.log(` Step ${this.step} - KB Library `, true);
-          const existingFile = await this.fileManager.load(
-            this.step,
-            codes[index % codes.length],
-            safeLibraryName + "-kb-dependency-doc.md"
-          );
-          this.docs[safeLibraryName] = existingFile;
-        } else {
-          this.fileManager.log(
-            `[Planning Step ${this.step}] KB Library : ${safeLibraryName}`,
-            true
-          );
-          const documentation = await fetch(url);
-          const documentationHTML = await documentation.text();
-          const turndownService = new TurndownService.default();
-          const markdown = turndownService.turndown(documentationHTML);
-          this.docs[safeLibraryName] = markdown;
-          await this.fileManager.save(
-            this.step,
-            codes[index % codes.length],
-            markdown,
-            safeLibraryName + "-kb-dependency-doc.md"
-          );
-        }
+        // if (
+        //   await this.fileManager.exists(
+        //     this.step,
+        //     codes[index % codes.length],
+        //     safeLibraryName + "-kb-dependency-doc.md"
+        //   )
+        // ) {
+        //   // await this.fileManager.log(` Step ${this.step} - KB Library `, true);
+        //   const existingFile = await this.fileManager.load(
+        //     this.step,
+        //     codes[index % codes.length],
+        //     safeLibraryName + "-kb-dependency-doc.md"
+        //   );
+        //   this.docs[safeLibraryName] = existingFile;
+        // } else {
+        this.fileManager.log(
+          new Message(MessageType.MESSAGE, `Reading library : ${url}`),
+          true
+        );
+        const documentation = await fetch(url);
+        const documentationHTML = await documentation.text();
+        const turndownService = new TurndownService.default();
+        const markdown = turndownService.turndown(documentationHTML);
+        this.docs[safeLibraryName] = markdown;
+        await this.fileManager.save(
+          this.step,
+          codes[index % codes.length],
+          markdown,
+          safeLibraryName + "-kb-dependency-doc.md"
+        );
+        // }
       }
 
       this.step++;
@@ -750,23 +760,12 @@ export class ShinkaiPipeline {
   }
 
   private async processPerplexitySearch() {
-    // Skip if PERPLEXITY_API_KEY is not set
-    const perplexityApiKey = Deno.env.get("PERPLEXITY_API_KEY");
-    if (!perplexityApiKey) {
-      await this.fileManager.log(
-        `[Planning Step ${this.step}] Skipping Perplexity search - API key not found`,
-        true
-      );
-      this.step++;
-      return;
-    }
-
     // Check if output file exists
     if (await this.fileManager.exists(this.step, "c", "perplexity.md")) {
-      await this.fileManager.log(
-        ` Step ${this.step} - Searching Perplexity for additional context `,
-        true
-      );
+      // await this.fileManager.log(
+      //   new Message(MessageType.TITLE, `Searching for external libraries`),
+      //   true
+      // );
       this.perplexityResults = await this.fileManager.load(
         this.step,
         "c",
@@ -777,7 +776,7 @@ export class ShinkaiPipeline {
     }
 
     this.fileManager.log(
-      `[Planning Step ${this.step}] Searching Perplexity for additional context`,
+      new Message(MessageType.TITLE, `Searching for external libraries`),
       true
     );
 
@@ -874,7 +873,7 @@ export class ShinkaiPipeline {
   private async processInternalTools() {
     // Check if output file exists
     if (await this.fileManager.exists(this.step, "c", "internal-tools.json")) {
-      await this.fileManager.log(` Step ${this.step} - Internal Tools `, true);
+      // await this.fileManager.log(` Step ${this.step} - Internal Tools `, true);
       const existingFile = await this.fileManager.load(
         this.step,
         "c",
@@ -933,7 +932,7 @@ get_access_token
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}]Internal Libraries Prompt`,
+          new Message(MessageType.TITLE, `Checking Internal Libraries`),
           true
         );
         await this.fileManager.save(
@@ -1060,7 +1059,7 @@ get_access_token
       this.language === "typescript" &&
       (await this.fileManager.exists(this.step, "c", "tool.ts"))
     ) {
-      await this.fileManager.log(` Step ${this.step} - Tool code `, true);
+      // await this.fileManager.log(` Step ${this.step} - Tool code `, true);
       const existingFile = await this.fileManager.load(
         this.step,
         "c",
@@ -1074,7 +1073,7 @@ get_access_token
       this.language === "python" &&
       (await this.fileManager.exists(this.step, "c", "tool.py"))
     ) {
-      await this.fileManager.log(` Step ${this.step} - Tool code `, true);
+      // await this.fileManager.log(` Step ${this.step} - Tool code `, true);
       const existingFile = await this.fileManager.load(
         this.step,
         "c",
@@ -1085,14 +1084,14 @@ get_access_token
       return;
     }
 
-    const prompt = await (async () => {
-      const usedInternalTools = this.shinkaiLocalTools_toolRouterKeys
+    const prompt: string = await (async (): Promise<string> => {
+      const usedInternalTools: string = this.shinkaiLocalTools_toolRouterKeys
         .filter((trk) => this.internalToolsJSON.includes(trk.toolRouterKey))
         .map((trk) => trk.code)
         .join("\n");
 
       const r: [string | RegExp, string][] = [];
-      const file =
+      const file: string =
         this.language === "typescript"
           ? "/prompts/6-code-ts.md"
           : "/prompts/6-code-py.md";
@@ -1111,19 +1110,19 @@ get_access_token
       }
 
       // TODO remove this false when possible.
-      const toolPrompt = await promptGenerator.generatePrompt(false);
+      const toolPrompt: string = await promptGenerator.generatePrompt(false);
 
-      const req = this.requirements.replace(
+      const req: string = this.requirements.replace(
         /# External Libraries[\s\S]*?# Example Input and Output/,
         "# Example Input and Output"
       );
       // This used to use the plan.
-      const toolCode_1 = toolPrompt.replace(
+      const toolCode_1: string = toolPrompt.replace(
         "{{INPUT_COMMAND}}",
         `<input_command>\n${req}\n\n</input_command>`
       );
 
-      let alternativeHeaders = "";
+      let alternativeHeaders: string = "";
       if (this.language === "typescript") {
         if (
           await this.fileManager.exists(
@@ -1154,7 +1153,7 @@ get_access_token
         }
       }
 
-      let toolCode_2 = "";
+      let toolCode_2: string = "";
       if (this.language === "typescript") {
         toolCode_2 = toolCode_1
           .replace(
@@ -1204,17 +1203,15 @@ ${alternativeHeaders}
       // </reference-implementation>
       // `;
 
-      const additionalRules =
+      const additionalRules: string =
         this.language === "typescript"
           ? `
     * Use "Internal Libraries" with \`import { xx } from './shinkai-local-support.ts\`; 
     * Use "External Libraries" with \`import { xx } from 'npm:xx'\`;
         `
           : "";
-      const toolCode =
-        `
 
-<libraries_documentation>
+      const libraries_documentation: string = `<libraries_documentation>
 ${Object.entries(this.docs)
           .map(
             ([library, doc]) => `
@@ -1229,18 +1226,23 @@ ${Object.entries(this.docs)
           )
           .join("\n")}
 </libraries_documentation>
-        ` +
+        `;
+
+      const addLibrariesDocumentation = false;
+      const toolCode: string =
+        (addLibrariesDocumentation ? libraries_documentation : "")
+        +
         toolCode_2.replace(
           "* Prefer libraries in the following order:",
           `
-    * As first preference use the libraries described in the "Internal Libraries" and "External Libraries" sections.
-${additionalRules}
-    * For missing and additional required libraries, prefer the following order:`
+        * As first preference use the libraries described in the "Internal Libraries" and "External Libraries" sections.
+          ${additionalRules}
+    * For missing and additional required libraries, prefer the following order: `
         );
 
       const toolCodeWithReferenceImplementation = toolCode.replace(
         "{{EXAMPLE_IMPLEMENTATION}}",
-        `<example_implementation>\n${this.perplexityResults}\n</example_implementation>`
+        `<example_implementation>\n${this.perplexityResults} \n </example_implementation>`
       );
       // TODO: Implement this with the prompt generator
       // return await promptGenerator.generatePrompt();
@@ -1251,7 +1253,7 @@ ${additionalRules}
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] Generate the tool code`,
+          new Message(MessageType.TITLE, `Generating Tool Code`),
           true
         );
 
@@ -1336,7 +1338,7 @@ ${additionalRules}
               "tool_headers.ts"
             );
         } else {
-          console.log("[Warning] Not using local tools.");
+          this.fileManager.log(new Message(MessageType.MESSAGE, "[Warning] Not using local tools."), true);
         }
       } else {
         if (
@@ -1353,7 +1355,7 @@ ${additionalRules}
               "tool_headers.py"
             );
         } else {
-          console.log("[Warning] Not using local tools.");
+          this.fileManager.log(new Message(MessageType.MESSAGE, "[Warning] Not using local tools."), true);
         }
       }
 
@@ -1364,7 +1366,7 @@ ${additionalRules}
       );
 
       this.fileManager.log(
-        `[Planning Step ${this.step}] Code check results ${checkResult.warnings.length} warnings`,
+        new Message(MessageType.TITLE, `Code check results ${checkResult.warnings.length} warnings`),
         true
       );
       await this.fileManager.save(
@@ -1380,7 +1382,7 @@ ${additionalRules}
         this.language === "typescript" &&
         (await this.fileManager.exists(this.step, "d", "fixed-tool.ts"))
       ) {
-        await this.fileManager.log(` Step ${this.step} - Fixed code `, true);
+        // await this.fileManager.log(` Step ${this.step} - Fixed code `, true);
         const existingFile = await this.fileManager.load(
           this.step,
           "d",
@@ -1394,7 +1396,7 @@ ${additionalRules}
         this.language === "python" &&
         (await this.fileManager.exists(this.step, "d", "fixed-tool.py"))
       ) {
-        await this.fileManager.log(` Step ${this.step} - Fixed code `, true);
+        // await this.fileManager.log(` Step ${this.step} - Fixed code `, true);
         const existingFile = await this.fileManager.load(
           this.step,
           "d",
@@ -1405,7 +1407,7 @@ ${additionalRules}
         return { warnings: true };
       }
       this.fileManager.log(
-        `[Planning Step ${this.step}] Check generated code`,
+        new Message(MessageType.TITLE, `Checking generated code`),
         true
       );
 
@@ -1537,7 +1539,7 @@ In the next example tag is an example of the commented script block that MUST be
     } else {
       // Nothing to fix
       this.fileManager.log(
-        `[Planning Step ${this.step}] No warnings found`,
+        new Message(MessageType.TITLE, `No warnings found`),
         true
       );
 
@@ -1549,7 +1551,7 @@ In the next example tag is an example of the commented script block that MUST be
   private async generateTests() {
     // Check if output file exists
     if (await this.fileManager.exists(this.step, "c", "tests.json")) {
-      await this.fileManager.log(` Step ${this.step} - Tests `, true);
+      // await this.fileManager.log(` Step ${this.step} - Tests `, true);
       const existingFile = await this.fileManager.load(
         this.step,
         "c",
@@ -1591,7 +1593,7 @@ ${doc}
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] Generate test cases`,
+          new Message(MessageType.TITLE, `Generating test cases`),
           true
         );
 
@@ -1649,7 +1651,7 @@ ${doc}
     const end = Date.now();
     const time = end - this.startTime;
     await this.fileManager.log(
-      `[Done] took ${time}ms (Tool Type: ${this.toolType})`,
+      new Message(MessageType.TITLE, `Done (took ${(time / 1000) | 0}s)`),
       true
     );
     // await this.fileManager.log(`code available at ${this.fileManager.toolDir}/src`, true);
@@ -1705,7 +1707,7 @@ ${doc}
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] Feedback Analysis Prompt`,
+          new Message(MessageType.TITLE, `Feedback Analysis`),
           true
         );
         await this.fileManager.save(

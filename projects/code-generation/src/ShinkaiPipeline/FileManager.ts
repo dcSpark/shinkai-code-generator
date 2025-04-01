@@ -1,5 +1,6 @@
 import { exists } from "jsr:@std/fs/exists";
 import * as path from "jsr:@std/path";
+import { Message } from "./Message.ts";
 import { Language } from "./types.ts";
 
 type FEEDBACK_EXPECTED = "no" | "requirements" | "plan";
@@ -28,14 +29,14 @@ export class FileManager {
     }
   }
 
-  async log(message: string, stdout: boolean = false) {
-    const filePath = path.join(this.toolDir, `log.txt`);
+  async log(message: Message, stdout: boolean = false) {
+    const filePath = path.join(this.toolDir, `log.md`);
     await Deno.mkdir(this.toolDir, { recursive: true });
     const file = await Deno.open(filePath, { create: true, append: true });
-    await file.write(new TextEncoder().encode(message + "\n"));
+    await file.write(new TextEncoder().encode(message.getMessage() + "\n"));
     file.close();
     if (stdout || this.stream) {
-      console.log(message);
+      console.log(message.getMessage());
     }
   }
 

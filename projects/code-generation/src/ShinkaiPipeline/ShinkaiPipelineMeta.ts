@@ -1,6 +1,7 @@
 import { BaseEngine } from "../Engines/BaseEngine.ts";
 import { FileManager } from "./FileManager.ts";
 import { LLMFormatter } from "./LLMFormatter.ts";
+import { Message, MessageType } from "./Message.ts";
 import { Requirement } from "./Requirement.ts";
 import { getHeaders } from "./support.ts";
 import { Language } from "./types.ts";
@@ -136,15 +137,16 @@ export class ShinkaiPipelineMetadata {
     // this.availableTools = completeShinkaiPrompts.availableTools;
     // await this.fileManager.log(`=========================================================`, true);
     await this.fileManager.log(
-      `🔨 Starting Code Generation for #[${this.test.id}] ${this.test.code} @ ${this.language}`,
+      new Message(MessageType.START_METADATA, `${this.test.code}`),
       true
     );
+
   }
 
   private async generateMetadata() {
     // Check if output file exists
     if (await this.fileManager.exists(this.step, "c", "metadata.json")) {
-      await this.fileManager.log(` Step ${this.step} - Metadata `, true);
+      // await this.fileManager.log(` Step ${this.step} - Metadata `, true);
       const m = await this.fileManager.load(this.step, "c", "metadata.json");
       this.metadata = m;
       this.step++;
@@ -155,7 +157,7 @@ export class ShinkaiPipelineMetadata {
     const parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
       async () => {
         this.fileManager.log(
-          `[Planning Step ${this.step}] Generate the metadata`,
+          new Message(MessageType.TITLE, `Planning metadata generation`),
           true
         );
 

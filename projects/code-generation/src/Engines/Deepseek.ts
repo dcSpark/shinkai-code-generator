@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "npm:axios";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString, Payload } from "./index.ts";
 
@@ -111,8 +112,10 @@ export class DeepseekService extends BaseEngine {
 
       const contextMessage = thinkingAbout || "Processing";
       logger?.log(
-        `[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`
+        new Message(MessageType.THINKING, contextMessage)
       );
+      logger?.log(new Message(MessageType.DEBUG, `${tokenCount}[tokens]`));
+
       const data = {
         url: this.apiUrl,
         method: "POST",
@@ -134,7 +137,7 @@ export class DeepseekService extends BaseEngine {
       const cachedPayload = await logger?.loadCache(hashedFilename);
       let responseData: DeepseekResponse | null = null;
       if (cachedPayload) {
-        logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
+        logger?.log(new Message(MessageType.CACHE, `Found cached payload ${hashedFilename}`));
         responseData = JSON.parse(cachedPayload);
         const allOutput =
           responseData!.choices[0].message.content +
@@ -143,7 +146,7 @@ export class DeepseekService extends BaseEngine {
       } else {
         const timer = setInterval(() => {
           const elapsed = (Date.now() - start) / 1000 | 0;
-          logger?.log(`Still thinking... ${elapsed}s`);
+          logger?.log(new Message(MessageType.LOADING, `${elapsed}s`));
         }, 5000);
 
         const response = await axios<DeepseekResponse>(data);
@@ -164,7 +167,7 @@ export class DeepseekService extends BaseEngine {
       const time = end - start;
       // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
       logger?.log(
-        `[Thinking] AI took ${time}[ms] to process ${contextMessage}`
+        new Message(MessageType.MESSAGE, `AI took ${(time / 1000) | 0}[s] to process ${contextMessage}`)
       );
       payload = this.addToDeepseekPayload(
         responseData!.choices[0].message.content,

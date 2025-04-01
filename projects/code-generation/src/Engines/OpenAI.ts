@@ -1,5 +1,6 @@
 import axios from "npm:axios";
 import { FileManager } from "../ShinkaiPipeline/FileManager.ts";
+import { Message, MessageType } from "../ShinkaiPipeline/Message.ts";
 import { BaseEngine } from "./BaseEngine.ts";
 import { countTokensFromMessageLlama3, hashString } from "./index.ts";
 const OPEN_AI_KEY = Deno.env.get("OPEN_AI_KEY");
@@ -73,9 +74,8 @@ export class OpenAI extends BaseEngine {
 
     const tokenCount = countTokensFromMessageLlama3(JSON.stringify(payload));
     const contextMessage = thinkingAbout || "Processing";
-    logger?.log(
-      `[Thinking] AI Thinking About ${contextMessage} ${tokenCount}[tokens]`
-    );
+    logger?.log(new Message(MessageType.THINKING, contextMessage));
+    logger?.log(new Message(MessageType.DEBUG, `${tokenCount}[tokens]`));
     const data = {
       url: `https://api.openai.com/v1/chat/completions`,
       method: "POST",
@@ -97,7 +97,7 @@ export class OpenAI extends BaseEngine {
     const cachedPayload = await logger?.loadCache(hashedFilename);
     let responseData: OpenAIResponse | null = null;
     if (cachedPayload) {
-      logger?.log(`[Cache] Found cached payload ${hashedFilename}`);
+      logger?.log(new Message(MessageType.CACHE, `Found AI response ${hashedFilename}`));
       responseData = JSON.parse(cachedPayload);
       await this.addFreeCost(
         logger,
@@ -107,7 +107,7 @@ export class OpenAI extends BaseEngine {
     } else {
       const timer = setInterval(() => {
         const elapsed = (Date.now() - start) / 1000 | 0;
-        logger?.log(`Still thinking... ${elapsed}s`);
+        logger?.log(new Message(MessageType.LOADING, `${elapsed}s`));
       }, 5000);
       const response = await axios<OpenAIResponse>(data);
       clearInterval(timer);
@@ -123,7 +123,7 @@ export class OpenAI extends BaseEngine {
     const end = Date.now();
     const time = end - start;
     // const prompt_short = prompt.substring(0, 50) + "..." + prompt.substring(prompt.length - 50);
-    logger?.log(`[Thinking] AI took ${time}[ms] to process ${contextMessage}`);
+    logger?.log(new Message(MessageType.MESSAGE, `AI took ${(time / 1000) | 0}[s] to process ${contextMessage}`));
     payload = this.addToOpenAIPayload(
       responseData!.choices[0].message.content,
       "assistant",
