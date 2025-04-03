@@ -638,19 +638,14 @@ export class ShinkaiPipeline {
 
     const KB_PHASE = Deno.env.get("KB_PHASE");
     if (KB_PHASE === "true") {
-      const documentationURL =
-        "https://shinkai-agent-knowledge-base.pages.dev/intro";
+      const documentationURL = Deno.env.get("KNOWLEDGE_BASE_URL") || "https://shinkai-agent-knowledge-base.pages.dev/intro";
       let parsedLLMResponse = "";
-      if (await this.fileManager.exists(this.step, "c", "kb-library.jsonn")) {
+      if (await this.fileManager.exists(this.step, "c", "kb-library.json")) {
         // await this.fileManager.log(
         //   ` Step ${this.step} - KB Library Search `,
         //   true
         // );
-        const existingLibraryJson = await this.fileManager.load(
-          this.step,
-          "c",
-          "kb-library.json"
-        );
+        const existingLibraryJson = await this.fileManager.load(this.step, "c", "kb-library.json");
         parsedLLMResponse = existingLibraryJson;
         // Load existing dependency docs
       } else {
@@ -677,26 +672,10 @@ export class ShinkaiPipeline {
         let llmCacheFilePath = "";
         parsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
           async () => {
-            await this.fileManager.save(
-              this.step,
-              "a",
-              prompt,
-              "kb-library-prompt.md"
-            );
-            const llmResponse = await this.llmModel.run(
-              prompt,
-              this.fileManager,
-              undefined,
-              "Fetching Documentation"
-            );
+            await this.fileManager.save(this.step, "a", prompt, "kb-library-prompt.md");
+            const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Fetching Documentation");
             llmCacheFilePath = llmResponse.cacheFilePath;
-            await this.fileManager.save(
-              this.step,
-              "b",
-              llmResponse.message,
-              "raw-kb-library-response.md"
-            );
-
+            await this.fileManager.save(this.step, "b", llmResponse.message, "raw-kb-library-response.md");
             return llmResponse.message;
           },
           async () => {
@@ -705,18 +684,76 @@ export class ShinkaiPipeline {
             }
           },
           "json",
-          {
-            isJSONArray: true,
-          }
+          { isJSONArray: true }
         );
-        await this.fileManager.save(
-          this.step,
-          "c",
-          parsedLLMResponse,
-          "kb-library.json"
-        );
+        await this.fileManager.save(this.step, "c", parsedLLMResponse, "kb-library.json");
       }
+
+
       const documentationJSON: string[] = JSON.parse(parsedLLMResponse);
+
+      // Now repeat for the subpages
+      for (const url of documentationJSON) {
+        let subParsedLLMResponse = '';
+        const safeLibraryName = url
+          .replace(/[^a-zA-Z0-9]/g, "_")
+          .toLocaleLowerCase();
+        if (await this.fileManager.exists(this.step, "c", `kb-library-${safeLibraryName}.json`)) {
+          // await this.fileManager.log(
+          //   ` Step ${this.step} - KB Library Search `,
+          //   true
+          // );
+          const existingLibraryJson = await this.fileManager.load(this.step, "c", `kb-library-${safeLibraryName}.json`);
+          subParsedLLMResponse = existingLibraryJson;
+          // Load existing dependency docs
+        } else {
+          const documentation = await fetch(url);
+          const documentationHTML = await documentation.text();
+          const turndownService = new TurndownService.default();
+          const documentationMarkdown =
+            turndownService.turndown(documentationHTML);
+
+          const prompt = await (async () => {
+            const promptGenerator = new PromptGenerator(
+              Deno.cwd() + "/prompts/3a-fetch-library.md",
+              [
+                ["{{WEB_PAGE}}", `<web>\n${documentationMarkdown}\n</web>`],
+                [
+                  "{{REQUIREMENTS}}",
+                  `<requirements>\n${this.requirements}\n</requirements>`,
+                ],
+              ]
+            );
+            return await promptGenerator.generatePrompt();
+          })();
+
+          let llmCacheFilePath = "";
+          subParsedLLMResponse = await this.llmFormatter.retryUntilSuccess(
+            async () => {
+              await this.fileManager.save(this.step, "a", prompt, `kb-library-prompt-${safeLibraryName}.md`);
+              const llmResponse = await this.llmModel.run(prompt, this.fileManager, undefined, "Fetching Specific Documentation");
+              llmCacheFilePath = llmResponse.cacheFilePath;
+              await this.fileManager.save(this.step, "b", llmResponse.message, `raw-kb-library-response-${safeLibraryName}.md`);
+              return llmResponse.message;
+            },
+            async () => {
+              if (llmCacheFilePath) {
+                await this.fileManager.deleteCache(llmCacheFilePath);
+              }
+            },
+            "json",
+            { isJSONArray: true }
+          );
+          await this.fileManager.save(this.step, "c", subParsedLLMResponse, `kb-library-${safeLibraryName}.json`);
+        }
+        const subDocs = JSON.parse(subParsedLLMResponse);
+        for (const subDoc of subDocs) {
+          if (!documentationJSON.includes(subDoc)) {
+            documentationJSON.push(subDoc);
+          }
+        }
+      }
+
 
       for (const [index, url] of documentationJSON.entries()) {
         const safeLibraryName = url
